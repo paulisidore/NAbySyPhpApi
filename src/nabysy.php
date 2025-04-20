@@ -868,7 +868,7 @@ Class xNAbySyGS
 				mkdir($dos,0777,true);
 			}
 			$debg=1;
-			if($categorie=='comptabilite' && $categorie=='boutique' ){
+			if($categorie=='comptabilite' || $categorie=='boutique' ){
 				$debg=5;
 			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
