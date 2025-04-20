@@ -10,7 +10,7 @@ use NAbySy\Lib\ModulePaie\Wave\xApiNAbySyWaveConnect;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xNAbySyGS;
-use xNotification;
+use NAbySy\xNotification;
 
 class xNAbySyWaveNetwork implements IModulePaieManager {
 
@@ -77,12 +77,12 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
     private function setupVariable(){
         $this->API_DISPONIBLE = 1;
         $this->API_TOKEN = self::$myModuleHandleName;
-        $this->API_ENDPOINT ="https://technoweb.homeip.net:8181/paiement_api_action.php";
-        $this->API_AUTH ="https://technoweb.homeip.net:8181/auth.php";
-        $this->API_AUTH_USER ="paulvb";
-        $this->API_AUTH_PWD ="isidore";
+        $this->API_ENDPOINT ="https:/mon_site_auth.com/paiement_api_action.php";
+        $this->API_AUTH ="https://mon_site_auth.com/auth.php";
+        $this->API_AUTH_USER ="";
+        $this->API_AUTH_PWD ="";
         $this->WAIT_API_RESPONSE = 0;
-        $this->API_REFCLIENT ="UEFNIHNhcmwtQVBQTkFNRTpQYWllbWVudCBXYXZlIHBvdXIgbGVzIEFwcGxpY2F0aW9ucyBOQWJ5U3kgUG9pbnQgZGUgVmVudGUtSURDT05GSUc6MQ==";        
+        $this->API_REFCLIENT =""; //API Token Auth        
     }
 
     public function UpDateTransaction(int $IdTransaction, array $MethodePaie): bool { 

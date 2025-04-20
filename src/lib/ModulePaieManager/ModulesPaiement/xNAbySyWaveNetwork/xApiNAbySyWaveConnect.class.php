@@ -5,7 +5,7 @@ use NAbySy\GS\Comptabilite\xCompteBancaire;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xNAbySyGS;
-use xNotification;
+use NAbySy\xNotification ;
 
 include_once 'xCheckOutParam.class.php';
 

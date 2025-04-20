@@ -4,7 +4,7 @@
 use NAbySy\GS\Panier\xCart;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\xNAbySyGS;
-use xNotification;
+use NAbySy\xNotification;
 
 /**
  * Interface des Modules de Paiements pour NAbySy
@@ -47,7 +47,7 @@ use xNotification;
         public function GetCheckOut($Montant,array $InfosPosteSaisie):xNotification ; //Retourne l'objet contenant la demande de validation à présenter au client
 
         /** Retourne les informations sur l'etat d'une demande de paiement */
-        public function GetEtatCheckOut(xCheckOutParam $CheckOutInfo):\xNotification ;
+        public function GetEtatCheckOut(xCheckOutParam $CheckOutInfo):xNotification ;
 
         /**
          * Valide ou non de la vente par le odule de paiement
