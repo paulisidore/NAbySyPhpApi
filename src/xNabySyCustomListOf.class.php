@@ -5,20 +5,36 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     private ?object $Object = null ;
     private array $list = [];
 
-    public function __construct(string $TypeValide=null){
+    public function __construct($TypeValide=null, $constructorArgs = []) {
         if(isset($TypeValide)){
-            if($TypeValide !=""){
-                $this->validType = $TypeValide;
-                try {
-                    $instance = new $TypeValide();
-                    if (!is_object($instance)) {
-                        throw new InvalidArgumentException("Le type valide doit être un objet.");
+            $Obj=null;
+            if(is_string($TypeValide)){
+                if($TypeValide !=""){
+                    try {
+                        $arg=null;
+                        if(count($constructorArgs)){
+                            $arg = $constructorArgs ;
+                        }
+                        $Obj=new $TypeValide($arg);
+                    } catch (\Throwable $th) {
+                        throw $th;
+                        exit;
                     }
-                    $this->Object = $instance;
-                    $this->validType = get_class($instance);
-                } catch (\Throwable $th) {
-                    //throw $th;
+                    $this->validType = get_class($Obj);
                 }
+            }elseif (is_object($TypeValide)){
+                $this->validType = get_class($TypeValide);
+            }
+
+            try {
+                $instance = new $this->validType();
+                if (!is_object($instance)) {
+                    throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ");
+                }
+                $this->Object = $instance;
+                $this->validType = get_class($instance);
+            } catch (\Throwable $th) {
+                throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ".$th->getMessage());
             }
         }
     }
