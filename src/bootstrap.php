@@ -49,6 +49,7 @@ include_once 'GsModuleManager.class.php' ;
 
 include_once 'startupinfo.php' ;
 
+
 if (!class_exists('N')) {
 	/**
 	 * La Class static N regroupe l'ensemble des fonctions static de l'objet central NAbySyGS.
