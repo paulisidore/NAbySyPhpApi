@@ -44,6 +44,8 @@ include_once 'moduleexterne.i.class.php' ;
 include_once 'lib/xCurlHelper/xCurlHelper.i.php';
 include_once 'lib/ModulePaieManager/ModulePaieManager.i.php';
 
+include_once 'startupinfo.php' ;
+
 namespace NAbySy ;
 
 use DateTime;
@@ -1486,6 +1488,59 @@ Class xNAbySyGS
 				
 	}		
 
+	/**
+	 * Démarre l'application NAbySyGS et charge tous les modules de gestion.
+	 * @param xStartUpInfo $StartInfo : Informations rélative au démarrage du programme
+	 * @return ?xNAbySyGS : Instance de l'application NAbySyGS 
+	 */
+	public static function Start(xStartUpInfo $StartInfo):?xNAbySyGS{
+		if (session_status() == PHP_SESSION_NONE) {
+			session_start();
+		}
+		$Conn = $StartInfo->Connexion ;
+		$nabysy = new xNAbySyGS($Conn->Serveur,$Conn->DBUser,$Conn->DBPwd,$StartInfo->InfoClientMCP,$Conn->DB,$Conn->MasterDB)  ;
+		if ($nabysy == false){
+			$Err=new xErreur();
+			$Err->OK=0;
+			$Err->TxErreur = "Le module ".$StartInfo->InfoClientMCP->Nom." a rencontré une erreur.";
+			echo json_encode($Err) ;
+			return null ;
+		}
+		$nabysy->ActiveDebug= boolval ($StartInfo->DebugMode) ;
+		ini_set('display_errors', 0);
+		ini_set('display_startup_errors', 0);
+		error_reporting(E_ERROR);
+		if($nabysy->ActiveDebug){
+			ini_set('display_errors', $StartInfo->DisplayErrors);
+			ini_set('display_startup_errors', $StartInfo->DisplayStartUpErrors);
+			error_reporting($StartInfo->ErrorReporting);
+		}
+
+		if (!class_exists('N')) {
+			/**
+			 * La Class static N regroupe l'ensemble des fonctions static de l'objet central NAbySyGS.
+			 */
+			class N extends xNAbySyGS {
+				/**
+				 * Module Principal NAbySy GS
+				 * @var xNAbySyGS
+				 */
+				public static xNAbySyGS $Main  ;
+
+				final public function __get($key) {
+					$method = 'get' . ucfirst($key);
+					if (method_exists($this, $method)) {
+					return $this->$method($this->data[$key]);
+					} else {
+					return self::$Main;
+					}
+				}
+			}
+			N::$Main = $nabysy ;
+		}
+		$nabysy->AutorisationCORS();
+		return $nabysy ;
+	}
 }
 
 ?>
