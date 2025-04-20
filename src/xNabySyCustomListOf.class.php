@@ -27,6 +27,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                     $this->validType = get_class($Obj);
                 }
             }elseif (is_object($TypeValide)){
+                $Obj = $TypeValide ;
                 $this->validType = get_class($TypeValide);
             }
 
@@ -35,14 +36,19 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                 if(isset($constructorArgs)){
                     $arg = $constructorArgs ;
                 }
-                $instance = new $this->validType($arg);
+                $instance = $Obj ;
+                if(!isset($instance)){
+                    $instance = new $this->validType($arg);
+                }                
                 if (!is_object($instance)) {
                     throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ");
+                    exit;
                 }
                 $this->Object = $instance;
                 $this->validType = get_class($instance);
             } catch (\Throwable $th) {
-                throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ".$th->getMessage());
+                throw new InvalidArgumentException("Impossible de chargerL'objet ".$this->validType." </br> Erreur: ".$th->getMessage());
+                exit;
             }
         }
     }
