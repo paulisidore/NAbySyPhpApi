@@ -4,6 +4,7 @@
 use ArrayAccess;
 use Countable;
 use Iterator;
+use NAbySy\xNAbySyGS;
 
     /**
      * Class ORM (Objet Relationnal Mapping)
@@ -13,10 +14,10 @@ use Iterator;
     interface IORM extends ArrayAccess, Iterator, Countable{
         /**
          * Constructeur de la classe ORM (Objet Relationnal Mapping)
-         * @param \xNAbySyGS $NAbySyGS Objet centrale NAbySyGS.
+         * @param xNAbySyGS $NAbySyGS Objet centrale NAbySyGS.
          * @param string $NomTable Nom de la table auque l'ORM est liée.
          */
-        public function __construct(\xNAbySyGS $NabySyGS,int $Id=null,$CreationChampAuto=true,$NomTable=null);
+        public function __construct(xNAbySyGS $NabySyGS,int $Id=null,$CreationChampAuto=true,$NomTable=null);
 
         public function __get($NomChamp);
         public function __set($NomChamp,$Valeur);
