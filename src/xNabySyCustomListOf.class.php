@@ -118,6 +118,14 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     public function offsetUnset($offset): void {
         unset($this->list[$offset]);
     }
+
+    public function __debugInfo() {
+        return array(
+            'ArrayType' => $this->validType,
+            'List' => $this->list
+        );
+    }
+
 }
 
 ?>
