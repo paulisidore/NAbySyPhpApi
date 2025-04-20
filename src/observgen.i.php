@@ -1,6 +1,8 @@
 <?php
     namespace NAbySy\OBSERVGEN ;
 
+use NAbySy\xNAbySyGS;
+
 /**
  * Class Observateur
  * Cette class permet d'appeller des modules selon des évènements.
@@ -26,7 +28,7 @@
 
         /**
          * Constructeur de la classe Observateur
-         * @param \xNAbySyGS $NAbySyGS Objet centrale NAbySyGS.
+         * @param xNAbySyGS $NAbySyGS Objet centrale NAbySyGS.
          * @param string $ObserveurName: Nom attribué à l'observateur
          * @param array $ListeObservable Liste des points d'interrêt à observer.
          * DIRECTION_ADD ,
@@ -34,7 +36,7 @@
          * SERVICE_ADD ,
          * MVT_AFFECTATION 
          */
-        public function __construct(\xNAbySyGS $NabySyGS,$ObserveurName=null,$ListeObservable=[]);
+        public function __construct(xNAbySyGS $NabySyGS,$ObserveurName=null,$ListeObservable=[]);
 
         /**
          * Cette méthode permet de différencier les observateurs et les autres class
