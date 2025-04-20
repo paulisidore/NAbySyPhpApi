@@ -1559,6 +1559,14 @@ Class xNAbySyGS
 		$nabysy->AutorisationCORS();
 		return $nabysy ;
 	}
+
+	/**
+	 * Retourne la version de NAbySyGS
+	 * @return string : Version de NAbySyGS
+	 */
+	public static function VERSION(){
+		return NABYSY_VERSION ;
+	}
 }
 
 ?>
