@@ -8,53 +8,58 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     public function __construct(...$constructorArgs) {
         $TypeValide = $constructorArgs ;
         $Args=null;
-        if(isset($constructorArgs[0])){
-            $TypeValide = $constructorArgs[0] ;
-        }
-        if(isset($constructorArgs[1])){
-            $Args = $constructorArgs[1] ;
-        }
-        if(isset($TypeValide)){
-            $Obj=null;
-            if(is_string($TypeValide)){
-                if($TypeValide !=""){
-                    try {
-                        $arg=null;
-                        if(isset($Args)){
-                            $arg = $Args ;
-                        }
-                        $Obj=new $TypeValide($arg);
-                    } catch (\Throwable $th) {
-                        throw $th;
-                        exit;
-                    }
-                    $this->validType = get_class($Obj);
-                }
-            }elseif (is_object($TypeValide)){
-                $Obj = $TypeValide ;
-                $this->validType = get_class($TypeValide);
+        try {
+            if(isset($constructorArgs[0])){
+                $TypeValide = $constructorArgs[0] ;
             }
+            if(isset($constructorArgs[1])){
+                $Args = $constructorArgs[1] ;
+            }
+            if(isset($TypeValide)){
+                $Obj=null;
+                if(is_string($TypeValide)){
+                    if($TypeValide != ""){
+                        try {
+                            $arg=null;
+                            if(isset($Args)){
+                                $arg = $Args ;
+                            }
+                            $Obj=new $TypeValide($arg);
+                        } catch (\Throwable $th) {
+                            throw $th;
+                            exit;
+                        }
+                        $this->validType = get_class($Obj);
+                    }
+                }elseif (is_object($TypeValide)){
+                    $Obj = $TypeValide ;
+                    $this->validType = get_class($TypeValide);
+                }
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+        
 
-            try {
-                $arg=null;
-                if(isset($Args)){
-                    $arg = $Args ;
-                }
-                $instance = $Obj ;
-                if(!isset($instance)){
-                    $instance = new $this->validType($arg);
-                }                
-                if (!is_object($instance)) {
-                    throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ");
-                    exit;
-                }
-                $this->Object = $instance;
-                $this->validType = get_class($instance);
-            } catch (\Throwable $th) {
-                throw new InvalidArgumentException("Impossible de charger l'objet ".$this->validType.". Erreur: ".$th->getMessage());
+        try {
+            $arg=null;
+            if(isset($Args)){
+                $arg = $Args ;
+            }
+            $instance = $Obj ;
+            if(!isset($instance)){
+                $instance = new $this->validType($arg);
+            }                
+            if (!is_object($instance)) {
+                throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ");
                 exit;
             }
-        }
+            $this->Object = $instance;
+            $this->validType = get_class($instance);
+        } catch (\Throwable $th) {
+            throw new InvalidArgumentException("Impossible de charger l'objet ".$this->validType.". Erreur: ".$th->getMessage());
+            exit;
+        }    
     }
 
     /**
