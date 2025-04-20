@@ -1,9 +1,5 @@
 <?php
-//namespace NAbySy\Lib\ModulePaie ;
-
-//use NAbySy\xNAbySyGS;
-
-use NAbySy\Lib\ModulePaie\xNAbySyWaveNetwork;
+namespace NAbySy\Lib\ModulePaie ;
 use NAbySy\xNAbySyGS;
 
 /**

@@ -248,7 +248,7 @@ Class xNAbySyGS
 
 			self::LoadExternalModuleLib();
 
-			$PMLoader=new \PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
+			$PMLoader=new PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
 
 			/* Modification du jeu de résultats en utf8mb4 */
 			self::$db_link->set_charset("utf8mb4");
