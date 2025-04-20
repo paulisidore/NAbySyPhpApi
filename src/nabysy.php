@@ -150,7 +150,7 @@ Class xNAbySyGS
 
 	public static xNAbySyGS $Main ;
 
-	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysy")
+	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs")
 	{
 		self::$Main = $this ;
 		if (!isset(self::$Log)){
@@ -164,9 +164,7 @@ Class xNAbySyGS
 
 		$this->MCP_SEPARATEUR="*--*" ;
 		$this->MODULE = $mod;
-		$this->MODULE->Nom ="[NAbySy GS]" ;
-		$this->MODULE->Actif ="1" ;
-		$this->MODULE->Version ="1.0.0" ;
+		$this->MODULE->Version =self::VERSION() ;
 		$this->dbase = $db ;
 		$this->DataBase=$db ;
 		$this->MainDataBase=$MasterDB ;
@@ -868,10 +866,6 @@ Class xNAbySyGS
 				mkdir($dos,0777,true);
 			}
 			$debg=1;
-			if($categorie=='comptabilite' || $categorie=='boutique' ){
-				echo "Dossier de chargement: ".$dos."</br>" ;
-				$debg=5;
-			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
 			$AutoLoad->Register($LstObs,$debg) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;

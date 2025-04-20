@@ -65,6 +65,10 @@ class xORMHelper implements IORM{
         if (isset($DBName)){
             $this->DataBase=$DBName;
         }
+        if ($this->DataBase==''){
+            $this->DataBase=$this->Main->MainDataBase ;
+            var_dump(__FILE__.' LIGNE '.__LINE__ ." Le nom de la base de donnée était vide !".$this->Main->MainDataBase);
+        }
 
         //$this->DebugMode=false;  
         $this->LoadTypeChampInDB() ;
