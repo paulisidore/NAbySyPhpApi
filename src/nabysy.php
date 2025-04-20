@@ -9,6 +9,7 @@
 //Déclaration des espace de nom
 mb_internal_encoding('UTF-8');
 
+include_once 'definition_err.php';
 include_once 'config.php' ;
 include_once 'xModuleInfo.php';
 include_once 'format.class.php' ;
@@ -1497,6 +1498,23 @@ Class xNAbySyGS
 		if (session_status() == PHP_SESSION_NONE) {
 			session_start();
 		}
+		if (!isset($StartInfo)){
+			throw new Exception("Error: NAbySyGS StartInfo is required.", ERR_STARTUP_INFO_MISSING);
+			return null ;
+		}
+		if (!isset($StartInfo->InfoClientMCP)){
+			throw new Exception("Error: NAbySyGS MCP Custumer information is required.", ERR_STARTUP_INFO_MISSING);
+			return null ;
+		}
+		if (!isset($StartInfo->Connexion)){
+			throw new Exception("Error: NAbySyGSServer information is required.", ERR_STARTUP_INFO_CONN_MISSING);
+			return null ;
+		}
+		if (trim($StartInfo->Connexion->Serveur) =="" ){
+			throw new Exception("Error: NAbySyGSServer address is required.", ERR_STARTUP_INFO_CONN_MISSING);
+			return null ;
+		}
+
 		$Conn = $StartInfo->Connexion ;
 		$nabysy = new xNAbySyGS($Conn->Serveur,$Conn->DBUser,$Conn->DBPwd,$StartInfo->InfoClientMCP,$Conn->DB,$Conn->MasterDB)  ;
 		if ($nabysy == false){
