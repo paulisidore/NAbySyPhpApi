@@ -7,6 +7,11 @@
  */
 
  namespace NAbySy ;
+
+use N;
+
+ include_once 'nabysy.php' ;
+
  /**
   * Gestion des Modules intégrée à NAbySyGS
   * 
@@ -16,7 +21,7 @@
     
     public function __construct(){
       //Chargement de la liste des dossier catégories
-      $dossierGs=N::ModuleGSFolder() ;
+      $dossierGs= N::ModuleGSFolder() ;
       $rep=scandir($dossierGs) ;
       if(count($rep)>0){
          foreach ($rep as $key => $value) {
