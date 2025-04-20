@@ -1614,7 +1614,7 @@ Class xNAbySyGS
 	 * @return xNAbySyCustomListOf 
 	 */
 	public static function ListOf($Objet, $constructorArgs = []):xNAbySyCustomListOf{
-		return xNAbySyCustomListOf::GetListOf($Objet, $constructorArgs = []);
+		return xNAbySyCustomListOf::GetListOf($Objet, $constructorArgs);
 	}
 }
 
