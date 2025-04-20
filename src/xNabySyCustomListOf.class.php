@@ -27,7 +27,11 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
             }
 
             try {
-                $instance = new $this->validType();
+                $arg=null;
+                if(count($constructorArgs)){
+                    $arg = $constructorArgs ;
+                }
+                $instance = new $this->validType($arg);
                 if (!is_object($instance)) {
                     throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ");
                 }
