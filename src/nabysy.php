@@ -1564,6 +1564,43 @@ Class xNAbySyGS
 	}
 
 	/**
+	 * Démarre une nouvelle instance de NAbySyGS avec les informations de connexion
+	 * @param string $AppName | Nom de l'application utilisans NAbySyGS
+	 * @param string $NomClient | Nom du client
+	 * @param string $AdresseClient | Adresse du client
+	 * @param string $TelClt | Téléphone du client
+	 * @param string $Database | Nom de la base de données
+	 * @param string $MasterDataBase | Nom de la base de données globale/centrale utilisée par NAbySyGS
+	 * @param string $Server | Adresse du serveur de base de donnée. Par défaut: 127.0.0.1
+	 * @param string $DBUser | Utilisateur de la base de donnée
+	 * @param string $DBPwd | Mot de passe de la base de donnée
+	 * @param int $DBPort | Numero du port de la base de donnée. Par défaut le port mysql/mariadb 3306
+	 * @return xNAbySyGS 
+	 * @throws Exception 
+	 */
+	public static function Init(string $AppName="NAbySyGS-PAM Internal Service API", string $NomClient="Paul & Aïcha Machinerie SARL",
+		string $AdresseClient="Dakar Zack Mbao", string $TelClt="+221 33 836 14 77", string $Database="nabysygs", 
+		string $MasterDataBase="nabysygs", string $Server="127.0.0.1", string $DBUser="root", string $DBPwd="", int $DBPort=3306):xNAbySyGS{
+		$InfoClientMCP = new ModuleMCP();
+		$InfoClientMCP->Nom = $AppName ;
+		$InfoClientMCP->MCP_CLIENT = $NomClient;
+		$InfoClientMCP->MCP_ADRESSECLT=$AdresseClient ;
+		$InfoClientMCP->MCP_TELCLT= $TelClt ;
+		
+		$Connexion=new xConnexionInfo();
+		$Connexion->DB=$Database;
+		$Connexion->MasterDB = $MasterDataBase;
+		$Connexion->Serveur = $Server;
+		$Connexion->DBUser= $DBUser;
+		$Connexion->DBPwd= $DBPwd;
+		$Connexion->Port= $DBPort;
+
+		$StartInfo = new xStartUpInfo($InfoClientMCP, $Connexion);
+		return self::Start($StartInfo);
+		
+	}
+
+	/**
 	 * Retourne la version de NAbySyGS
 	 * @return string : Version de NAbySyGS
 	 */

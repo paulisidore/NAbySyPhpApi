@@ -23,9 +23,12 @@
          */
         public xConnexionInfo $Connexion ;
 
-        public function __construct(){
-            $this->InfoClientMCP = null ;
+        public function __construct(?ModuleMCP $Info = null,xConnexionInfo $ConnInfo = null){
+            $this->InfoClientMCP = $Info ;
             $this->Connexion = new xConnexionInfo() ;
+            if(isset($ConnInfo)){
+                $this->Connexion = $ConnInfo ;
+            }
         }
     }
 
