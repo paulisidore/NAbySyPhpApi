@@ -30,7 +30,7 @@ use NAbySy\xNAbySyGS;
 
         public $Nom="" ;
 
-        public function __construct(\xNAbySyGS $NabySyGS,$ObserveurName=null,$ListeObservable=[]){
+        public function __construct(xNAbySyGS $NabySyGS,$ObserveurName=null,$ListeObservable=[]){
             $this->ListeObservable=$ListeObservable ;
             $this->Nom=$ObserveurName ;
             //var_dump(__CLASS__);
