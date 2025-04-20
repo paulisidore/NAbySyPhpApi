@@ -1,8 +1,10 @@
 <?php
     namespace NAbySy\AutoLoad ;
-    
+
+use NAbySy\xNAbySyGS;
+
     interface IAutoLoad{
-        public function __construct(\xNAbySyGS $NabySyGS,$Categorie,$RepertoirParent);
+        public function __construct(xNAbySyGS $NabySyGS,$Categorie,$RepertoirParent);
 
         /**
          * Charge un Module NAbySy en Mémoire
