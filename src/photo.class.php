@@ -17,10 +17,12 @@ if (!defined('TB')){
     define('TB', 1099511627776);
 }
 
+namespace NAbySy ;
 Class xPhoto{
     /**
      * Cette Class permet de gérer l'envoie et le téléchargement de fichier Image
      */
+    
     Public static xNAbySyGS $Main;
     Public $DossierPhoto ;
     public $FICHIERS ;

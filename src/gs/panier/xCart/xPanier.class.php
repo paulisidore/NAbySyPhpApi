@@ -5,7 +5,7 @@ use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\GS\Stock\xProduit;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 Class xPanier
 {

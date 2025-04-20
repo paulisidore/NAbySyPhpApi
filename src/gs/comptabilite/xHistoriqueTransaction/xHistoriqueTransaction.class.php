@@ -7,7 +7,7 @@ use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\ORM\xORMHelper;
 use xErreur;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xNotification;
 use xUser;
 

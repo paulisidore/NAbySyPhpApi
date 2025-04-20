@@ -1,7 +1,7 @@
 <?php
 namespace NAbySy\Lib\BonAchat ;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /** Permet de gérer l'historique des bons d'Achat */
 Class xHistoriqueBonAchat extends xORMHelper{

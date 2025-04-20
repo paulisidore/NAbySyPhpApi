@@ -6,7 +6,7 @@ use NAbySy\GS\Stock\xProduit;
 use NAbySy\Lib\BonAchat\IBonAchatManager;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Gestion des Lignes de facture

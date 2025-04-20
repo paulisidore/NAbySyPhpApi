@@ -4,7 +4,7 @@ namespace NAbySy\GS\Facture\Impression ;
 use DateTime;
 use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Facture\xVente;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use NAbySy\Lib\Pdf\xPDF;
 use xFormat;
 

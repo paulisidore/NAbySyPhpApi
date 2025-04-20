@@ -1,6 +1,7 @@
 <?php
     namespace NAbySy\AutoLoad ;
     use Exception;
+use NAbySy\xNAbySyGS;
 
     /**
      * Chargeur de Module pour NAbySY RH & RS.
@@ -9,7 +10,7 @@
      */
     class xAutoLoad implements IAutoLoad{
 
-        public \xNAbySyGS $Main ;
+        public xNAbySyGS $Main ;
         public $Categorie ;
         public $ModuleFolder ;
         public array $ListeModule=[] ;
@@ -22,7 +23,7 @@
          * @param xNAbySyGS $N : Objet principal NAbySyGS
          * @param String $Categorie : Le Nom de la categorie du Module. La categorie represente le dossier d'installation des modules de cette catégorie
          */
-        public function __construct(\xNAbySyGS $NAbySy,$Categorie,$RepertoirParent=null){
+        public function __construct(xNAbySyGS $NAbySy,$Categorie,$RepertoirParent=null){
             $this->Main = $NAbySy ;
             $this->Categorie = $Categorie ;
             $this->ModuleFolder=$Categorie ;

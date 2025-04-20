@@ -7,8 +7,8 @@ use NAbySy\ORM\IORM;
 use Exception;
 use mysqli_result;
 use NAbySy\OBSERVGEN\xObservGen;
+use NAbySy\xDB;
 use NAbySy\xNAbySyGS;
-use xDB;
 use xErreur;
 
 //#[\AllowDynamicProperties] on verra ca une autre fois
@@ -21,7 +21,7 @@ class xORMHelper implements IORM{
 
     private array $ListeChampDB ;
     public $DataBase ;
-    public \xDB $MySQL ;
+    public xDB $MySQL ;
     public bool $AutoCreate ;
     public bool $DebugMode ;
 
@@ -58,7 +58,7 @@ class xORMHelper implements IORM{
         self::$Ctype=new xDBFieldType() ;
 
         if (isset($this->Main)){
-            $this->MySQL = new \xDB($this->Main) ;
+            $this->MySQL = new xDB($this->Main) ;
             $this->DebugMode=$this->Main->ActiveDebug ;
         }
 

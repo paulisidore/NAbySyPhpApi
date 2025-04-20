@@ -2,7 +2,7 @@
     namespace NAbySy\Lib\ModulePaie ;
 
 use NAbySy\GS\Facture\xVente;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xNotification;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\GS\Panier\xCart;

@@ -6,6 +6,10 @@
 	Date: 20/05/2022
 */
 
+use NAbySy\ModuleMCP;
+use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
+
 if (session_status() == PHP_SESSION_NONE) {
 	session_start();
 }

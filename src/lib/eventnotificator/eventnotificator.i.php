@@ -1,7 +1,7 @@
 <?php
     namespace NAbySy\Lib\Evenement ;
 
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xORM;  
 
     include_once 'xEventNotificator.class.php' ;

@@ -1,6 +1,6 @@
 <?php
     namespace NAbySy\Lib\Sms ;
-    use xNAbySyGS;
+    use NAbySy\xNAbySyGS;
 
 /**
      * Represente un Message à envoyer.

@@ -3,7 +3,7 @@ namespace NAbySy\GS\Comptabilite ;
 
 use Exception;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Module de Gestion de Compte Bancaire

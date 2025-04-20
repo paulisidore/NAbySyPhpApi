@@ -1,5 +1,7 @@
 <?php
 namespace NAbySy ;
+
+use Exception;
 use NAbySy\ORM\xORMHelper;
 
 /**

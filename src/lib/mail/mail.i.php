@@ -1,7 +1,7 @@
 <?php
     namespace NAbySy\Lib\Mail ;
 
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xORM;  
 
     include_once 'xMailEngine.class.php' ;

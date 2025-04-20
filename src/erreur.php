@@ -4,7 +4,7 @@
  * Application developpé par Paul Isidore A. NIAMIE
  * Each line should be prefixed with  * 
  */
-
+namespace NAbySy ;
 Class xErreur
 {
 	public $OK;
@@ -13,7 +13,7 @@ Class xErreur
 	public $Extra ;
     public $Autres ;
 	
-    public function LASTJSON_ERROR(){
+    public static function LASTJSON_ERROR(){
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
                 return ' - No errors';

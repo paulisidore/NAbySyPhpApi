@@ -1,7 +1,7 @@
 <?php
 namespace NAbySy\Lib\ModuleExterne ;
 
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Interface des Modules externes compléntaire pour les applications NAbySyRH et NAbySyRS.

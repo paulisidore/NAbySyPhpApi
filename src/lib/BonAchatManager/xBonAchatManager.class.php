@@ -7,7 +7,7 @@ use NAbySy\GS\Panier\xCart;
 use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
 use NAbySy\ORM\xORMHelper;
 use xErreur;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
     /**
      * Module de Gestions des Bons d'Achat Generic

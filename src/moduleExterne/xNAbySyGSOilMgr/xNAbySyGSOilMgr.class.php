@@ -4,7 +4,7 @@ namespace NAbySy\Lib\ModuleExterne ;
 use DateTime;
 use NAbySy\Lib\ModuleExterne\OilStation\xProduitLiaison;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 include_once("xclass_structures.php");
 /**

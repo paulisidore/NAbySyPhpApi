@@ -2,7 +2,7 @@
     namespace NAbySy\Lib\BonAchat ;
 
 use NAbySy\GS\Panier\xCart;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
     include_once 'xBonAchatManager.class.php';
     include_once 'xHistoriqueBonAchat.class.php' ;

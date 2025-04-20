@@ -3,7 +3,7 @@
 
 use NAbySy\GS\Panier\xCart;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xNotification;
 
 /**

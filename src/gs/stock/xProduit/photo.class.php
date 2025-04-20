@@ -1,4 +1,7 @@
 <?php
+namespace NAbySy ;
+
+use NAbySy\GS\Boutique\xBoutique;
 
 Class xPhoto{
     /**

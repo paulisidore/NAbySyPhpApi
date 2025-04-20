@@ -4,7 +4,7 @@
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Stock\xProduitNC;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
 *  FICHIER : cart.class.php

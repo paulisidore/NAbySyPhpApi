@@ -8,10 +8,11 @@
 namespace NAbySy\GS\Stock ;
 
 use mysqli_result;
+use NAbySy\xNAbySyGS;
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\CodeBar\xCodeBarEAN13;
 use NAbySy\ORM\xORMHelper;
-use xPhoto;
+use NAbySy\xPhoto;
 
 Class xProduit extends xORMHelper
 {
@@ -21,7 +22,7 @@ Class xProduit extends xORMHelper
 
 	//public $RS ;
 	
-	public function __construct(\xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='produits', xBoutique $Boutique=null){
+	public function __construct(xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='produits', xBoutique $Boutique=null){
 		self::$TableConfig=[];
 		if (!isset($TableName)){
 			$TableName="produits";
@@ -38,7 +39,7 @@ Class xProduit extends xORMHelper
 				
 	}	
 	
-	public function GetProduit($Id=null,$Nom=null,$PrixAchat=null,$PrixVente=null,$CodeBar=null,$Ordre='Order By P.DESIGNATION'):mysqli_result{
+	public function GetProduit($Id=null,$Nom=null,$PrixAchat=null,$PrixVente=null,$CodeBar=null,$Ordre='Order By P.DESIGNATION'):?mysqli_result{
 		//Permet de lire un article par son Id ou $Nom
 		//global $serveur,$user,$passwd,$bdd,$db_link,$MODULE ;
 		$Table=$this->Table;

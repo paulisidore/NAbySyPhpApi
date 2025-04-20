@@ -2,7 +2,7 @@
 namespace NAbySy\Lib\ModulePaie\Wave;
 
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Objet de Demande de Session de paiement

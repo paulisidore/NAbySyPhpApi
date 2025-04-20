@@ -3,7 +3,7 @@
 
 use Exception;
 use NAbySy\AutoLoad\xAutoLoad;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Class Observateur

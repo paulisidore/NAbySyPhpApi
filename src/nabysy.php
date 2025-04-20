@@ -44,11 +44,11 @@ include_once 'moduleexterne.i.class.php' ;
 include_once 'lib/xCurlHelper/xCurlHelper.i.php';
 include_once 'lib/ModulePaieManager/ModulePaieManager.i.php';
 
-//namespace NAbySy;
-
-
 namespace NAbySy ;
 
+use DateTime;
+use DateTimeZone;
+use Exception;
 use mysqli;
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\Lib\BonAchat\IBonAchatManager;
@@ -60,8 +60,10 @@ use NAbySy\Lib\ModulePaie\PaiementModuleLoader;
 use NAbySy\Lib\Sms\xSMSEngine;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\ModuleMCP;
-use xErreur;
-use xLog;
+use NAbySy\xErreur;
+use ReflectionObject;
+
+;
 
 Class xNAbySyGS
 {
@@ -234,7 +236,6 @@ Class xNAbySyGS
 			
 			$this->LoadModuleGS();
 
-			//$this->LoadModuleRS();
 			$this->LoadExternalModuleLib();
 
 			$PMLoader=new \PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
@@ -799,11 +800,6 @@ Class xNAbySyGS
 
 	}
 
-	public function GetRedBeamRS($BoutiqueDB, $NomTable){
-		$Tble= new xORM($this, $BoutiqueDB, $NomTable );
-		return $Tble ;
-	}
-
 	function Select($sql) {
 
 		$resultv=$this->ReadWrite($sql,null,null,false);
@@ -872,20 +868,24 @@ Class xNAbySyGS
 	}
 
 	/**
-	 * Charge les module de gestion des Ressources Humaine
+	 * Charge les modules de gestion dans NAbySyGS stockés dans le dossier gs
+	 * @param array $ListeRepertoirGS : Liste des répertoires à charger. Si vide, on charge tous les modules de gestion par défaut de NAbySyGS.
 	 */
-	public function LoadModuleGS(){
+	public function LoadModuleGS($ListeRepertoirGS = []){
 		$RepWork="gs" ;
-		$ListeR=[];
-		$ListeR[]="boutique" ;
-		$ListeR[]="stock" ;
-		$ListeR[]="client" ;
-		$ListeR[]="fournisseur" ;
-		$ListeR[]="facture" ;
-		$ListeR[]="bl" ;
-		$ListeR[]="comptabilite" ;
-		$ListeR[]="panier" ;
-		$ListeR[]="userapi" ;
+		$ListeR=$ListeRepertoirGS ;
+		if(count($ListeR) == 0){
+			$ListeR=[];
+			$ListeR[]="boutique" ;
+			$ListeR[]="stock" ;
+			$ListeR[]="client" ;
+			$ListeR[]="fournisseur" ;
+			$ListeR[]="facture" ;
+			$ListeR[]="bl" ;
+			$ListeR[]="comptabilite" ;
+			$ListeR[]="panier" ;
+			$ListeR[]="userapi" ;
+		}
 		
 		//On déclare un AutoLoad pour chaque catégorie
 		$LstObs=[] ;
@@ -900,36 +900,13 @@ Class xNAbySyGS
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad($this,$categorie,$RepWork);
 			$AutoLoad->Register($LstObs,1) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;
-			
 		}		
 	}
 
 	/**
-	 * Charge les module de gestion des Reportings Service
+	 * Charge les librairies partagées entre les modules
 	 */
-	public function LoadModuleRS(){
-		$RepWork="rs" ;
-		$ListeR=[];
-		$ListeR[]="projet" ;
-		$ListeR[]="activite" ;
-		$ListeR[]="rapport" ;
-		$ListeR[]="planning" ;
-
-		$LstObs=[] ;
-		//On déclare un AutoLoad pour chaque catégorie
-		foreach ($ListeR as $categorie){
-			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad($this,$categorie,$RepWork);
-			$AutoLoad->Register($LstObs) ;
-			self::$ListeModuleAutoLoader[]=$AutoLoad ;
-		}
-	}
-
-
-	/**
-	 * Charge les librairies partagées entre la RH et le RS
-	 */
-	public function LoadModuleLib($DebugLevel=0) 
-        {  
+	public function LoadModuleLib($DebugLevel=0){  
 			$rep="lib" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
             
@@ -997,13 +974,12 @@ Class xNAbySyGS
 			}
 
             return $ListeDossier ;
-        } 
+    } 
 
 	/**
-	 * Charge les Modules Externes tel que Le module de gestion des Hydrocarbures
+	 * Charge les Modules Externes tel que Le module de gestion interagissant via des API dstantes.
 	 */
-	public function LoadExternalModuleLib($DebugLevel=0) 
-        {  
+	public function LoadExternalModuleLib($DebugLevel=0){  
 			$rep="moduleExterne" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
 			if (!file_exists($rep)){
@@ -1231,6 +1207,49 @@ Class xNAbySyGS
 	}
 
 	/**
+	 *  An example CORS-compliant method.  It will allow any GET, POST, or OPTIONS requests from any
+	 *  origin.
+	 *
+	 *  In a production environment, you probably want to be more restrictive, but this gives you
+	 *  the general idea of what is involved.  For the nitty-gritty low-down, read:
+	 *
+	 *  - https://developer.mozilla.org/en/HTTP_access_control
+	 *  - https://fetch.spec.whatwg.org/#http-cors-protocol
+	 *
+	 */
+	public static function AllowCORS() {
+		
+		// Allow from any origin
+		if (isset($_SERVER['HTTP_ORIGIN'])) {
+			// Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
+			// you want to allow, and if so:
+			header("Access-Control-Allow-Origin: *");
+			//header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+			header('Access-Control-Allow-Credentials: true');
+			header('Access-Control-Max-Age: 86400');    // cache for 1 day
+		}else{
+			header("Access-Control-Allow-Origin: *");
+			header('Access-Control-Allow-Credentials: true');
+			header('Access-Control-Max-Age: 86400');    // cache for 1 day
+		}
+		
+		// Access-Control headers are received during OPTIONS requests
+		if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+			
+			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+				// may also be using PUT, PATCH, HEAD etc
+				header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+			
+			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+				header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+		
+			exit(0);
+		}
+		
+		//echo "You have CORS!";
+	}
+
+	/**
 	 * Vérifie l'authentification de l'utilisateur en cour
 	 * @param bool $SendReponse : Si vrai, envoie automatiquement une réponse au client quand la vérification retourne false.
 	 * @return bool : Vrai si correctement authentifié
@@ -1291,83 +1310,6 @@ Class xNAbySyGS
 			return $TxErreur ;
 		}
 		return null;
-	}
-
-	public function AjouterStockBoutique($IdCompteClient,$IdPdt=0,$Qte=0){
-		//permet d'ajouter un stock pour un article dans une boutique 
-		if (!$IdCompteClient){
-			$this->AddToJournal($_SESSION['user'],0,"AjouterStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-			return false;
-		}
-		
-		foreach ($this->Boutiques as $Bout){
-		   if ($Bout->IdCompteClient == $IdCompteClient){
-			   //On met a jour le stock de la boutique
-			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite+".$Qte." " ;
-			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
-			   $isok=$this->ReadWrite($sql,null,true) ;
-			   $this->AddToJournal($_SESSION['user'],0,"AjouterStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-		   }
-		}
-	}
-	
-	public function RetirerStockBoutique($IdCompteClient,$IdPdt=0,$Qte=0){
-		//permet d'ajouter un stock pour un article dans une boutique 
-		if (!$IdCompteClient){
-			$this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-			return false;
-		}
-		
-		foreach ($this->Boutiques as $Bout){
-		   if ($Bout->IdCompteClient == $IdCompteClient){
-			   $this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-			   //On met a jour le stock de la boutique
-			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite-".$Qte." " ;
-			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
-			   $isok=$this->ReadWrite($sql,null,true) ;
-			   break ;
-		   }
-		}
-			
-		return true ;
-	}
-	
-	public function AjouterStockDepot($IdDepot,$IdPdt=0,$Qte=0){
-		//permet d'ajouter un stock pour un article dans une boutique 
-		if (!$IdDepot){
-			$this->AddToJournal($_SESSION['user'],0,"AjouterStockDepot: Erreur: IdDepot= ".$IdDepot,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-			return false;
-		}
-		
-		foreach ($this->Boutiques as $Bout){
-		   if ($Bout->Id == $IdDepot){
-			   //On met a jour le stock du depot
-			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite+".$Qte." " ;
-			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
-			   $isok=$this->ReadWrite($sql,null,true) ;
-			   $this->AddToJournal($_SESSION['user'],0,"AjouterStockDepot: Mise a jour de stock Depot","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-		   }
-		}
-	}
-	
-	public function RetirerStockDepot($IdDepot,$IdPdt=0,$Qte=0){
-		//permet de retirer un stock pour un article dans un depot 
-		if (!$this->MaBoutique->IdCompteClient){
-			$this->AddToJournal($_SESSION['user'],0,"RetirerStockDepot: Erreur: IdDepot= ".$IdDepot,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-			return false;
-		}
-		
-		foreach ($this->Boutiques as $Bout){
-		   if ($Bout->Id == $IdDepot){
-			   //On met a jour le stock du depot
-			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite-".$Qte." " ;
-			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
-			   $isok=$this->ReadWrite($sql,null,true) ;
-			   $this->AddToJournal($_SESSION['user'],0,"RetirerStockDepot: Mise a jour de stock Depot","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
-		   }
-		}
-			
-		return true ;
 	}
 
 	/**

@@ -1,9 +1,10 @@
 <?php
 //namespace NAbySy\Lib\ModulePaie ;
 
-//use xNAbySyGS;
+//use NAbySy\xNAbySyGS;
 
 use NAbySy\Lib\ModulePaie\xNAbySyWaveNetwork;
+use NAbySy\xNAbySyGS;
 
 /**
  * Permet de charger tous les modules de paiements du dossier Modules
@@ -15,7 +16,7 @@ use NAbySy\Lib\ModulePaie\xNAbySyWaveNetwork;
     public static xNAbySyGS $Main ;
     public static string $DossierModulePaie ;
 
-    public function __construct(\xNAbySyGS $NAbySy){
+    public function __construct(xNAbySyGS $NAbySy){
         self::$Main=$NAbySy;
         self::$DossierModulePaie =__DIR__ . "/ModulesPaiement";
         self::LoadModulePaiement();

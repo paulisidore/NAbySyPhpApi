@@ -1,7 +1,7 @@
 <?php
     namespace NAbySy\Lib\Sms ;
 
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xORM;
     include_once 'xMessageSMS.class.php';
     include_once 'xSMSEngine.class.php';

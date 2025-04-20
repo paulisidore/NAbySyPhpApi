@@ -1,7 +1,7 @@
 <?php 
     namespace NAbySy\Lib\Evenement ;
     
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
     /**
      * Message envoyé aux gestion des évènements de notification aux usagers.

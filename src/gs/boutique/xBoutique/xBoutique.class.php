@@ -8,7 +8,7 @@ use NAbySy\GS\Panier\xCart;
 use NAbySy\GS\Panier\xCartProForma;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 Class xBoutique extends xORMHelper  {
 	public mysqli $Conn ;

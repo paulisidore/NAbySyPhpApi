@@ -6,7 +6,7 @@ use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
 use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
 use NAbySy\ORM\xORMHelper;
 use xErreur;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Module de gestion des Entreprises clientes.

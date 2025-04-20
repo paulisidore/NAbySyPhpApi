@@ -3,7 +3,7 @@ namespace NAbySy\Lib\BonAchat\Exclusive ;
 use NAbySy\GS\Client\xClientEntreprise;
 use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /** Gère les cartes à puce pour les Bons d'Achat Exclusive*/
 Class xCarteBonAchatExclusive extends xORMHelper{

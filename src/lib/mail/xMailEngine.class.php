@@ -2,7 +2,7 @@
     namespace NAbySy\Lib\Mail ;
 
 use Exception;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
     class xMailEngine extends \NAbySy\ORM\xORMHelper implements IMailOperatorHelper {
         /** Nom de l'Opérateur Mobile SMS */

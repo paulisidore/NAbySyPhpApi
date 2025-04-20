@@ -2,7 +2,7 @@
 namespace NAbySy\Lib\ModuleExterne\OilStation ;
 
 use NAbySy\GS\Stock\xProduit;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Module NAbySy GS pour la gestion des Hydrocarbures. Station Essence

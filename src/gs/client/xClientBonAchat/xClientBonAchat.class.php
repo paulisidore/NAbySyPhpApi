@@ -8,7 +8,7 @@ namespace NAbySy\GS\Client ;
 use mysqli_result;
 use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Gestion des Clients Utilisateurs des bons d'Achat

@@ -8,8 +8,8 @@ use NAbySy\GS\Panier\xPanier;
 use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\Lib\BonAchat\xBonAchatManager;
 use NAbySy\ORM\xORMHelper;
-use xErreur;
-use xNAbySyGS;
+use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
 
 include_once 'xDetailVente.class.php';
 
@@ -1224,9 +1224,9 @@ Class xVente extends xORMHelper
 		return $IdFacture ;
 	}
 
-	public function ToJSON($TableStructure = false): string
+	public function ToJSON($TableStructure = false, $RemoveFieldList = []): string
 	{
-		$Reponse=parent::ToJSON($TableStructure);
+		$Reponse=parent::ToJSON($TableStructure, $RemoveFieldList);
 		$DetailV=$this->GetVente($this->Id);
 		if (isset($DetailV)){
 			$oVente=json_decode($Reponse,true);

@@ -5,7 +5,7 @@ use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Panier\xCartProForma;
 use NAbySy\GS\Panier\xPanier;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 Class xProforma
 {

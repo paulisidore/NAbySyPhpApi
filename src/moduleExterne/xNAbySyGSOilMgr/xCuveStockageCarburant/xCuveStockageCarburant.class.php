@@ -4,7 +4,7 @@ namespace NAbySy\Lib\ModuleExterne\OilStation ;
 use DateTime;
 use NAbySy\Lib\ModuleExterne\OilStation\Structure\xInfoControlStock;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xNotification;
 
 /**

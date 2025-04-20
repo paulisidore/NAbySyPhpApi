@@ -11,7 +11,7 @@ use NAbySy\GS\Panier\xCart;
 use NAbySy\GS\Panier\xPanier;
 use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xNotification;
 
 /**

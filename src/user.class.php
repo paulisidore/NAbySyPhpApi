@@ -1,8 +1,11 @@
 <?php
 
 use NAbySy\GS\Boutique\xBoutique;
+
+namespace NAbySy;
+
+use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Facture\xVente;
-use NAbySy\RH\Personnel\xEmploye;
 
 Class xUser extends \NAbySy\ORM\xORMHelper {
     //public $Login ;
@@ -79,10 +82,10 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (!isset($this->RS)){
             return false ;
         }
-        $pageinterdite=R::dispense($this->TablePageInterdite) ;
+        /* $pageinterdite=R::dispense($this->TablePageInterdite) ;
         $pageinterdite->Titre=$Titre ;
         $pageinterdite->Lien=$Lien ;
-        $pageinterdite->DateAjoutee=date('Y-m-d') ;
+        $pageinterdite->DateAjoutee=date('Y-m-d') ; */
        return true;
     }
 
@@ -93,7 +96,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
     }
 
     public function CheckIfPageInterdite($Titre=null,$Lien=null){
-        R::selectDatabase($this->Boutique->DBName) ;
+        /* R::selectDatabase($this->Boutique->DBName) ;
         if (isset($Titre)){            
             $TxSQL="select * from `".$this->Boutique->DBName."`.`".$this->TablePageInterdite."` where _titre like '".$Titre."' AND utilisateur_id =".$this->Id ;
             $Ret=$this->Main->ReadWrite($TxSQL) ;
@@ -114,7 +117,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         }
         if(isset($Page)){
             return true;
-        }
+        } */
         return false ;
     }
 

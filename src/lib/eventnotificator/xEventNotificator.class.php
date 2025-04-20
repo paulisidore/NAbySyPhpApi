@@ -2,7 +2,7 @@
     namespace NAbySy\Lib\Evenement ;
     include_once 'xEventNotificatorMessage.class.php';
 
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
     /**
      * Moteur de gestion des notifications générales

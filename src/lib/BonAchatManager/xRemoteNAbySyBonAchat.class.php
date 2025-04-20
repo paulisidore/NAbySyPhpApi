@@ -4,7 +4,7 @@ namespace NAbySy\Lib\BonAchat ;
 use Exception;
 use ModuleMCP;
 use xErreur;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 class xRemoteNAbySyBonAchat extends xNAbySyGS {
 

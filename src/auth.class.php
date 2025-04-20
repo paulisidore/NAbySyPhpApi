@@ -1,5 +1,11 @@
 <?php
+namespace NAbySy ;
+
+use Exception;
 use Firebase\JWT\JWT;
+use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
+use NAbySy\xUser;
 
 Class xAuth
 {

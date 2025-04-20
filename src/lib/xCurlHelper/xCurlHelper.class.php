@@ -2,7 +2,7 @@
 namespace NAbySy\Lib\Http ;
 
 use xErreur;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 /**
  * Ce module permet de faire des appel API vers des ressources distantes.

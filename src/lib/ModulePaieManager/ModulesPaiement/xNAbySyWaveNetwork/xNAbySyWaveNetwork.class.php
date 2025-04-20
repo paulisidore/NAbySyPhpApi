@@ -9,7 +9,7 @@ use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\Wave\xApiNAbySyWaveConnect;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 use xNotification;
 
 class xNAbySyWaveNetwork implements IModulePaieManager {

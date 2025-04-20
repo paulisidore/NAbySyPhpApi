@@ -2,7 +2,7 @@
 namespace NAbySy\GS\Client ;
 
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 Class xClient extends xORMHelper
 {

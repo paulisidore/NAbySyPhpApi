@@ -12,7 +12,7 @@ use DatePeriod;
 use DateTime;
 use Exception;
 use NAbySy\ORM\xORMHelper;
-use xNAbySyGS;
+use NAbySy\xNAbySyGS;
 
 class xJournalCaisse extends xORMHelper {
     
