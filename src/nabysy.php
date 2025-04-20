@@ -7,6 +7,8 @@
  */
 
 //Déclaration des espace de nom
+namespace NAbySy ;
+
 mb_internal_encoding('UTF-8');
 
 include_once 'definition_err.php';
@@ -48,8 +50,6 @@ include_once 'lib/ModulePaieManager/ModulePaieManager.i.php';
 include_once 'GsModuleManager.class.php' ;
 
 include_once 'startupinfo.php' ;
-
-namespace NAbySy ;
 
 use DateTime;
 use DateTimeZone;
