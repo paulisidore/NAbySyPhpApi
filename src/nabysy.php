@@ -152,6 +152,7 @@ Class xNAbySyGS
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysy")
 	{
+		self::$Main = $this ;
 		if (!isset(self::$Log)){
 			$Dt=date('mY') ;
 			self::$Log=new xLog($this,"NAbySyGS_Log-".$Dt.".csv") ;

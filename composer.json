@@ -17,6 +17,9 @@
     "autoload": {
         "psr-4": {
             "NAbySy\\xNAbySyGS\\": "src/"
-        }
+        },
+        "files": [
+            "src/bootstrap.php"
+        ]
     }
 }
