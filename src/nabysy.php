@@ -245,6 +245,7 @@ Class xNAbySyGS
 			self::LoadModuleLib();
 						
 			self::LoadModuleGS();
+			var_dump(self::$ListeModuleAutoLoader);
 
 			self::LoadExternalModuleLib();
 
