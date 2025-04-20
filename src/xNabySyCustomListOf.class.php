@@ -29,27 +29,6 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
         } catch (\Throwable $th) {
             throw $th;
         }
-        
-
-       /*  try {
-            $arg=null;
-            if(isset($Args)){
-                $arg = $Args ;
-            }
-            $instance = $Obj ;
-            if(!isset($instance)){
-                $instance = new $this->validType($arg);
-            }                
-            if (!is_object($instance)) {
-                throw new InvalidArgumentException("Le type ".$this->validType." n'est pas valide. ");
-                exit;
-            }
-            $this->Object = $instance;
-            $this->validType = get_class($instance);
-        } catch (\Throwable $th) {
-            throw new InvalidArgumentException("Impossible de charger l'objet ".$this->validType.". Erreur: ".$th->getMessage());
-            exit;
-        }   */  
     }
 
     /**
@@ -63,8 +42,8 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
         return $ListO ;
     }
 
-    public function add(object $user): void {
-        $this->list[] = $user;
+    public function add(object $nObjet): void {
+        $this->list[] = $nObjet;
     }
 
     public function get(int $index): ?object {
@@ -104,9 +83,19 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     }
 
     public function offsetSet($offset, $value): void {
-        if (!$value instanceof $this->Object) {
-            throw new InvalidArgumentException("Impossible d'ajouter au tableau. L'élément doit être de type ".$this->validType);
+        
+        if(isset($this->Object)){
+            if (!$value instanceof $this->Object) {
+                throw new InvalidArgumentException("Impossible d'ajouter au tableau. L'élément doit être de type ".$this->validType);
+            }
         }
+
+        $className=get_class($value);
+        if($className != $this->validType){
+            throw new InvalidArgumentException("Le type ".$className." ne peut s'ajouter au tableau. L'élément doit être de type ".$this->validType);
+            exit;
+        }
+        
         if ($offset === null) {
             $this->list[] = $value;
         } else {
