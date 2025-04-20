@@ -9,7 +9,7 @@ use mysqli_result;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\xDB;
 use NAbySy\xNAbySyGS;
-use xErreur;
+use NAbySy\xErreur;
 
 //#[\AllowDynamicProperties] on verra ca une autre fois
 class xORMHelper implements IORM{

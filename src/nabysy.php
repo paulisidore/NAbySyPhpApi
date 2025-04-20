@@ -14,7 +14,7 @@ include_once 'config.php' ;
 include_once 'xModuleInfo.php';
 include_once 'format.class.php' ;
 include_once 'devises.class.php' ;
-include_once 'nabysyorm.class.php' ;
+include_once 'xNabySyCustomListOf.class.php' ;
 
 include_once 'erreur.php' ;
 include_once 'notification.class.php';
@@ -44,6 +44,8 @@ include_once 'lib/BonAchatManager/BonAchatManager.i.php';
 include_once 'moduleexterne.i.class.php' ;
 include_once 'lib/xCurlHelper/xCurlHelper.i.php';
 include_once 'lib/ModulePaieManager/ModulePaieManager.i.php';
+
+include_once 'GsModuleManager.class.php' ;
 
 include_once 'startupinfo.php' ;
 
@@ -1566,6 +1568,29 @@ Class xNAbySyGS
 	 */
 	public static function VERSION(){
 		return NABYSY_VERSION ;
+	}
+
+	/**
+	 * Retourne le dossier courant du module où est installé NAbySyGS avec le séparateur à la fin du repertoir
+	 * @param bool $HostAppFolder : Si vrai retourne le dossier de travaille de l'application hôte
+	 * @return string 
+	 */
+	public static function CurrentFolder(bool $HostAppFolder=false):string{
+		if ($HostAppFolder){
+			return __DIR__ . DIRECTORY_SEPARATOR ;
+		}else{
+			$Rep=dirname(__FILE__);
+			$Rep=str_replace('\\',DIRECTORY_SEPARATOR,$Rep) . DIRECTORY_SEPARATOR ;
+			return $Rep ;
+		}
+	}
+
+	/**
+	 * Retourne le dossier contenant les catégories des modules de NAbySyGS sans le séparateur de dossier à la fin
+	 */
+	public static function ModuleGSFolder():string{
+		$rep=self::CurrentFolder().'gs' ;
+		return $rep ;
 	}
 }
 
