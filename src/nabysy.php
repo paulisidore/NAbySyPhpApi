@@ -142,6 +142,8 @@ Class xNAbySyGS
 	/** Liste des Modules de Paiement Présent */
 	public static $ListeModulePaiement =[] ;
 
+	public static xNAbySyGS $Main ;
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysy")
 	{
 		if (!isset(self::$Log)){
@@ -232,11 +234,12 @@ Class xNAbySyGS
 				Autoload des interfaces/class du dossier rs
 					Autoload des interfaces (sous dossier rs)
 			*/
-			$this->LoadModuleLib();
 			
-			$this->LoadModuleGS();
+			self::LoadModuleLib();
+						
+			self::LoadModuleGS();
 
-			$this->LoadExternalModuleLib();
+			self::LoadExternalModuleLib();
 
 			$PMLoader=new \PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
 
@@ -552,7 +555,7 @@ Class xNAbySyGS
 		return preg_replace('/[^A-Za-z0-9\-]/', '', $Text); // Removes special chars.
 	}
 	
-	/* Gestion de redirection selon heure */
+	/* Retourne l'Heure UTC */
 	public Function HeureUTC(){
 		$tz = new DateTimeZone('utc');
 		$DateServeur= new DateTime(date('Y-m-d H:i:s'));
@@ -561,6 +564,12 @@ Class xNAbySyGS
 		$Heure=$DateServeur->format('H:i:s') ;
 		return $Heure;		
 	}
+
+	/**
+	 * Retourne la Date UTC
+	 * @param bool $FormatFR 
+	 * @return string 
+	 */
 	public Function DateUTC($FormatFR=false){
 		$tz = new DateTimeZone('utc');
 		$DateServeur= new DateTime(date('Y-m-d H:i:s'));
@@ -571,52 +580,6 @@ Class xNAbySyGS
 			$DateT=$DateServeur->format('d-m-Y') ;
 		}
 		return $DateT;		
-	}	
-	
-	public Function VerifieHeureTravail($CheckHFermeture=true){
-		if ($this->MaBoutique->IdCompteClient > 0){
-			
-			$DateAct=$this->DateUTC()." ".$this->HeureUTC() ;
-			$HeureAct=$this->HeureUTC() ;
-			if (!empty($_SERVER['HTTPS']) && ('on' == $_SERVER['HTTPS'])) {
-					$uri = 'https://';
-				}else {
-					$uri = 'http://';
-				}	
-			$uri .= $_SERVER['HTTP_HOST'];
-			//echo "</br>Je cherche à rediriger... ".$CheckHFermeture.' '.$DateAct.'</br>Hfermeture='.$this->HeureFermeture ;
-			//echo "</br>Heure actuelle: ".strtotime($DateAct)." par rapport à ".strtotime($this->HeureFermeture) ;
-			//exit ;
-			if ($CheckHFermeture){
-				if ((strtotime($DateAct) >= strtotime($this->HeureFermeture)) and (strtotime($DateAct) < strtotime($this->HeureOuverture))) {
-					//On a dépasser heure de fermeture
-					//Redirection vers SiteFermeture
-					//echo "</br>Je redirige vers ".$uri.'/'.$this->SiteFermeture.'/app/web/vues/connexion.php (Heure Fermeture Depassé)' ;
-					if ($this->GetSite()==$this->SiteFermeture){
-						//On est deja sur le bon site
-						return false ;
-					}
-					header('Location: '.$uri.'/'.$this->SiteFermeture.'/app/web/vues/connexion.php');
-					exit ;
-				}
-			}			
-			if (!$CheckHFermeture){
-				//echo "</br>Heure actuelle: ".strtotime($DateAct)." </br>Ouverture: ".strtotime($this->HeureOuverture) ;
-				//exit ;
-				if(strtotime($DateAct) >= strtotime($this->HeureOuverture) and strtotime($DateAct) < strtotime($this->HeureFermeture)) {
-					//On a dépasser heure de fermeture
-					//Redirection vers SiteOuverture
-					//echo "</br>Je redirige vers ".$uri.'/'.$this->SiteOuverture.'/app/web/vues/connexion.php (Heure Ouverture Arrivée)' ;
-					if ($this->GetSite()==$this->SiteOuverture){
-						//On est deja sur le bon site
-						return false ;
-					}
-					header('Location: '.$uri.'/'.$this->SiteOuverture.'/app/web/vues/connexion.php');	
-					exit ;
-				}
-			}
-			  
-		}
 	}
 	
 	public function ReadConfig($Id=0){
@@ -647,6 +610,7 @@ Class xNAbySyGS
 
 		
 	}
+
 	public function GetSite(){
 		$url=$_SERVER['REQUEST_URI'] ;
 		$chem=parse_url($url);
@@ -871,7 +835,7 @@ Class xNAbySyGS
 	 * Charge les modules de gestion dans NAbySyGS stockés dans le dossier gs
 	 * @param array $ListeRepertoirGS : Liste des répertoires à charger. Si vide, on charge tous les modules de gestion par défaut de NAbySyGS.
 	 */
-	public function LoadModuleGS($ListeRepertoirGS = []){
+	public static function LoadModuleGS($ListeRepertoirGS = []){
 		$RepWork="gs" ;
 		$ListeR=$ListeRepertoirGS ;
 		if(count($ListeR) == 0){
@@ -889,7 +853,6 @@ Class xNAbySyGS
 		
 		//On déclare un AutoLoad pour chaque catégorie
 		$LstObs=[] ;
-		//$LstObs[]='xSiege' ;
 		
 		foreach ($ListeR as $categorie){
 			//var_dump(__NAMESPACE__ . '\\Editor\\') ;
@@ -897,16 +860,35 @@ Class xNAbySyGS
 			if (!is_dir($dos)){
 				mkdir($dos,0777,true);
 			}
-			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad($this,$categorie,$RepWork);
+			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
 			$AutoLoad->Register($LstObs,1) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;
 		}		
 	}
 
 	/**
+	 * Ajoute un Module de Gestion dans NAbySyGS. Le dossier du module n'existe pas il sera crée dans le dossier gs.
+	 * @param string $categorie 
+	 * @return void 
+	 */
+	public static function AddModuleGS(string $categorie){
+		$RepWork="gs" ;		
+		//On déclare un AutoLoad pour chaque catégorie
+		$LstObs=[] ;
+		//var_dump(__NAMESPACE__ . '\\Editor\\') ;
+		$dos=$RepWork.'/'.$categorie ;
+		if (!is_dir($dos)){
+			mkdir($dos,0777,true);
+		}
+		$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
+		$AutoLoad->Register($LstObs,1) ;
+		self::$ListeModuleAutoLoader[]=$AutoLoad ;
+	}
+
+	/**
 	 * Charge les librairies partagées entre les modules
 	 */
-	public function LoadModuleLib($DebugLevel=0){  
+	public static function LoadModuleLib($DebugLevel=0){  
 			$rep="lib" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
             
@@ -966,9 +948,9 @@ Class xNAbySyGS
 					$Tache="ERREUR CHARGEMENT DES LIBRAIRIES";
 					$Note=$FichierInterface." introuvable";
 					$TxSQL="select * from journal j where j.Note like '%".$Note."%' and j.DateEnreg = '".date('Y-m-d')."'";
-					$Lst=$this->ReadWrite($TxSQL);
+					$Lst=self::$Main->ReadWrite($TxSQL);
 					if ($Lst->num_rows==0){
-						$this->AddToJournal('SYSTEME',0,$Tache,$Note);
+						self::$Main->AddToJournal('SYSTEME',0,$Tache,$Note);
 					}
 				}
 			}
@@ -979,13 +961,13 @@ Class xNAbySyGS
 	/**
 	 * Charge les Modules Externes tel que Le module de gestion interagissant via des API dstantes.
 	 */
-	public function LoadExternalModuleLib($DebugLevel=0){  
+	public static function LoadExternalModuleLib($DebugLevel=0){  
 			$rep="moduleExterne" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
 			if (!file_exists($rep)){
 				$Tache="CHARGEMENT DES LIBRAIRIES";
 				$Note="SETUP: Création du Dossier ".$rep;
-				$this->AddToJournal('SYSTEME','0', $Tache,$Note);
+				self::$Main->AddToJournal('SYSTEME','0', $Tache,$Note);
 				mkdir($rep,0777,true);
 			}
             
@@ -1043,7 +1025,7 @@ Class xNAbySyGS
 				if (file_exists($FichierInterface)){
 					include_once $FichierInterface ;
 					$pre= "\NAbySy\Lib\ModuleExterne\\".$Librairie[0];
-					$ModClass=new $pre($this) ;
+					$ModClass=new $pre(self::$Main) ;
 					if ($ModClass instanceof IModuleExterne){
 						//self::$Log->Write("Module externe ".$Librairie[0]." chargé.");
 						self::$ListeModuleExterne[]=$Librairie;
@@ -1057,9 +1039,9 @@ Class xNAbySyGS
 					$Tache="CHARGEMENT DES LIBRAIRIES";
 					$Note="ERREUR: ".$FichierInterface." introuvable";
 					$TxSQL="select * from journal j where j.Note like '%".$Note."%' and j.DateEnreg = '".date('Y-m-d')."'";
-					$Lst=$this->ReadWrite($TxSQL);
+					$Lst=self::$Main->ReadWrite($TxSQL);
 					if ($Lst->num_rows==0){
-						$this->AddToJournal('SYSTEME',0,$Tache,$Note);
+						self::$Main->AddToJournal('SYSTEME',0,$Tache,$Note);
 					}
 					//On véfirie si l'entrée est déja présente dans le journal
 				}
