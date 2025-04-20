@@ -1,4 +1,6 @@
 <?php
+namespace NAbySy ;
+
 /* define('KB', 1024);
 define('MB', 1048576);
 define('GB', 1073741824);
@@ -17,7 +19,6 @@ if (!defined('TB')){
     define('TB', 1099511627776);
 }
 
-namespace NAbySy ;
 Class xPhoto{
     /**
      * Cette Class permet de gérer l'envoie et le téléchargement de fichier Image
