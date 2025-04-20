@@ -1,6 +1,6 @@
 {
     "name": "nabysyphpapi/xnabysygs",
-    "description": "Framework de mise en place rapide d'API pour les plateforme logiciel PAM et MCP",
+    "description": "Framework de mise en place rapide d'API pour les plateformes d'application développé par PAM et MCP. (EN: Rapid API implementation framework for application platforms developed by PAM and MCP)",
     "type": "package",
     "require": {
         "php": ">=8.1.0"
