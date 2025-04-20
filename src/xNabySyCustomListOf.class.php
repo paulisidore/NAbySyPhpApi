@@ -2,7 +2,7 @@
 
 class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     protected $validType = ''; 
-    private object $Object =null ;
+    private ?object $Object = null ;
     private array $list = [];
 
     public function __construct(string $TypeValide=null){
