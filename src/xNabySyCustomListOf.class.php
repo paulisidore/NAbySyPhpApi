@@ -43,6 +43,17 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     }
 
     public function add(object $nObjet): void {
+        if(isset($this->Object)){
+            if (!$nObjet instanceof $this->Object) {
+                throw new InvalidArgumentException("Impossible d'ajouter au tableau. L'élément doit être de type ".$this->validType);
+            }
+        }
+
+        $className=get_class($nObjet);
+        if($className != $this->validType){
+            throw new InvalidArgumentException("Le type ".$className." ne peut s'ajouter au tableau. L'élément doit être de type ".$this->validType);
+            exit;
+        }
         $this->list[] = $nObjet;
     }
 
