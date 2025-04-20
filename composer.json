@@ -1,0 +1,22 @@
+{
+    "name": "nabysyphpapi/xnabysygs",
+    "description": "Framework de mise en place rapide d'API pour les plateforme logiciel PAM et MCP",
+    "type": "package",
+    "require": {
+        "php": ">=8.1.0"
+    },
+    "license": "mit",
+    "authors": [
+        {
+            "name": "Paul Isidore A. NIAMIE",
+            "email": "paul.isidore@gmail.com",
+            "homepage": "https://groupe-pam.net"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "NAbySyPhpApi\\xNAbySyGS\\": "src/"
+        }
+    }
+}

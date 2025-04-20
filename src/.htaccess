@@ -1,0 +1,19 @@
+# On suit les liens symboliques 
+#Options +FollowSymlinks 
+# Activation du mod rewrite d'Apache 
+#RewriteEngine On
+# Réécriture des URL des Boutiques 
+#RewriteRule ^([a-z0-9\-]+)$ /app/web/nabysy_action.php?action=OpenBoutique&URLCALL=$1 [L]
+
+Options +FollowSymlinks
+RewriteEngine on
+#RewriteRule ^([A-Za-z0-9\-]+)$ /kssv3/TestH.php?IdBoutique=$1 [L]
+RewriteRule ^([A-Za-z0-9\-]+)$ /kssv4/app/web/nabysy/nabysy_action.php?action=OpenBoutique&URLCALL=$1 [L]
+#RewriteRule ^([A-Za-z0-9\-]+)$ %{REQUEST_URI}/app/web/nabysy/nabysy_action.php?action=OpenBoutique&URLCALL=$1 [L]
+
+Options -Indexes
+
+#AuthName "Page protégée"
+#AuthType Basic
+#AuthUserFile "/.nabysybyhtpasswd"
+#Require valid-user

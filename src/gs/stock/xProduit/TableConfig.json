@@ -1,0 +1,12 @@
+{
+    "Table":"produits",
+    "Champs": {
+        "PrixAchatCarton":"PRIXACHATTTC",
+        "PrixVenteCarton":"PRIXVENTETTC",
+        "PrixVenteDetail":"PRIXDETAIL",
+        "Nom":"DESIGNATION",
+        "Qte":"STOCK",
+        "quantite":"STOCK"
+        },
+    "DebugMode":"true"
+}
