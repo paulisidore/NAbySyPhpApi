@@ -4,7 +4,7 @@
  * Application developpé par Paul Isidore A. NIAMIE
  * paul_isidore@hotmail.com
  */
-
+namespace NAbySy ;
 Class xNotification extends xErreur
 {
     public $Contenue ;
