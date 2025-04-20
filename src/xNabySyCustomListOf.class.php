@@ -24,6 +24,19 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                             if(isset($Args)){
                                 $arg = $Args ;
                             }
+                            if (is_array($arg)) {
+                                $lstArg="";
+                                $nb=count($arg);
+                                $i=0;
+                                foreach ($arg as $value) {
+                                    $i++;
+                                    $lstArg .= $value  ;
+                                    if($nb < $i){
+                                        $lstArg .= ",";
+                                    }
+                                }
+                                $arg = $lstArg;
+                            }
                             $Obj=new $TypeValide($arg);
                         } catch (\Throwable $th) {
                             throw $th;
