@@ -843,7 +843,7 @@ Class xNAbySyGS
 	 * @param array $ListeRepertoirGS : Liste des répertoires à charger. Si vide, on charge tous les modules de gestion par défaut de NAbySyGS.
 	 */
 	public static function LoadModuleGS($ListeRepertoirGS = []){
-		$RepWork="gs" ;
+		$RepWork=self::CurrentFolder()."gs" ;
 		$ListeR=$ListeRepertoirGS ;
 		if(count($ListeR) == 0){
 			$ListeR=[];
@@ -869,6 +869,7 @@ Class xNAbySyGS
 			}
 			$debg=1;
 			if($categorie=='comptabilite' || $categorie=='boutique' ){
+				echo "Dossier de chargement: ".$dos."</br>" ;
 				$debg=5;
 			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);

@@ -3,10 +3,10 @@
 
 use NAbySy\GS\Facture\xVente;
 use NAbySy\xNAbySyGS;
-use xNotification;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\GS\Panier\xCart;
 use NAbySy\ORM\xORMHelper;
+use NAbySy\xNotification;
 
     //include_once 'xApiNAbySyWaveConnect.class.php';
 
