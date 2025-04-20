@@ -31,7 +31,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                                 foreach ($arg as $value) {
                                     $i++;
                                     if(is_array($value)){
-                                        var_dump($value) ;
+                                        //var_dump($value) ;
                                     }else{
                                         $lstArg .= $value  ;
                                         if($nb < $i){
