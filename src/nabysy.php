@@ -67,6 +67,7 @@ use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\ModuleMCP;
 use NAbySy\xErreur;
 use ReflectionObject;
+use xNAbySyCustomListOf;
 
 ;
 
@@ -1591,6 +1592,15 @@ Class xNAbySyGS
 	public static function ModuleGSFolder():string{
 		$rep=self::CurrentFolder().'gs' ;
 		return $rep ;
+	}
+
+	/**
+	 * Retourne un objet Liste typée.
+	 * @param mixed $Objet : Le typage accepté par la liste
+	 * @return xNAbySyCustomListOf 
+	 */
+	public static function ListOf($Objet):xNAbySyCustomListOf{
+		return xNAbySyCustomListOf::GetListOf($Objet);
 	}
 }
 

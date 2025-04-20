@@ -1,6 +1,6 @@
 <?php
 
-class xNabySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
+class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     protected $validType = ''; 
     private object $Object =null ;
     private array $list = [];
@@ -26,9 +26,9 @@ class xNabySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     /**
      * Fournit un Tableau de type $TypeN
      * @param mixed $TypeN 
-     * @return xNabySyCustomListOf 
+     * @return xNAbySyCustomListOf 
      */
-    public static function GetListOf(object $TypeN ){
+    public static function GetListOf(object $TypeN ):xNAbySyCustomListOf{
         $TypeName = '' ;
         if (isset($TypeN)){
             $TypeName = get_class($TypeN);
