@@ -1,7 +1,5 @@
 <?php
 
-use NAbySy\GS\Boutique\xBoutique;
-
 namespace NAbySy;
 
 use NAbySy\GS\Boutique\xBoutique;
