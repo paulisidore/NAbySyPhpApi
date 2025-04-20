@@ -7,8 +7,12 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
 
     public function __construct(...$constructorArgs) {
         $TypeValide = $constructorArgs ;
+        $Args=null;
         if(isset($constructorArgs[0])){
             $TypeValide = $constructorArgs[0] ;
+        }
+        if(isset($constructorArgs[1])){
+            $Args = $constructorArgs[1] ;
         }
         if(isset($TypeValide)){
             $Obj=null;
@@ -16,8 +20,8 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                 if($TypeValide !=""){
                     try {
                         $arg=null;
-                        if(isset($constructorArgs)){
-                            $arg = $constructorArgs ;
+                        if(isset($Args)){
+                            $arg = $Args ;
                         }
                         $Obj=new $TypeValide($arg);
                     } catch (\Throwable $th) {
@@ -33,8 +37,8 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
 
             try {
                 $arg=null;
-                if(isset($constructorArgs)){
-                    $arg = $constructorArgs ;
+                if(isset($Args)){
+                    $arg = $Args ;
                 }
                 $instance = $Obj ;
                 if(!isset($instance)){
@@ -47,7 +51,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                 $this->Object = $instance;
                 $this->validType = get_class($instance);
             } catch (\Throwable $th) {
-                throw new InvalidArgumentException("Impossible de chargerL'objet ".$this->validType." </br> Erreur: ".$th->getMessage());
+                throw new InvalidArgumentException("Impossible de charger l'objet ".$this->validType.". Erreur: ".$th->getMessage());
                 exit;
             }
         }
