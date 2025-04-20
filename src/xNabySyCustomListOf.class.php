@@ -5,14 +5,14 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     private ?object $Object = null ;
     private array $list = [];
 
-    public function __construct($TypeValide=null, $constructorArgs = []) {
+    public function __construct($TypeValide=null, $constructorArgs = null) {
         if(isset($TypeValide)){
             $Obj=null;
             if(is_string($TypeValide)){
                 if($TypeValide !=""){
                     try {
                         $arg=null;
-                        if(count($constructorArgs)){
+                        if(isset($constructorArgs)){
                             $arg = $constructorArgs ;
                         }
                         $Obj=new $TypeValide($arg);
@@ -28,7 +28,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
 
             try {
                 $arg=null;
-                if(count($constructorArgs)){
+                if(isset($constructorArgs)){
                     $arg = $constructorArgs ;
                 }
                 $instance = new $this->validType($arg);
@@ -48,7 +48,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
      * @param mixed $TypeN 
      * @return xNAbySyCustomListOf 
      */
-    public static function GetListOf($TypeN, $constructorArgs = [] ):xNAbySyCustomListOf{
+    public static function GetListOf($TypeN, $constructorArgs=null ):xNAbySyCustomListOf{
         $ListO=new self($TypeN, $constructorArgs) ;
         return $ListO ;
     }

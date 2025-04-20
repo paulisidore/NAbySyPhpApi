@@ -1613,7 +1613,7 @@ Class xNAbySyGS
 	 * @param mixed $Objet : Le typage accepté par la liste
 	 * @return xNAbySyCustomListOf 
 	 */
-	public static function ListOf($Objet, $constructorArgs = []):xNAbySyCustomListOf{
+	public static function ListOf($Objet, $constructorArgs = null):xNAbySyCustomListOf{
 		return xNAbySyCustomListOf::GetListOf($Objet, $constructorArgs);
 	}
 }
