@@ -44,15 +44,8 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
      * @param mixed $TypeN 
      * @return xNAbySyCustomListOf 
      */
-    public static function GetListOf(object $TypeN ):xNAbySyCustomListOf{
-        $TypeName = '' ;
-        if (isset($TypeN)){
-            $TypeName = get_class($TypeN);
-            if ($TypeName == 'xNabySyCustomListOf'){
-                
-            }
-        }
-        $ListO=new self($TypeName) ;
+    public static function GetListOf($TypeN ):xNAbySyCustomListOf{
+        $ListO=new self($TypeN) ;
         return $ListO ;
     }
 
