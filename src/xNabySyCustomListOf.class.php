@@ -19,34 +19,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
                 $Obj=null;
                 if(is_string($TypeValide)){
                     if($TypeValide != ""){
-                        try {
-                            $arg=null;
-                            if(isset($Args)){
-                                $arg = $Args ;
-                            }
-                            if (is_array($arg)) {
-                                $lstArg="";
-                                $nb=count($arg);
-                                $i=0;
-                                foreach ($arg as $value) {
-                                    $i++;
-                                    if(is_array($value)){
-                                        //var_dump($value) ;
-                                    }else{
-                                        $lstArg .= $value  ;
-                                        if($nb < $i){
-                                            $lstArg .= ",";
-                                        }
-                                    }
-                                }
-                                $arg = $lstArg;
-                            }
-                            $Obj=new $TypeValide($arg);
-                        } catch (\Throwable $th) {
-                            throw $th;
-                            exit;
-                        }
-                        $this->validType = get_class($Obj);
+                        $this->validType = $TypeValide;
                     }
                 }elseif (is_object($TypeValide)){
                     $Obj = $TypeValide ;
@@ -58,7 +31,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
         }
         
 
-        try {
+       /*  try {
             $arg=null;
             if(isset($Args)){
                 $arg = $Args ;
@@ -76,7 +49,7 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
         } catch (\Throwable $th) {
             throw new InvalidArgumentException("Impossible de charger l'objet ".$this->validType.". Erreur: ".$th->getMessage());
             exit;
-        }    
+        }   */  
     }
 
     /**
