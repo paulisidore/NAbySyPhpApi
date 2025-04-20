@@ -867,8 +867,12 @@ Class xNAbySyGS
 			if (!is_dir($dos)){
 				mkdir($dos,0777,true);
 			}
+			$debg=1;
+			if($categorie=='comptabilite'){
+				$debg=5;
+			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
-			$AutoLoad->Register($LstObs,1) ;
+			$AutoLoad->Register($LstObs,$debg) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;
 		}		
 	}
