@@ -2,8 +2,9 @@
     namespace NAbySy\Lib\Sms ;
 
 use NAbySy\ORM\xORMHelper;
-use xErreur;
-use xNAbySyGS ;
+use NAbySy\xErreur ;
+use NAbySy\xNAbySyGS ;
+
 include_once 'xObservOrangeSMS.class.php';
 
     /**
