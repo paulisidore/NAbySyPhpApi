@@ -245,7 +245,6 @@ Class xNAbySyGS
 			self::LoadModuleLib();
 						
 			self::LoadModuleGS();
-			var_dump(self::$ListeModuleAutoLoader);
 
 			self::LoadExternalModuleLib();
 
@@ -869,7 +868,7 @@ Class xNAbySyGS
 				mkdir($dos,0777,true);
 			}
 			$debg=1;
-			if($categorie=='comptabilite'){
+			if($categorie=='comptabilite' && $categorie=='boutique' ){
 				$debg=5;
 			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
