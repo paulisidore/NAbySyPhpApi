@@ -8,6 +8,8 @@
 
  namespace NAbySy ;
 
+use xNAbySyCustomListOf;
+
  include_once 'nabysy.php' ;
 
  /**
@@ -16,12 +18,13 @@
   */
  class xGSModuleManager{
    public  static xNAbySyGS $Main ;
-   public static array $Categories = [] ; //List Of xGSModuleCategory
+   public static xNAbySyCustomListOf $Categories  ; //List Of xGSModuleCategory
     
    public function __construct(xNAbySyGS $NAbySy){
       //Chargement de la liste des dossier catégories
       self::$Main = $NAbySy;
       $dossierGs= self::$Main::ModuleGSFolder() ;
+      self::$Categories = new xNAbySyCustomListOf(xGSModuleCategory::class) ;
       $rep=scandir($dossierGs) ;
       if(count($rep)>0){
          foreach ($rep as $key => $value) {
@@ -49,12 +52,14 @@
    }
 
    public function __debugInfo() {
+      var_dump(self::$Categories) ;
       $liste = array (self::$Categories ) ;
       $dossierGs= self::$Main::ModuleGSFolder() ;
       $rep=scandir($dossierGs) ;
       echo "<br>Dossier des modules NAbySyGS : ".$dossierGs."</br>" ;
       echo "<br>Cagtégorie NAbySyGS : ".count($rep)."</br>" ;
       echo "<br>Liste des Catégorie : ".var_dump($rep)."</br>" ;
+      $liste = $rep;
       return $liste ;
    }
 
