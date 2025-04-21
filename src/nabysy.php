@@ -399,15 +399,14 @@ Class xNAbySyGS
 		if (isset($this->MaBoutique)){
 			$TxBout=$this->MaBoutique->DataBase ;
 		}
-
-		if (!is_dir("log")){
+		$logFolder=self::CurrentFolder(true).'log';
+		if (!is_dir($logFolder)){
 			try{
-				mkdir("log",0777,true) ;
+				mkdir($logFolder,0777,true) ;
 			}catch (Exception $e){
-				echo "<script>console.log('Erreur mkdir Log=".$e->getMessage()."');</script>" ;
 				$Dat=date("Y-m-d");
 				$Tim=date("H:i:s");
-				$FicheExecption="log/SysFileError".$TxBout.date('mY').".csv" ;
+				$FicheExecption=$logFolder."/SysFileError".$TxBout.date('mY').".csv" ;
 				$F= fopen($FicheExecption, 'a');			
 				$TxT=$Dat.";".$Tim.";".$e->getMessage().";" ;
 				$TxT .="\r\n" ;				
@@ -418,8 +417,8 @@ Class xNAbySyGS
 			}
 		}
 
-		$Fichier="log/DebugLOG".$TxBout.date('mY').".csv" ;
-		$FichierError="log/DebugLOGError".$TxBout.date('mY').".txt" ;	
+		$Fichier=$logFolder."/DebugLOG".$TxBout.date('mY').".csv" ;
+		$FichierError=$logFolder."/DebugLOGError".$TxBout.date('mY').".txt" ;	
 
 		$req=null;
 		try{
@@ -431,7 +430,7 @@ Class xNAbySyGS
 			$error=$e->getMessage() ;
 			$Dat=date("Y-m-d");
 			$Tim=date("H:i:s");
-			$FicheExecption="log/SQLiException".$TxBout.date('mY').".csv" ;
+			$FicheExecption=$logFolder."/SQLiException".$TxBout.date('mY').".csv" ;
 			$F= fopen($FicheExecption, 'a');			
 			$TxT=$Dat.";".$Tim.";".$error.";" ;
 			$TxT .="\r\n" ;				
@@ -448,7 +447,6 @@ Class xNAbySyGS
 			//$NomBoutique=$this->MaBoutique->Nom ;
 			$Tache ="ERREUR SYSTEME - READWRITE SQL" ;
 			$Note= self::$db_link->error ;
-			printf("Erreur SQL !<br> %s <br> %s\n", $SQL, self::$db_link->error);
 			$Fichier=$FichierError ;
 			// 1 : on ouvre le fichier
 			$monfichier = fopen($Fichier, 'a');
@@ -475,10 +473,7 @@ Class xNAbySyGS
 		//$req=mysql_query($SQL,self::$db_link) ;
 		if (!$req)
 				{
-					echo $this->MODULE->Nom."Exécution SQL impossible\n";
-					//echo $MODULE->Nom."Erreur SQL: ".$SQL." \n";
-					echo "<p align='center'>Erreur : ".$req."</p>\n";
-					//echo "<td><div align='center'><a href=./ />Retourner à l'acceuil SVP !</a></div></td>";
+					echo $this->MODULE->Nom.": Exécution SQL impossible\n";
 					return false;
 				}
 		
@@ -488,14 +483,13 @@ Class xNAbySyGS
 		else{
 			if (isset($InsertTable)){
 				$last_id = self::$db_link->insert_id ;
-				//echo "<p>Last Insert ID ".$last_id."\n</p>";
 				$req=$last_id ;
 				}
 			}
 		
 		if ($this->ActiveDebug){
-			if (!is_dir("log")){
-				mkdir("log",0777,true) ;
+			if (!is_dir($logFolder)){
+				mkdir($logFolder,0777,true) ;
 			}
 			if ($DEBUG){	
 				$ignoreRequete=self::$RequetteToIgnoreInLOG;
