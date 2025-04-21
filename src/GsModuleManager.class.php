@@ -38,15 +38,16 @@ use xNAbySyCustomListOf;
                   if(count($repModule)>0){
                      foreach ($repModule as $key => $value) {
                         $dos_cat = $cat->Dossier.$value ;
-                        echo "<br>Dossier cat: ".$dos_cat."</br>";
+                        //echo "<br>Dossier cat: ".$dos_cat."</br>";
                         if ($value != '.' && $value != '..' && is_dir($dos_cat)){
                            $vraieRepModule = $dos_cat ;
                            $lstMod=scandir($vraieRepModule) ;
-                           echo "<br>Liste sous Dossier cat: ".var_dump($lstMod)."</br>";
+                           //echo "<br>Liste sous Dossier cat: ".var_dump($lstMod)."</br>";
                            if(count($lstMod)){
                               foreach ($lstMod as $key => $value) {
                                  //C'est un fichier, on vérifie s'il s'agit d'un module NAbySyGS
                                  $exp = explode(".class.",$value);
+                                 echo "<br>Liste sous Dossier cat: ".var_dump($exp)."</br>";
                                  if(count($exp)>0){
                                     $className = str_replace(".class.php","",$value) ;
                                     $module=new xGSModuleCategory( $className, $vraieRepModule.$value) ;
