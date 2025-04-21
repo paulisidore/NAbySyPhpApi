@@ -1681,6 +1681,32 @@ Class xNAbySyGS
 		return self::$Main;
 	}
 
+
+	/**
+	 * Traite les demandes d'authentifications
+	 * @return void 
+	 */
+	public static function ReadHttpAuthRequest(){
+		// Obtenir la route et la méthode
+		$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+		$method = $_SERVER['REQUEST_METHOD'];
+
+		// Nettoyer et protéger
+		$path = trim($uri, '/');
+		$path = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $path);
+
+		if(trim($path) == ""){
+			return ;
+		}
+
+		if(strtolower($path) == 'auth'){
+			require 'auth.php';
+			return;
+		}
+		// Fichier PHP ciblé
+		$routeFile = self::CurrentFolder(true) . "/routes/" . ($path ?: "index") . ".php";
+	}
+
 	/**
 	 * Lance le traitement des requêttes HTTP par NAbySyGS
 	 * @return void 

@@ -1,10 +1,16 @@
 <?php
-    include_once 'nabysy_start.php';
+
+use NAbySy\xAuth;
+use NAbySy\xErreur;
+use NAbySy\xUser;
+
+    //include_once 'nabysy_start.php';
 
     $Login='' ;
     $Password='' ;
     $Token=null;
-    $Boutique=$nabysy ;
+    $nabysy=N::getInstance();
+    $Boutique=N::getInstance()->MaBoutique ;
     $Auth=new xAuth($nabysy) ;
     $UserToken=null ;
     $Err=new xErreur;
@@ -48,11 +54,6 @@
         $Notif->OK=1 ;
         echo json_encode($Notif) ;
         exit ;
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] !=='POST'){
-        //echo 'Méthode dénvoie: </br>';
-        //var_dump($_SERVER['REQUEST_METHOD']);
     }
 
     if (isset($_REQUEST['Login'])){
