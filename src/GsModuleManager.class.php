@@ -50,7 +50,10 @@
 
    public function __debugInfo() {
       $dossierGs= self::$Main::ModuleGSFolder() ;
-      echo "<br>Le dossier des modules NAbySyGS n'existe pas : ".$dossierGs."</br>" ;
+      $rep=scandir($dossierGs) ;
+      echo "<br>Dossier des modules NAbySyGS : ".$dossierGs."</br>" ;
+      echo "<br>Cagtégorie NAbySyGS : ".count($rep)."</br>" ;
+      echo "<br>Liste des Catégorie : ".var_dump($rep)."</br>" ;
       return self::$Categories ;
    }
 
