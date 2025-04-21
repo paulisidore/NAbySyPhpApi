@@ -73,7 +73,7 @@ use NAbySy\xUser;
     $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null,$Login) ;
     $Err=new xErreur;
     $Err->Source='auth.php-'.$User->Id.':'.$Login;
-    //var_dump($User);
+    var_dump($User);
 
     if ($User->Id>0){
         if ($User->BLOQUE=='OUI'  ){
