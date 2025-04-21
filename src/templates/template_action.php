@@ -1,6 +1,6 @@
 <?php
 /**
- * @file {{CATEGORIE}}_action.php
+ * @file {CATEGORIE}_action.php
  * Contains Generic NAbySyGS API Action for {CATEGORIE}
  * Author: 
  * Mail: 
