@@ -1686,7 +1686,7 @@ Class xNAbySyGS
 	 * Traite les demandes d'authentifications
 	 * @return void 
 	 */
-	public static function ReadHttpAuthRequest(){
+	public static function ReadHttpAuthRequest(bool $SendReponse=true){
 		// Obtenir la route et la méthode
 		$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 		$method = $_SERVER['REQUEST_METHOD'];
@@ -1700,7 +1700,21 @@ Class xNAbySyGS
 		}
 
 		if(strtolower($path) == 'auth'){
+			$User=null ;
 			require 'auth.php';
+			if($SendReponse){
+				if(isset($User)){
+					$Notification=new xNotification;
+					$Notification->OK=1;
+					$Notification->Autres="Connexion réussit";
+					$Notification->Contenue=$User ;
+					echo json_encode($Notification) ;
+				}else{
+					$Err->TxErreur='Vous n\'etes pas authentifié !' ;
+					$Err->Source= __FUNCTION__ ;
+					echo json_encode($Err) ;
+				}
+			}
 			return;
 		}
 		// Fichier PHP ciblé

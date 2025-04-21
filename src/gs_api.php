@@ -7,6 +7,7 @@
 use NAbySy\xAuth;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
+use NAbySy\xNotification;
 use NAbySy\xUser;
 	
 
@@ -75,7 +76,7 @@ if (!class_exists('N')) {
 
     
     if(strtolower($action) == 'auth'){
-        N::ReadHttpAuthRequest();
+        N::ReadHttpAuthRequest(true);
         return;
     }
 
