@@ -67,7 +67,7 @@ Class xAuth
             "exp" => $dateexp+$this->DureeVieSecode ,
             "Author" => $this->Main->MODULE->MCP_CLIENT
         );
-        $this->Main::$Log->AddToLog(json_encode($this->Payload));
+        var_dump(json_encode($this->Payload));
         $jwt=JWT::encode($this->Payload,$this->Key,$Algo) ;
         return $jwt ;
     }
