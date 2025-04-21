@@ -764,14 +764,13 @@ Class xNAbySyGS
 		return true;
 	}
 
-	public static function FormatNB($nombre,$lang="fr"){
+	public static function FormatNB($nombre,$lang="fr", int $arrondie = 2){
 		if ($lang=="fr" or $lang=="FR"){
-			$nb = number_format($nombre, 2, ',', ' ');
+			$nb = number_format($nombre, $arrondie, ',', ' ');
 		}
 		if ($lang=="us" or $lang=="US"){
-			$nb = number_format($nombre, 2, '.', ' ');
+			$nb = number_format($nombre, $arrondie, '.', ',');
 		}
-		
 		return $nb ;
 
 	}
