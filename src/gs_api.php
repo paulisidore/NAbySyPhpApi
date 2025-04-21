@@ -8,6 +8,11 @@ use NAbySy\xAuth;
 use NAbySy\xErreur;
 use NAbySy\xUser;
 	
+
+    if(!isset($nabysy)){
+        $nabysy = N::$Main ;
+    }
+
 	$PARAM=$_REQUEST;
     
     $ChampAction='Action';
