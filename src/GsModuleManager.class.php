@@ -291,7 +291,7 @@ use xNAbySyCustomListOf;
 
       $fichier_module=$DossierFinal.$ClassName.".class.php" ;
       if(file_exists($fichier_module)){
-         if(self::$CategoriesHote){
+         if(self::$DebugToLog){
             self::$Main::$Log->AddToLog("Attention le fichier ".$fichier_module." existe déjà.");
          }
          $Rep->OK=1;
