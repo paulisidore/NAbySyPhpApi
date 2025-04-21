@@ -229,8 +229,12 @@ use xNAbySyCustomListOf;
       // Remplacer dynamiquement des morceaux
       $updated = str_replace([
          '{CATEGORIE}',
+         'l{CATEGORIE}',
+         'u{CATEGORIE}',
          '{DATE}',
       ], [
+         $NomCategorie,
+         strtolower($NomCategorie),
          strtoupper($NomCategorie),
          date('d/M/Y H:i:s'),
       ], $template);

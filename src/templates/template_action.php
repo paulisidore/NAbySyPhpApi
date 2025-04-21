@@ -1,6 +1,6 @@
 <?php
 /**
- * @file {CATEGORIE}_action.php
+ * @file l{CATEGORIE}_action.php
  * Contains Generic NAbySyGS API Action for {CATEGORIE}
  * Author: 
  * Mail: 
@@ -39,22 +39,22 @@ if (!isset($action)){
  * Routing et Traitement éventuelle des actions liées aux requettes HTTP
  */
 switch ($action) {
-    case '{CATEGORIE}_GET': //Lecture: {CATEGORIE}...
+    case 'u{CATEGORIE}_GET': //Lecture: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
 		break;
-    case '{CATEGORIE}_CREATE': //Création: {CATEGORIE}...
+    case 'u{CATEGORIE}_CREATE': //Création: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
 		break;
-    case '{CATEGORIE}_SAVE': //Enregistrement: {CATEGORIE}...
+    case 'u{CATEGORIE}_SAVE': //Enregistrement: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
         break;
-    case '{CATEGORIE}_DELETE': //Suppression: {CATEGORIE}...
+    case 'u{CATEGORIE}_DELETE': //Suppression: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
