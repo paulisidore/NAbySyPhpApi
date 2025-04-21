@@ -17,7 +17,7 @@ Class xAuth
 
     public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600){
         $this->Main=$nabysy ;
-        $this->Key = "nabysygs";
+        $this->Key = $nabysy->MasterDataBase;
         $dateexp=time();
         $this->DureeVieSecode=$duree_exp_seconde ;
         $this->Payload = array(
@@ -30,13 +30,16 @@ Class xAuth
             "iat" => $dateexp,
             "nbf" => 1648173206,
             "exp" => $dateexp+$duree_exp_seconde,
-            "Autor" => "Paul Isidore A. NIAMIE"
+            "Author" => "Paul Isidore A. NIAMIE"
         );
+        var_dump($this->Payload);
     }
 
     public function GetToken(xUser $User,$Algo='HS256'){
         if (!isset($User)){
             return '';
+        }else{
+            echo "<br>Utilisateur Null</br>";
         }
         if ($User->BLOQUE=='OUI' || strtoupper($User->Etat ) !== 'ACTIF' ){
             return '';
