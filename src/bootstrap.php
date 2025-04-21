@@ -19,8 +19,7 @@ if (!class_exists('N')) {
 		 * Module Principal NAbySy GS
 		 * @var xNAbySyGS
 		 */
-		public static xNAbySyGS $Main = parent::getInstance() ;
-
+				
 		final public function __get($key) {
 			$method = 'get' . ucfirst($key);
 			if (method_exists($this, $method)) {
