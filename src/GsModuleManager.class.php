@@ -29,7 +29,7 @@ use xNAbySyCustomListOf;
       if(count($rep)>0){
          foreach ($rep as $key => $value) {
             //On ne prend pas en compte les fichiers spéciaux . et ..
-               echo "<br>Dossier : ".$dossierGs.$value." ? ".is_dir($dossierGs.$value)."</br>" ;
+               //echo "<br>Dossier : ".$dossierGs.$value." ? ".is_dir($dossierGs.$value)."</br>" ;
                if ($value != '.' && $value != '..' && is_dir($dossierGs.$value)){
                   $cat=new xGSModuleCategory( $value,  $dossierGs.$value.DIRECTORY_SEPARATOR) ;
                   self::$Categories[]=$cat ;
@@ -37,6 +37,7 @@ use xNAbySyCustomListOf;
                   $repModule=scandir($cat->Dossier) ;
                   if(count($repModule)>0){
                      foreach ($repModule as $key => $value) {
+                        echo "<br>Fichier : ".$cat->Dossier.$value." ? ".!is_dir($cat->Dossier.$value)."</br>" ;
                         if ($value != '.' && $value != '..' && !is_dir($cat->Dossier.$value)){
                            //C'est un fichier, on vérifie s'il s'agit d'un module NAbySyGS
                            $fichMod = $value."class.php" ;
