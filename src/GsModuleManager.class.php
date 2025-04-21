@@ -77,7 +77,7 @@ use xNAbySyCustomListOf;
  class xGSModuleCategory{
     public string $Nom ;
     public string $Dossier ;
-    public xNAbySyCustomListOf $Modules = [] ;
+    public xNAbySyCustomListOf $Modules  ;
     public function __construct(string $Nom="", string $Dossier=""){
         $this->Nom = $Nom ;
         $this->Dossier = $Dossier ;
