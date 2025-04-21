@@ -896,10 +896,13 @@ Class xNAbySyGS
 	/**
 	 * Ajoute un Module de Gestion dans NAbySyGS. Le dossier du module n'existe pas il sera crée dans le dossier gs.
 	 * @param string $categorie 
-	 * @return void 
+	 * @return bool 
 	 */
-	public static function AddModuleGS(string $categorie){
-		$RepWork="gs" ;		
+	public static function AddModuleGS(string $categorie, bool $IsHostAppModule=true):bool{
+		$RepWork=self::CurrentFolder()."gs" ;
+		if($IsHostAppModule){
+			$RepWork=self::CurrentFolder(true)."gs" ;
+		}	
 		//On déclare un AutoLoad pour chaque catégorie
 		$LstObs=[] ;
 		//var_dump(__NAMESPACE__ . '\\Editor\\') ;
@@ -910,6 +913,7 @@ Class xNAbySyGS
 		$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
 		$AutoLoad->Register($LstObs,1) ;
 		self::$ListeModuleAutoLoader[]=$AutoLoad ;
+		return true;
 	}
 
 	/**

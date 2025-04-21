@@ -105,6 +105,7 @@ use xNAbySyCustomListOf;
          }
       }
       if(!$CanAdd){
+         return true;
          throw new Exception("La catégorie ".$NomCategorie." existe déjà dans le dossier ".$DossierCateg, ERR_SYSTEM);
       }
 
@@ -148,9 +149,14 @@ use xNAbySyCustomListOf;
          }
       }
 
-      self::$CategoriesHote[]=$cat ;
-
-      return true;
+      if (self::$Main::AddModuleGS($NomCategorie,true)){
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("La catégorie ".$NomCategorie." a été inscrit correctement dans les module à chargement dynamique.") ;
+         }
+         self::$CategoriesHote[]=$cat ;
+         return true;
+      }
+      return false;
    }
 
    /**
