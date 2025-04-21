@@ -10,7 +10,7 @@ use NAbySy\xUser;
 	
 
     if(!isset($nabysy)){
-        $nabysy = N::$Main ;
+        $nabysy = N::getInstance() ;
     }
 
 	$PARAM=$_REQUEST;

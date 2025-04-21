@@ -1674,6 +1674,14 @@ Class xNAbySyGS
 	}
 
 	/**
+	 * Retourne l'Objet principal NAbySyGS
+	 * @return xNAbySyGS 
+	 */
+	public static function getInstance(){
+		return self::$Main;
+	}
+
+	/**
 	 * Lance le traitement des requêttes HTTP par NAbySyGS
 	 * @return void 
 	 */

@@ -231,7 +231,7 @@ use xNAbySyCustomListOf;
          '{CATEGORIE}',
          '{DATE}',
       ], [
-         $NomCategorie,
+         strtoupper($NomCategorie),
          date('d/M/Y H:i:s'),
       ], $template);
 
