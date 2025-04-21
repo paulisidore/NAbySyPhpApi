@@ -154,6 +154,8 @@ Class xNAbySyGS
 
 	public static xGSModuleManager $GSModManager ;
 
+	public static $RequetteToIgnoreInLOG=[] ;
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306)
 	{
 		self::$Main = $this ;
@@ -175,6 +177,10 @@ Class xNAbySyGS
 		$this->MasterDataBase=$this->MainDataBase ;
 		$this->MODE_INVENTAIRE_BOUTIQUE=false ;
 		$this->MODE_INVENTAIRE_DEPOT=false ;
+
+		self::$RequetteToIgnoreInLOG = [];
+		self::$RequetteToIgnoreInLOG[]='SELECT';
+		self::$RequetteToIgnoreInLOG[]='ALTER TABLE';
 				
 		$this->OS_NAME=PHP_OS;
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -491,21 +497,35 @@ Class xNAbySyGS
 			if (!is_dir("log")){
 				mkdir("log",0777,true) ;
 			}
-			if ($DEBUG){						
+			if ($DEBUG){	
+				$ignoreRequete=self::$RequetteToIgnoreInLOG;
+				$ignoreRequete[]='select';
+				$ignoreRequete[]='ALTER TABLE';
+				$CanLog=true;
+				foreach($ignoreRequete as $ignore){
+					$ignore = strtolower($ignore." ");
+					$requette = trim($SQL);
+					$requette = strtolower($requette);
+					if ( substr($requette,0,strlen($ignore)) == $ignore){
+						$CanLog=false;
+					}
+				}
 				// 1 : on ouvre le fichier
 				try {	
-					//echo "Ouverture du fichier ".$Fichier." par ".exec('whoami');				
-					$monfichier = fopen($Fichier, 'a');
-					$Dat=date("Y-m-d");
-					$Tim=date("H:i:s");
-					$TxLog=str_replace("\n","",$SQL) ;
-					$TxLog=str_replace("\r\n","",$TxLog) ;
-					$TxLog=str_replace("\r","",$TxLog) ;
-					$TxT=$Dat.";".$Tim.";".$TxLog."\r\n" ;	
-					fputs($monfichier, $TxT);
-					// 2 : on fera ici nos opérations sur le fichier...
-					// 3 : quand on a fini de l'utiliser, on ferme le fichier
-					fclose($monfichier);
+					if ($CanLog){
+						//echo "Ouverture du fichier ".$Fichier." par ".exec('whoami');				
+						$monfichier = fopen($Fichier, 'a');
+						$Dat=date("Y-m-d");
+						$Tim=date("H:i:s");
+						$TxLog=str_replace("\n","",$SQL) ;
+						$TxLog=str_replace("\r\n","",$TxLog) ;
+						$TxLog=str_replace("\r","",$TxLog) ;
+						$TxT=$Dat.";".$Tim.";".$TxLog."\r\n" ;	
+						fputs($monfichier, $TxT);
+						// 2 : on fera ici nos opérations sur le fichier...
+						// 3 : quand on a fini de l'utiliser, on ferme le fichier
+						fclose($monfichier);
+					}
 				}
 				catch(Exception $e){
 					echo "Erreur systeme de fichier sur ".$Fichier.". ".$e->getMessage() ;
