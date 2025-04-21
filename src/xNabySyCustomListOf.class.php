@@ -94,7 +94,6 @@ class xNAbySyCustomListOf implements ArrayAccess, IteratorAggregate, Countable{
     }
 
     public function offsetSet($offset, $value): void {
-        
         if(isset($this->Object)){
             if (!$value instanceof $this->Object) {
                 throw new InvalidArgumentException("Impossible d'ajouter au tableau. L'élément doit être de type ".$this->validType);

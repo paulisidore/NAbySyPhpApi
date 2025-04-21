@@ -81,6 +81,7 @@ Class xNAbySyGS
 	public $db_user ;
 	public $db_pass ;
 	public $db_serveur ;
+	public int $db_port ;
 	public $BoutiqueID ;
 	public $BoutiqueNOM ;
 	public $Boutiques=array();
@@ -150,7 +151,7 @@ Class xNAbySyGS
 
 	public static xNAbySyGS $Main ;
 
-	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs")
+	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306)
 	{
 		self::$Main = $this ;
 		if (!isset(self::$Log)){
@@ -201,7 +202,10 @@ Class xNAbySyGS
 		}
 		
 		if(!isset(self::$db_link)){
-			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,"3306") or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
+			if($port <= 0){
+				$port=3306;
+			}
+			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
 			if (!self::$db_link){
 				echo $this->MODULE->Nom."Connexion impossible a la base de donnée sur ".$Myserveur." :user=".$Myuser."\n";
 				echo "<td><div align='center'><a href=./ />Retourner à l'acceuil SVP !</a></div></td>";
@@ -209,6 +213,7 @@ Class xNAbySyGS
 				$this->ISCONNECTED=false ;
 				return;
 			}
+			$this->db_port=$port ;
 
 			$this->Erreur="" ;
 			$this->ISCONNECTED=true ;
@@ -227,9 +232,6 @@ Class xNAbySyGS
 			}
 
 			$MAJ=$this->MAJ_DB() ;
-			if ($MAJ){
-
-			}			
 			
 			self::$CURL=new xCurlHelper($this);
 
@@ -1491,6 +1493,21 @@ Class xNAbySyGS
 			return true ;	
 				
 	}		
+
+	public function __debugInfo() {
+		$conn = array(
+			'Serveur' => $this->db_serveur,
+			'DBUser' => $this->db_user,
+			'DBPwd' => $this->db_pass,
+			'DB' =>  $this->DataBase,
+			'MasterDB' => $this->MainDataBase,
+			'Port' => $this->db_port,
+		);
+        return array(
+            'Module' => $this->MODULE,
+            'Connexion' => $conn,
+        );
+    }
 
 	/**
 	 * Démarre l'application NAbySyGS et charge tous les modules de gestion.
