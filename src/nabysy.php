@@ -1640,7 +1640,8 @@ Class xNAbySyGS
 	 */
 	public static function CurrentFolder(bool $HostAppFolder=false):string{
 		if ($HostAppFolder){
-			$Rep = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR ;
+			$Rep = $_SERVER['DOCUMENT_ROOT'] ;
+			$Rep=str_replace('/',DIRECTORY_SEPARATOR,$Rep).DIRECTORY_SEPARATOR  ;
 		}else{
 			$Rep=dirname(__FILE__);
 		}
