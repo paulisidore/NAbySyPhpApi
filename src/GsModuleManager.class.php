@@ -49,6 +49,8 @@
    }
 
    public function __debugInfo() {
+      $dossierGs= self::$Main::ModuleGSFolder() ;
+      echo "<br>Le dossier des modules NAbySyGS n'existe pas : ".$dossierGs."</br>" ;
       return self::$Categories ;
    }
 
