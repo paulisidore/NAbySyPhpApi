@@ -1695,10 +1695,6 @@ Class xNAbySyGS
 		$path = trim($uri, '/');
 		$path = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $path);
 
-		if(trim($path) == ""){
-			return ;
-		}
-
 		if(strtolower($path) == 'auth'){
 			$User=null ;
 			require 'auth.php';
