@@ -65,9 +65,9 @@ Class xAuth
             "iat" => $dateexp,
             "nbf" => $dateexp,
             "exp" => $dateexp+$this->DureeVieSecode ,
-            "Autor" => "Paul et Aicha Machinerie"
+            "Author" => $this->Main->MODULE->MCP_CLIENT
         );
-
+        $this->Main::$Log->AddToLog(json_encode($this->Payload));
         $jwt=JWT::encode($this->Payload,$this->Key,$Algo) ;
         return $jwt ;
     }
