@@ -46,12 +46,14 @@ use xNAbySyCustomListOf;
                            if(count($lstMod)){
                               foreach ($lstMod as $key => $value) {
                                  //C'est un fichier, on vérifie s'il s'agit d'un module NAbySyGS
-                                 $exp = explode(".class.",$value);
-                                 if(count($exp)>0){
-                                    $className = str_replace(".class.php","",$value) ;
-                                    //echo "<br>Module trouvé dans le sous Dossier cat: ".$className."</br>";
-                                    $module=new xGSModuleCategory( $className, $vraieRepModule.$value) ;
-                                    $cat->Modules[]=$module ;
+                                 if ($value != '.' && $value != '..'){
+                                    $exp = explode(".class.",$value);
+                                    if(count($exp)>0){
+                                       $className = str_replace(".class.php","",$value) ;
+                                       //echo "<br>Module trouvé dans le sous Dossier cat: ".$className."</br>";
+                                       $module=new xGSModuleCategory( $className, $vraieRepModule.$value) ;
+                                       $cat->Modules[]=$module ;
+                                    }
                                  }
                               }
                            }
