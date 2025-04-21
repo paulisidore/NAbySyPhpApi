@@ -129,8 +129,8 @@ use xNAbySyCustomListOf;
 
       if($CreateORMClass && isset($Table) && trim($Table) !==''){
          $NomClass="x".strtoupper(substr($NomCategorie, 0, 1)).substr($NomCategorie, 1) ;
-         self::$Main::$Log->AddToLog("Création de la class xORMHelper ".$NomClass." dans le dossier ".$DossierCategorie . " pour la table ".$Table) ;
-         $Rep = self::GenerateORMClass($NomClass, $NomCategorie, trim($Table));
+         self::$Main::$Log->AddToLog("Création de la class xORMHelper ".$NomClass." dans le dossier ".$DossierCategorie . " pour la table ".$Table." en cour...") ;
+         $Rep = self::GenerateORMClass($NomClass, $DossierCategorie, trim($Table));
          if ($Rep){
             if($Rep->OK == 0){
                return false;
