@@ -43,12 +43,10 @@ use xNAbySyCustomListOf;
                            if(count($lstMod)){
                               foreach ($lstMod as $key => $value) {
                                  //C'est un fichier, on vérifie s'il s'agit d'un module NAbySyGS
-                                 $fichMod = $value.".class.php" ;
-                                 $pathFle=$vraieRepModule.$fichMod;
-                                 echo "<br>Fichier : ".$pathFle." ? ".file_exists($pathFle)."</br>" ;
-                                 if(file_exists($pathFle)){
-                                    $className = str_replace(".class.php","",$cat->Dossier.$fichMod) ;
-                                    $module=new xGSModuleCategory( $className, $vraieRepModule.$fichMod) ;
+                                 $exp = explode(".class.",$value);
+                                 if(count($exp)>2){
+                                    $className = str_replace(".class.php","",$cat->Dossier.$value) ;
+                                    $module=new xGSModuleCategory( $className, $vraieRepModule.$value) ;
                                     $cat->Modules[]=$module ;
                                  }
                               }
@@ -56,7 +54,7 @@ use xNAbySyCustomListOf;
                            
                         }else{
                            //Fichier d'action peut être
-                           
+
                         }
                      }
                   }
