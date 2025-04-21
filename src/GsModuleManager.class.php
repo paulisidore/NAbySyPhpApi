@@ -93,7 +93,8 @@ use xNAbySyCustomListOf;
       return array(
 			'Nom' => $this->Nom,
 			'Path' => $this->Dossier,
-			'Modules' => $Lst);
+			'Modules' => $Lst
+      );
    }
  }
 ?>
