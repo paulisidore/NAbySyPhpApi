@@ -3,17 +3,18 @@ namespace NAbySy ;
 
 use Exception;
 use Firebase\JWT\JWT;
+use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
 use NAbySy\xUser;
 
 Class xAuth
 {
-    public $Main ;
-    public $Boutique ;
+    public xNAbySyGS $Main ;
+    public xBoutique $Boutique ;
     public $Key ;
     public $Payload ;
-    public $DureeVieSecode ;
+    public int $DureeVieSecode ;
 
     public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600){
         $this->Main=$nabysy ;
@@ -32,6 +33,7 @@ Class xAuth
             "exp" => $dateexp+$duree_exp_seconde,
             "Author" => "Paul Isidore A. NIAMIE"
         );
+        var_dump(JWT::encode($this->Payload,$this->Key)) ;
     }
 
     public function GetToken(xUser &$User,$Algo='HS256'){
