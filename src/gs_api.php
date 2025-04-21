@@ -15,12 +15,6 @@ if (!class_exists('N')) {
 	 * La Class static N regroupe l'ensemble des fonctions static de l'objet central NAbySyGS.
 	 */
 	class N extends xNAbySyGS { 
-		/**
-		 * Module Principal NAbySy GS
-		 * @var xNAbySyGS
-		 */
-		public static xNAbySyGS $Main = parent::getInstance() ;
-
 		final public function __get($key) {
 			$method = 'get' . ucfirst($key);
 			if (method_exists($this, $method)) {
