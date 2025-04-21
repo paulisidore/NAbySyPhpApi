@@ -49,12 +49,13 @@
    }
 
    public function __debugInfo() {
+      $liste = array (self::$Categories ) ;
       $dossierGs= self::$Main::ModuleGSFolder() ;
       $rep=scandir($dossierGs) ;
       echo "<br>Dossier des modules NAbySyGS : ".$dossierGs."</br>" ;
       echo "<br>Cagtégorie NAbySyGS : ".count($rep)."</br>" ;
       echo "<br>Liste des Catégorie : ".var_dump($rep)."</br>" ;
-      return self::$Categories ;
+      return $liste ;
    }
 
  }
