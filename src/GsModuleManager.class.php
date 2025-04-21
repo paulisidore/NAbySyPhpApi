@@ -37,11 +37,13 @@ use xNAbySyCustomListOf;
                   $repModule=scandir($cat->Dossier) ;
                   if(count($repModule)>0){
                      foreach ($repModule as $key => $value) {
-                        echo "<br>Fichier : ".$cat->Dossier.$value." ? ".!is_dir($cat->Dossier.$value)."</br>" ;
-                        if ($value != '.' && $value != '..' && !is_dir($cat->Dossier.$value)){
+                        
+                        if ($value != '.' && $value != '..' && is_dir($cat->Dossier.$value)){
                            //C'est un fichier, on vérifie s'il s'agit d'un module NAbySyGS
-                           $fichMod = $value."class.php" ;
-                           if(file_exists($cat->Dossier.$fichMod)){
+                           $fichMod = $value.".class.php" ;
+                           $pathFle=$cat->Dossier.$fichMod;
+                           echo "<br>Fichier : ".$pathFle." ? ".file_exists($pathFle)."</br>" ;
+                           if(file_exists($pathFle)){
                               $className = str_replace(".class.php","",$cat->Dossier.$fichMod) ;
                               $module=new xGSModuleCategory( $className, $cat->Dossier.$fichMod) ;
                               $cat->Modules[]=$module ;
