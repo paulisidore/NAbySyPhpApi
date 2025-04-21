@@ -34,12 +34,11 @@ Class xAuth
         );
     }
 
-    public function GetToken(xUser $User,$Algo='HS256'){
-        /* if (!isset($User)){
-            return '';
+    public function GetToken(xUser &$User,$Algo='HS256'){
+        if (!isset($User)){
         }else{
-            echo "<br>Utilisateur Null</br>";
-        } */
+            echo "<br>Utilisateur Null ici: ".__FILE__." Ligne ".__LINE__."</br>";
+        }
         if ($User->BLOQUE=='OUI' || strtoupper($User->Etat ) !== 'ACTIF' ){
             return '';
         }

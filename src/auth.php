@@ -95,7 +95,7 @@ use NAbySy\xUser;
         $Err->Source='auth.php: CheckPassword';
         if ($User->CheckPassword($Password)){
             $Err->Source='auth.php: GetToken';
-            $Token=$Auth->GetToken($User);
+            $Token=$User->GetToken();
             $Err->Extra='Token trouvé: '.$Token ;
             var_dump($Token);
         }

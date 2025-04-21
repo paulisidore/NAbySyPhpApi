@@ -447,4 +447,8 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
 
     }    
 
+    public function GetToken(){
+        $Auth=new xAuth($this->Main) ;
+        return $Auth->GetToken($this) ;
+    }
 }
