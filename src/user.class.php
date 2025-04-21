@@ -195,16 +195,16 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             if ($Rep->num_rows>0){
                 $xRS=$Rep->fetch_assoc();
                 $ChmpID='Id';
-                if (isset($this->RS['ID'])){
+                if (isset($xRS['ID'])){
                     $ChmpID='ID';
                 }
-                if (isset($this->RS['Id'])){
+                if (isset($xRS['Id'])){
                     $ChmpID='Id';
                 }
-                if (isset($this->RS['id'])){
+                if (isset($xRS['id'])){
                     $ChmpID='id';
                 }
-                if (isset($this->RS['iD'])){
+                if (isset($xRS['iD'])){
                     $ChmpID='iD';
                 }
                 $this->ChargeOne($xRS[$ChmpID]);                
