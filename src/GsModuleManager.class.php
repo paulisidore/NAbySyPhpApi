@@ -84,10 +84,16 @@ use xNAbySyCustomListOf;
         $this->Modules = new xNAbySyCustomListOf(xGSModuleCategory::class) ;
     }
     public function __debugInfo() {
+      $Lst=[];
+      if($this->Modules){
+         foreach ($this->Modules as $Mod) {
+            $Lst[$Mod->Nom] = $Mod->Dossier ;
+         }
+      }
       return array(
 			'Nom' => $this->Nom,
 			'Path' => $this->Dossier,
-			'Modules' => $this->Modules);
+			'Modules' => $Lst);
    }
  }
 ?>
