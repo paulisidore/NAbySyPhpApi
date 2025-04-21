@@ -294,7 +294,8 @@ use xNAbySyCustomListOf;
          if(self::$CategoriesHote){
             self::$Main::$Log->AddToLog("Attention le fichier ".$fichier_module." existe déjà.");
          }
-         return true;
+         $Rep->OK=1;
+         return $Rep;
          throw new \Exception("Erreur impossible de créer le module. Le fichier ".$fichier_module." existe déjà", 0);
       }
 
