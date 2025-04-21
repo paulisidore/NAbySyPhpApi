@@ -127,8 +127,10 @@ use xNAbySyCustomListOf;
          //On va générer l'action depuis un template d'action
          $Rep=self::GenerateActionAPIFile($NomCategorie);
          if ($Rep){
-            if($Rep->OK == 0){
-               return false;
+            if($Rep instanceof xErreur){
+               if($Rep->OK == 0){
+                  return false;
+               }
             }
          }
       }
