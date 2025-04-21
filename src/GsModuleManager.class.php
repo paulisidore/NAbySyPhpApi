@@ -189,6 +189,7 @@ use xNAbySyCustomListOf;
 
       $fichier_action=$DossierCategorie.$NomCategorie."_action.php" ;
       if(file_exists($fichier_action)){
+         return true ;
          if(self::$DebugToLog){
             self::$Main::$Log->AddToLog("ERREUR: le fichier existe déjà: ".$fichier_action);
          }
