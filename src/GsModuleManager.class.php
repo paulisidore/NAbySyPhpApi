@@ -127,8 +127,9 @@ use xNAbySyCustomListOf;
          }
       }
 
-      if($CreateORMClass && trim($Table) !==''){
-         $Rep = self::GenerateORMClass($NomCategorie, $NomCategorie, $Table);
+      if($CreateORMClass && isset($Table) && trim($Table) !==''){
+         $NomClass="x".strtoupper(substr($NomCategorie, 0, 1)).substr($NomCategorie, 1) ;
+         $Rep = self::GenerateORMClass($NomClass, $NomCategorie, trim($Table));
          if ($Rep){
             if($Rep->OK == 0){
                return false;
@@ -165,6 +166,7 @@ use xNAbySyCustomListOf;
          if(!is_dir($DossierCategorie)){
             mkdir($DossierCategorie, 0777, true) ;
          }
+         $DossierFinal = $DossierCategorie ;
       } catch (\Throwable $th) {
          throw $th;
       }
