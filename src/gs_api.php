@@ -6,8 +6,31 @@
 
 use NAbySy\xAuth;
 use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
 use NAbySy\xUser;
 	
+
+if (!class_exists('N')) {
+	/**
+	 * La Class static N regroupe l'ensemble des fonctions static de l'objet central NAbySyGS.
+	 */
+	class N extends xNAbySyGS { 
+		/**
+		 * Module Principal NAbySy GS
+		 * @var xNAbySyGS
+		 */
+		public static xNAbySyGS $Main = parent::getInstance() ;
+
+		final public function __get($key) {
+			$method = 'get' . ucfirst($key);
+			if (method_exists($this, $method)) {
+			  return $this->$method($this->data[$key]);
+			} else {
+			  return parent::getInstance(); // self::$Main;
+			}
+		}
+	}
+}
 
     if(!isset($nabysy)){
         $nabysy = N::getInstance() ;
