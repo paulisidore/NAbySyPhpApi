@@ -22,6 +22,9 @@ include_once 'xNabySyCustomListOf.class.php' ;
 include_once 'erreur.php' ;
 include_once 'notification.class.php';
 include_once 'db.class.php' ;
+
+require_once 'vendor/autoload.php';
+
 require_once 'auth.class.php';
 require_once "vendor/autoload.php";
 
