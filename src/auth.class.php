@@ -32,15 +32,14 @@ Class xAuth
             "exp" => $dateexp+$duree_exp_seconde,
             "Author" => "Paul Isidore A. NIAMIE"
         );
-        var_dump($this->Payload);
     }
 
     public function GetToken(xUser $User,$Algo='HS256'){
-        if (!isset($User)){
+        /* if (!isset($User)){
             return '';
         }else{
             echo "<br>Utilisateur Null</br>";
-        }
+        } */
         if ($User->BLOQUE=='OUI' || strtoupper($User->Etat ) !== 'ACTIF' ){
             return '';
         }
