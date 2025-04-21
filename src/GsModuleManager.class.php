@@ -229,8 +229,8 @@ use xNAbySyCustomListOf;
       // Remplacer dynamiquement des morceaux
       $updated = str_replace([
          '{CATEGORIE}',
-         'l{CATEGORIE}',
-         'u{CATEGORIE}',
+         '{{CATEGORIE}}',
+         '[CATEGORIE]',
          '{DATE}',
       ], [
          $NomCategorie,
