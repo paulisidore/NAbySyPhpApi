@@ -23,7 +23,7 @@ use xNAbySyCustomListOf;
    public function __construct(xNAbySyGS $NAbySy){
       //Chargement de la liste des dossier catégories
       self::$Main = $NAbySy;
-      $dossierGs= self::$Main::ModuleGSFolder() ;
+      $dossierGs= self::$Main::ModuleGSFolder().DIRECTORY_SEPARATOR ;
       self::$Categories = new xNAbySyCustomListOf(xGSModuleCategory::class) ;
       $rep=scandir($dossierGs) ;
       if(count($rep)>0){
