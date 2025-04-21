@@ -194,7 +194,20 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (isset($Rep)){
             if ($Rep->num_rows>0){
                 $xRS=$Rep->fetch_assoc();
-                $this->ChargeOne($xRS['ID']);                
+                $ChmpID='Id';
+                if (isset($this->RS['ID'])){
+                    $ChmpID='ID';
+                }
+                if (isset($this->RS['Id'])){
+                    $ChmpID='Id';
+                }
+                if (isset($this->RS['id'])){
+                    $ChmpID='id';
+                }
+                if (isset($this->RS['iD'])){
+                    $ChmpID='iD';
+                }
+                $this->ChargeOne($xRS[$ChmpID]);                
                 //var_dump($xRS);
                 $this->RS=$xRS;
                 return $xRS ;
