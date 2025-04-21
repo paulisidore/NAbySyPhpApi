@@ -49,7 +49,7 @@ use xNAbySyCustomListOf;
                                  $exp = explode(".class.",$value);
                                  if(count($exp)>0){
                                     $className = str_replace(".class.php","",$value) ;
-                                    echo "<br>Module trouvé dans le sous Dossier cat: ".$className."</br>";
+                                    //echo "<br>Module trouvé dans le sous Dossier cat: ".$className."</br>";
                                     $module=new xGSModuleCategory( $className, $vraieRepModule.$value) ;
                                     $cat->Modules[]=$module ;
                                  }
@@ -68,14 +68,7 @@ use xNAbySyCustomListOf;
    }
 
    public function __debugInfo() {
-      var_dump(self::$Categories) ;
       $liste = array (self::$Categories ) ;
-      $dossierGs= self::$Main::ModuleGSFolder() ;
-      $rep=scandir($dossierGs) ;
-      echo "<br>Dossier des modules NAbySyGS : ".$dossierGs."</br>" ;
-      echo "<br>Cagtégorie NAbySyGS : ".count($rep)."</br>" ;
-      echo "<br>Liste des Catégorie : ".var_dump($rep)."</br>" ;
-      $liste = $rep;
       return $liste ;
    }
 
