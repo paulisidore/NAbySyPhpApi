@@ -254,6 +254,7 @@ use xNAbySyCustomListOf;
          }
          $DossMod = $DossierCategorie.DIRECTORY_SEPARATOR ;
          $DossMod = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$DossMod);
+         $DossMod = $DossMod.$ClassName.DIRECTORY_SEPARATOR ;
          if(!is_dir($DossMod)){
             mkdir($DossMod, 0777, true) ;
          }

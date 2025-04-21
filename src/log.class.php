@@ -44,7 +44,7 @@ class xLog{
         						
         // 1 : on ouvre le fichier
         try {
-            $Dat=date("Y-m-d");
+            $Dat=date("d/m/Y");
             $Tim=date("H:i:s");
             $Dte=$Dat." ".$Tim ;
             $Fichier=$this->Dossier.DIRECTORY_SEPARATOR.$this->File ;		
@@ -59,10 +59,10 @@ class xLog{
                     $Trace=$Dte." ".$dbg['file']." Ligne: ".$dbg['line'].": " ;
                 }
             }
-            fputs($monfichier, $Trace);            
-            $TxLog=str_replace("\n","",$LogInfos) ;
-            $TxLog=str_replace("\r\n","",$TxLog) ;
-            $TxLog=str_replace("\r","",$TxLog) ;
+            fputs($monfichier, $Trace); 
+            $TxLog=$LogInfos; // str_replace("\n","",$LogInfos) ;
+            //$TxLog=str_replace("\r\n","",$TxLog) ;
+            //$TxLog=str_replace("\r","",$TxLog) ;
             $TxT=$TxLog."\r\n" ;	
             fputs($monfichier, $TxT);
             fclose($monfichier);
