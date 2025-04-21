@@ -8,28 +8,41 @@
 
  namespace NAbySy ;
 
-use N;
-
  include_once 'nabysy.php' ;
 
  /**
-  * Gestion des Modules intégrée à NAbySyGS
+  * Gestion des Modules intégrés à NAbySyGS
   * 
   */
  class xGSModuleManager{
+   public  static xNAbySyGS $Main ;
     public static array $Categories = [] ; //List Of xGSModuleCategory
     
-    public function __construct(){
+    public function __construct(xNAbySyGS $NAbySy){
       //Chargement de la liste des dossier catégories
-      $dossierGs= N::ModuleGSFolder() ;
+      self::$Main = $NAbySy;
+      $dossierGs= self::$Main::ModuleGSFolder() ;
       $rep=scandir($dossierGs) ;
       if(count($rep)>0){
          foreach ($rep as $key => $value) {
                if ($value != '.' && $value != '..' && is_dir($dossierGs.$value)){
-                  $cat=new xGSModuleCategory() ;
-                  $cat->Nom=$value ;
-                  $cat->Dossier=$dossierGs.$value.DIRECTORY_SEPARATOR ;
-                  self::$Categories[$value]=$cat ;
+                  $cat=new xGSModuleCategory( $value,  $dossierGs.$value.DIRECTORY_SEPARATOR) ;
+                  self::$Categories[]=$cat ;
+                  //Pour chaque catégorie on y ajoute la liste de ses modules
+                  $repModule=scandir($cat->Dossier) ;
+                  if(count($repModule)>0){
+                     foreach ($repModule as $key => $value) {
+                        if ($value != '.' && $value != '..' && !is_dir($cat->Dossier.$value)){
+                           //C'est un fichier, on vérifie s'il s'agit d'un module NAbySyGS
+                           $fichMod = $value."class.php" ;
+                           if(file_exists($cat->Dossier.$fichMod)){
+                              $className = str_replace(".class.php","",$cat->Dossier.$fichMod) ;
+                              $module=new xGSModuleCategory( $className, $cat->Dossier.$fichMod) ;
+                              $cat->Modules[]=$module ;
+                           }
+                        }
+                     }
+                  }
                }
          }
       }

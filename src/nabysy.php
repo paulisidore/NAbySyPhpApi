@@ -151,6 +151,8 @@ Class xNAbySyGS
 
 	public static xNAbySyGS $Main ;
 
+	public static xGSModuleManager $GSModManager ;
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306)
 	{
 		self::$Main = $this ;
@@ -276,6 +278,9 @@ Class xNAbySyGS
 					}
 				}
 			}
+
+			self::$GSModManager = new xGSModuleManager(self::$Main);
+
 			$this->ReadConfig() ;
 		}
 
