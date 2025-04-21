@@ -1498,7 +1498,7 @@ Class xNAbySyGS
 		$conn = array(
 			'Serveur' => $this->db_serveur,
 			'DBUser' => $this->db_user,
-			'DBPwd' => $this->db_pass,
+			'DBPwd' => '******',
 			'DB' =>  $this->DataBase,
 			'MasterDB' => $this->MainDataBase,
 			'Port' => $this->db_port,
@@ -1544,6 +1544,7 @@ Class xNAbySyGS
 			echo json_encode($Err) ;
 			return null ;
 		}
+		$nabysy->MODULE->Actif=true;
 		$nabysy->ActiveDebug= boolval ($StartInfo->DebugMode) ;
 		ini_set('display_errors', 0);
 		ini_set('display_startup_errors', 0);

@@ -10,13 +10,13 @@ namespace NAbySy ;
  
 class ModuleMCP
 {
-	public $Nom ;
-	public $Version ;
-	public $Actif ;
-	public $Description ;
-	public $MCP_CLIENT ;
-	public $MCP_ADRESSECLT ;
-	public $MCP_TELCLT ;
+	public string $Nom ;
+	public string $Version ;
+	public bool $Actif = false ;
+	public string $Description="" ;
+	public string $MCP_CLIENT ;
+	public string $MCP_ADRESSECLT ;
+	public string $MCP_TELCLT ;
 }
 Class TableMCP
 {
