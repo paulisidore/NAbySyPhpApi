@@ -5,6 +5,9 @@
  * Each line should be prefixed with  * 
  */
 namespace NAbySy ;
+
+use Throwable;
+
 Class xErreur
 {
 	public $OK;
@@ -13,6 +16,19 @@ Class xErreur
 	public $Extra ;
     public $Autres ;
 	
+    /**
+     * Serialise l'objet en JSON
+     * @return string|false 
+     * @throws Throwable 
+     */
+    public function ToJSON(){
+        try {
+            return json_encode($this);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
     public static function LASTJSON_ERROR(){
         switch (json_last_error()) {
             case JSON_ERROR_NONE:

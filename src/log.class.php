@@ -16,24 +16,29 @@ class xLog{
     public function __construct(xNAbySyGS $NabySy,$LogFile="Log.csv"){
         $this->Main=$NabySy ;
         $this->File=$LogFile ;
-        $this->Dossier='log' ;
+        $this->Dossier= $NabySy::CurrentFolder(true).'log' ;
     }
 
     /**
      * Ecriture dans le fichier Log
      * @param string $LogInfos Information à enregistrer dans le fichier journal
+     * @param int $DebugTraceLevel Niveau de débuggage de la pile d'appel)
+     * @param bool $LogToDB Si vrai, enregistre le log dans la base de donnée
      * @return bool 
      */
-    public function Write($LogInfos){
+    public function Write($LogInfos, int $DebugTraceLevel=3, bool $LogToDB=false){
         if (!isset($LogInfos)){
             return false ;
         }
+        if($LogToDB){
+            $this->AddToLog($LogInfos) ;
+        }
         try{
             if (!is_dir($this->Dossier)){
-                mkdir($this->Dossier) ;
+                mkdir($this->Dossier, 0777, true) ;
             }
         }catch(Exception $ex){
-            echo "Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage() ;
+            throw new Exception("Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage(), ERR_FILE_SYSTEM);
             return false ;
         }
         						
@@ -44,7 +49,7 @@ class xLog{
             $Dte=$Dat." ".$Tim ;
             $Fichier=$this->Dossier.DIRECTORY_SEPARATOR.$this->File ;		
             $monfichier = fopen($Fichier, 'a');
-            $nbTraceArr=3;
+            $nbTraceArr= $DebugTraceLevel;
             $Traces=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,$nbTraceArr);
             $niv=0;
             $Trace=$Dte." ". __FILE__." Ligne: ".__LINE__."-> ";
@@ -64,7 +69,7 @@ class xLog{
             return true ;
         }
         catch(Exception $ex){
-            echo "Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage() ;
+            throw new Exception("Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage(), ERR_FILE_SYSTEM);
         }				
     
         return false ;

@@ -8,6 +8,8 @@
 
  namespace NAbySy ;
 
+use Exception;
+use Throwable;
 use xNAbySyCustomListOf;
 
  include_once 'nabysy.php' ;
@@ -19,12 +21,15 @@ use xNAbySyCustomListOf;
  class xGSModuleManager{
    public  static xNAbySyGS $Main ;
    public static xNAbySyCustomListOf $Categories  ; //List Of xGSModuleCategory
-    
+   public static xNAbySyCustomListOf $CategoriesHote  ; //List Of xGSModuleCategory on Host App
+
    public function __construct(xNAbySyGS $NAbySy){
       //Chargement de la liste des dossier catégories
       self::$Main = $NAbySy;
       $dossierGs= self::$Main::ModuleGSFolder().DIRECTORY_SEPARATOR ;
       self::$Categories = new xNAbySyCustomListOf(xGSModuleCategory::class) ;
+      self::$CategoriesHote = new xNAbySyCustomListOf(xGSModuleCategory::class) ;
+
       $rep=scandir($dossierGs) ;
       if(count($rep)>0){
          foreach ($rep as $key => $value) {
@@ -67,6 +72,239 @@ use xNAbySyCustomListOf;
                }
          }
       }
+   }
+
+   /**
+    * Crée et génère automatiquement une catégorie NAbySyGS
+    * @param string $NomCategorie 
+    * @param bool $CreateApiAction | Si Vrai, le fichier action sera crée automatiquement pour cette catégorie.
+    * @param bool $CreateORMClass | Si Vrai, une class xORM sera crée automatiquement avec le nom de la catégorie
+    * @param string $Table | Si la création de l'ORM est activé, ce paramètre déterminera le nom de l'objet NAbySyGS
+    * @return bool 
+    * @throws Exception 
+    * @throws Throwable 
+    */
+   public static function CreateCategorie(string $NomCategorie, bool $CreateApiAction = true, bool $CreateORMClass = true, string $Table){
+      $DossierGS = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
+      $DossierCateg = $DossierGS.DIRECTORY_SEPARATOR . $NomCategorie ;
+
+      $cat=new xGSModuleCategory( $NomCategorie,  $DossierCateg) ;
+      $CanAdd=true;
+      if(isset(self::$CategoriesHote)){
+         foreach (self::$CategoriesHote as $key => $value) {
+            if($value->Nom == $NomCategorie && $value->Dossier == $DossierCateg){
+               $CanAdd=false;
+               break;
+            }
+         }
+      }
+      if(!$CanAdd){
+         throw new Exception("La catégorie ".$NomCategorie." existe déjà dans le dossier ".$DossierCateg, ERR_SYSTEM);
+      }
+
+      try {
+         if(!is_dir($DossierGS)){
+            mkdir($DossierGS, 0777, true) ;
+         }
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      $DossierCategorie = $DossierGS.$NomCategorie ;
+      try {
+         if(!is_dir($DossierCategorie)){
+            mkdir($DossierCategorie, 0777, true) ;
+         }
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      if ($CreateApiAction){
+         //On va générer l'action depuis un template d'action
+         $Rep=self::GenerateActionAPIFile($NomCategorie);
+         if ($Rep){
+            if($Rep->OK == 0){
+               return false;
+            }
+         }
+      }
+
+      if($CreateORMClass && trim($Table) !==''){
+         $Rep = self::GenerateORMClass($NomCategorie, $NomCategorie, $Table);
+         if ($Rep){
+            if($Rep->OK == 0){
+               return false;
+            }
+         }
+      }
+
+      self::$CategoriesHote[]=$cat ;
+
+      return true;
+   }
+
+   /**
+    * Génère le fichier d'action qui prendra en charge les requettes HTTP de la catégorie
+    * @param string $NomCategorie 
+    * @return bool|xNotification 
+    * @throws Throwable 
+    * @throws Exception 
+    */
+   public static function GenerateActionAPIFile(string $NomCategorie):bool|xNotification{
+      $Rep=new xNotification();
+      $Rep->OK = 0;
+      $DossierFinal=null ;
+      $DossierGS = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
+      try {
+         if(!is_dir($DossierGS)){
+            mkdir($DossierGS, 0777, true) ;
+         }
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      $DossierCategorie = $DossierGS.$NomCategorie ;
+      try {
+         if(!is_dir($DossierCategorie)){
+            mkdir($DossierCategorie, 0777, true) ;
+         }
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      if(!isset($DossierFinal)){
+         throw new \Exception("Impossible de créer la catégorie ".$NomCategorie." pour le dossier ".$DossierCategorie) ;
+         return false;
+      }
+
+      $fichier_action=$DossierCategorie."_action.php" ;
+      if(file_exists($fichier_action)){
+         throw new \Exception("Erreur impossible de créer l'action pour l'api ".$NomCategorie.". Le fichier action existe déjà", 0);
+      }
+
+      $templatePath =self::$Main::CurrentFolder() . 'templates/template_action.php';
+      if(!file_exists($templatePath)){
+         //Fichier template absent !
+         throw new Exception("Impossible de trouver le fichier template ".$templatePath, ERR_FILE_SYSTEM);
+      }
+      $outputDir = $DossierFinal ;
+
+      // Lire le contenu du template
+      $template = null;
+      try {
+         $template = file_get_contents($templatePath);
+      } catch (\Throwable $th) {
+         //throw $th;
+      }
+      if(!isset($template)){
+         //Fichier template vérroillé !
+         throw new Exception("Impossible de lire le fichier template ".$templatePath.". Vérifier ces droits ", ERR_FILE_SYSTEM);
+      }
+
+      // Remplacer dynamiquement des morceaux
+      $updated = str_replace([
+         '{CATEGORIE}',
+         '{DATE}',
+      ], [
+         $NomCategorie,
+         date('d/M/Y H:i:s'),
+      ], $template);
+
+      // Créer le dossier si nécessaire
+      if (!is_dir($outputDir)) {
+         mkdir($outputDir, 0777, true);
+      }
+
+      try {
+         // Écrire dans un nouveau fichier
+         file_put_contents($fichier_action, $updated);
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      $Rep->Source = $fichier_action ;
+      $Rep->OK = 1;
+      try {
+         chmod($fichier_action, 0774);
+         return $Rep;
+      } catch (\Throwable $th) {
+         $Rep->TxErreur='Attention: Impossible de modifier les droits sur le fichier '.$fichier_action.". Exception: ". $th->getMessage() ;
+         self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_action, $th->getMessage()) ;
+         return $Rep ;
+      }
+      return false;
+   }
+
+   /**
+    * Crée un fichier de class NAbySyGS de type xORM dans le dossier catégorie spécifié
+    * @param string $ClassName 
+    * @param string $DossierCategorie 
+    * @param string $Table | Nom de la table de la base de donnée associée à la class
+    * @return bool|xNotification
+    * @throws Throwable 
+    */
+   public static function GenerateORMClass(string $ClassName, string $DossierCategorie, string $Table):bool|xNotification{
+      $Rep=new xNotification();
+      $Rep->OK = 0;
+      $DossierFinal=null ;
+      try {
+         if(!is_dir($DossierCategorie)){
+            mkdir($DossierCategorie, 0777, true) ;
+         }
+         $DossMod = $DossierCategorie.$ClassName.DIRECTORY_SEPARATOR ;
+         if(!is_dir($DossMod)){
+            mkdir($DossMod, 0777, true) ;
+         }
+         $DossierFinal = $DossMod ;
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      if(!isset($DossierFinal)){
+         throw new \Exception("Impossible de créer le module ".$ClassName." dans la catégorie ".$DossierCategorie) ;
+         return false;
+      }
+
+      $fichier_module=$DossierFinal.$ClassName.".class.php" ;
+      if(file_exists($fichier_module)){
+         throw new \Exception("Erreur impossible de créer le module. Le fichier existe déjà", 0);
+      }
+
+      $templatePath =self::$Main::CurrentFolder() . 'templates/'.N_TYPE_ORM.'/'.N_TYPE_ORM.'Template.class.php';
+      $outputDir = $DossierFinal ;
+      $newClassName = $ClassName;
+      $newTableName = $Table;
+
+      // Lire le contenu du template
+      $template = file_get_contents($templatePath);
+
+      // Remplacer dynamiquement des morceaux
+      $updated = str_replace([
+         'ModelTemplate',
+         'ModelTable',
+         '{DATE}',
+      ], [
+         $newClassName,
+         $newTableName,
+         date('d/M/Y H:i:s'),
+      ], $template);
+
+      // Créer le dossier si nécessaire
+      if (!is_dir($outputDir)) {
+         mkdir($outputDir, 0777, true);
+      }
+
+      try {
+         // Écrire dans un nouveau fichier
+         file_put_contents($fichier_module, $updated);
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      $Rep->Source = $fichier_module ;
+      $Rep->OK = 1;
+      try {
+         chmod($fichier_module, 0774);
+         return $Rep;
+      } catch (\Throwable $th) {
+         $Rep->TxErreur='Attention: Impossible de modifier les droits sur le fichier '.$fichier_module.". Exception: ". $th->getMessage() ;
+         self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_module, $th->getMessage()) ;
+         return $Rep ;
+      }
+      return false;
    }
 
    public function __debugInfo() {

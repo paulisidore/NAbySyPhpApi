@@ -12,7 +12,8 @@ namespace NAbySy ;
 mb_internal_encoding('UTF-8');
 
 include_once 'definition_err.php';
-include_once 'config.php' ;
+include_once 'definition_nabysytype.php';
+
 include_once 'xModuleInfo.php';
 include_once 'format.class.php' ;
 include_once 'devises.class.php' ;
@@ -1636,6 +1637,14 @@ Class xNAbySyGS
 	}
 
 	/**
+	 * Retourne le dossier contenant les catégories des modules de NAbySyGS personnalisés de l'application hôte sans le séparateur de dossier à la fin
+	 */
+	public static function ModuleGSHostFolder():string{
+		$rep=self::CurrentFolder(true).'gs' ;
+		return $rep ;
+	}
+
+	/**
 	 * Retourne un objet Liste typée.
 	 * @param mixed $Objet : Le typage accepté par la liste
 	 * @return xNAbySyCustomListOf 
@@ -1643,6 +1652,14 @@ Class xNAbySyGS
 	public static function ListOf(...$constructorArgs):xNAbySyCustomListOf{
 		$Objet = $constructorArgs[0];
 		return xNAbySyCustomListOf::GetListOf($Objet, $constructorArgs);
+	}
+
+	/**
+	 * Lance le traitement des requêttes HTTP par NAbySyGS
+	 * @return void 
+	 */
+	public static function ReadHttpRequest(){
+		require 'gs_api.php';
 	}
 }
 

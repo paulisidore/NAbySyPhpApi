@@ -10,6 +10,7 @@ Class xNotification extends xErreur
     public $Contenue ;
 
     public function __construct($jsonData=null){
+        $this->OK=1;
         $js=$jsonData;
         if (isset($jsonData)){
             if (is_string($jsonData)){

@@ -9,9 +9,9 @@ use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
 use NAbySy\Lib\BonAchat\IBonAchatManager;
 use NAbySy\Lib\BonAchat\xBonAchatManager;
 use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
+use NAbySy\xErreur;
+use NAbySy\xUser;
 
-    include_once 'nabysy_start.php';
-	
 	$PARAM=$_REQUEST;
 	
     $ChampAction='Action';
@@ -264,7 +264,7 @@ use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
                 exit;
             }
             $IdU=(int)$PARAM['IDUSER'] ;
-            $sUser=new xUser($nabysy,$IdU);
+            $sUser=new  xUser($nabysy,$IdU);
             if ($sUser->Id>0){
                 $Login=$sUser->Login ;
                 $Tache="SUPPRESSION UTILISATEUR";
