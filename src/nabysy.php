@@ -1511,7 +1511,6 @@ Class xNAbySyGS
 			'MasterDB' => $this->MainDataBase,
 			'Port' => $this->db_port,
             'InfoClient' => $this->MODULE
-            
         );
     }
 
