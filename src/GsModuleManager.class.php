@@ -16,9 +16,9 @@
   */
  class xGSModuleManager{
    public  static xNAbySyGS $Main ;
-    public static array $Categories = [] ; //List Of xGSModuleCategory
+   public static array $Categories = [] ; //List Of xGSModuleCategory
     
-    public function __construct(xNAbySyGS $NAbySy){
+   public function __construct(xNAbySyGS $NAbySy){
       //Chargement de la liste des dossier catégories
       self::$Main = $NAbySy;
       $dossierGs= self::$Main::ModuleGSFolder() ;
@@ -46,7 +46,12 @@
                }
          }
       }
-    }
+   }
+
+   public function __debugInfo() {
+      return self::$Categories ;
+   }
+
  }
 
  class xGSModuleCategory{
