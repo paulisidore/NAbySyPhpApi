@@ -898,19 +898,19 @@ class xORMHelper implements IORM{
      * @param string $Note : Note à inscrire
      * @return bool
      */
-    public function AddToLog(string $Note):bool{
+    public function AddToLog(string $Note, int $DebugTraceLevel=3):bool{
         if ($Note==''){
             return false;
         }
-        $UserN='SYS_ORM';
+       /*  $UserN='SYS_ORM';
         $IdU=0;
         if ($this->Main->ValideUser(false)){
             $UserN=$this->Main->User->Login;
             $IdU=$this->Main->User->Id;
         }
-        $Tx=__CLASS__.';'.$UserN.';'.$IdU.';'.$Note ;
-        $this->Main::$Log->Write($Tx) ;
-        return true;        
+        $Tx=__CLASS__.';'.$UserN.';'.$IdU.';'.$Note ; */
+        $this->Main::$Log->Write($Note, $DebugTraceLevel) ;
+        return true;
     }
 
     /**

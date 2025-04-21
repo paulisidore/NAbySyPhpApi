@@ -179,6 +179,7 @@ use xNAbySyCustomListOf;
 
       $fichier_action=$DossierCategorie.$NomCategorie."_action.php" ;
       if(file_exists($fichier_action)){
+         self::$Main::$Log->AddToLog("ERREUR: le fichier existe déjà: ".$fichier_action);
          throw new \Exception("Erreur impossible de créer l'action pour l'api ".$NomCategorie.". Le fichier action existe déjà", 0);
       }
       self::$Main::$Log->AddToLog("Fichier Action en création... ".$fichier_action);
