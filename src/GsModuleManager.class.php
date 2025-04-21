@@ -19,7 +19,13 @@ use xNAbySyCustomListOf;
   * 
   */
  class xGSModuleManager{
-   public  static xNAbySyGS $Main ;
+   /**
+    * Active le debbuguage dans le fichier log de l'application hôte
+    * @var bool
+    */
+   public static bool $DebugToLog = false ;
+
+   public static xNAbySyGS $Main ;
    public static xNAbySyCustomListOf $Categories  ; //List Of xGSModuleCategory
    public static xNAbySyCustomListOf $CategoriesHote  ; //List Of xGSModuleCategory on Host App
 
@@ -129,7 +135,9 @@ use xNAbySyCustomListOf;
 
       if($CreateORMClass && isset($Table) && trim($Table) !==''){
          $NomClass="x".strtoupper(substr($NomCategorie, 0, 1)).substr($NomCategorie, 1) ;
-         self::$Main::$Log->AddToLog("Création de la class xORMHelper ".$NomClass." dans le dossier ".$DossierCategorie . " pour la table ".$Table." en cour...") ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("Création de la class xORMHelper ".$NomClass." dans le dossier ".$DossierCategorie . " pour la table ".$Table." en cour...") ;
+         }
          $Rep = self::GenerateORMClass($NomClass, $DossierCategorie, trim($Table));
          if ($Rep){
             if($Rep->OK == 0){
@@ -162,7 +170,9 @@ use xNAbySyCustomListOf;
       } catch (\Throwable $th) {
          throw $th;
       }
-      self::$Main::$Log->AddToLog("Création de la catégorie ".$NomCategorie." dans le dossier ".$DossierGS." ...") ;
+      if(self::$DebugToLog){
+         self::$Main::$Log->AddToLog("Création de la catégorie ".$NomCategorie." dans le dossier ".$DossierGS." ...") ;
+      }
       $DossierCategorie = $DossierGS ;
       try {
          if(!is_dir($DossierCategorie)){
@@ -179,10 +189,14 @@ use xNAbySyCustomListOf;
 
       $fichier_action=$DossierCategorie.$NomCategorie."_action.php" ;
       if(file_exists($fichier_action)){
-         self::$Main::$Log->AddToLog("ERREUR: le fichier existe déjà: ".$fichier_action);
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("ERREUR: le fichier existe déjà: ".$fichier_action);
+         }
          throw new \Exception("Erreur impossible de créer l'action pour l'api ".$NomCategorie.". Le fichier action existe déjà", 0);
       }
-      self::$Main::$Log->AddToLog("Fichier Action en création... ".$fichier_action);
+      if(self::$DebugToLog){
+         self::$Main::$Log->AddToLog("Fichier Action en création... ".$fichier_action);
+      }
 
       $templatePath =self::$Main::CurrentFolder() . 'templates/template_action.php';
       if(!file_exists($templatePath)){
@@ -220,7 +234,9 @@ use xNAbySyCustomListOf;
       try {
          // Écrire dans un nouveau fichier
          file_put_contents($fichier_action, $updated);
-         self::$Main::$Log->AddToLog("Création du fichier d'action ".$fichier_action.".") ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("Création du fichier d'action ".$fichier_action.".") ;
+         }
       } catch (\Throwable $th) {
          throw $th;
       }
@@ -231,7 +247,9 @@ use xNAbySyCustomListOf;
          return $Rep;
       } catch (\Throwable $th) {
          $Rep->TxErreur='Attention: Impossible de modifier les droits sur le fichier '.$fichier_action.". Exception: ". $th->getMessage() ;
-         self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_action, $th->getMessage()) ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_action, $th->getMessage()) ;
+         }
          return $Rep ;
       }
       return false;
@@ -300,7 +318,9 @@ use xNAbySyCustomListOf;
       try {
          // Écrire dans un nouveau fichier
          file_put_contents($fichier_module, $updated);
-         self::$Main::$Log->AddToLog("Class xORMHelper ".$ClassName." générée dans le dossier ".$fichier_module) ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("Class xORMHelper ".$ClassName." générée dans le dossier ".$fichier_module) ;
+         }
       } catch (\Throwable $th) {
          throw $th;
       }
@@ -311,7 +331,9 @@ use xNAbySyCustomListOf;
          return $Rep;
       } catch (\Throwable $th) {
          $Rep->TxErreur='Attention: Impossible de modifier les droits sur le fichier '.$fichier_module.". Exception: ". $th->getMessage() ;
-         self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_module, $th->getMessage()) ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_module, $th->getMessage()) ;
+         }
          return $Rep ;
       }
       return false;
