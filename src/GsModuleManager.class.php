@@ -28,6 +28,8 @@ use xNAbySyCustomListOf;
       $rep=scandir($dossierGs) ;
       if(count($rep)>0){
          foreach ($rep as $key => $value) {
+            //On ne prend pas en compte les fichiers spéciaux . et ..
+               echo "<br>Dossier : ".$dossierGs.$value." ? ".is_dir($dossierGs.$value)."</br>" ;
                if ($value != '.' && $value != '..' && is_dir($dossierGs.$value)){
                   $cat=new xGSModuleCategory( $value,  $dossierGs.$value.DIRECTORY_SEPARATOR) ;
                   self::$Categories[]=$cat ;
