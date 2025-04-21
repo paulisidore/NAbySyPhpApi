@@ -73,6 +73,12 @@ if (!class_exists('N')) {
         exit;	
 	}
 
+    
+    if(strtolower($action) == 'auth'){
+        N::ReadHttpAuthRequest();
+        return;
+    }
+
     $PourAccesRobot=false;
     if (isset($PARAM['CLIENT_GENERAL'])){
         if ((int)$PARAM['CLIENT_GENERAL']>0){
