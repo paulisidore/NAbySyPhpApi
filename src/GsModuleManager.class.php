@@ -129,6 +129,7 @@ use xNAbySyCustomListOf;
 
       if($CreateORMClass && isset($Table) && trim($Table) !==''){
          $NomClass="x".strtoupper(substr($NomCategorie, 0, 1)).substr($NomCategorie, 1) ;
+         self::$Main::$Log->AddToLog("Création de la class xORMHelper ".$NomClass." dans le dossier ".$DossierCategorie . " pour la table ".$Table) ;
          $Rep = self::GenerateORMClass($NomClass, $NomCategorie, trim($Table));
          if ($Rep){
             if($Rep->OK == 0){
@@ -153,7 +154,7 @@ use xNAbySyCustomListOf;
       $Rep=new xNotification();
       $Rep->OK = 0;
       $DossierFinal=null ;
-      $DossierGS = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
+      $DossierGS = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR.$NomCategorie.DIRECTORY_SEPARATOR ;
       try {
          if(!is_dir($DossierGS)){
             mkdir($DossierGS, 0777, true) ;
@@ -161,7 +162,8 @@ use xNAbySyCustomListOf;
       } catch (\Throwable $th) {
          throw $th;
       }
-      $DossierCategorie = $DossierGS.$NomCategorie ;
+      self::$Main::$Log->AddToLog("Création de la catégorie ".$NomCategorie." dans le dossier ".$DossierGS." ...") ;
+      $DossierCategorie = $DossierGS ;
       try {
          if(!is_dir($DossierCategorie)){
             mkdir($DossierCategorie, 0777, true) ;
@@ -175,10 +177,11 @@ use xNAbySyCustomListOf;
          return false;
       }
 
-      $fichier_action=$DossierCategorie."_action.php" ;
+      $fichier_action=$DossierCategorie.$NomCategorie."_action.php" ;
       if(file_exists($fichier_action)){
          throw new \Exception("Erreur impossible de créer l'action pour l'api ".$NomCategorie.". Le fichier action existe déjà", 0);
       }
+      self::$Main::$Log->AddToLog("Fichier Action en création... ".$fichier_action);
 
       $templatePath =self::$Main::CurrentFolder() . 'templates/template_action.php';
       if(!file_exists($templatePath)){
@@ -216,6 +219,7 @@ use xNAbySyCustomListOf;
       try {
          // Écrire dans un nouveau fichier
          file_put_contents($fichier_action, $updated);
+         self::$Main::$Log->AddToLog("Création du fichier d'action ".$fichier_action.".") ;
       } catch (\Throwable $th) {
          throw $th;
       }
@@ -293,6 +297,7 @@ use xNAbySyCustomListOf;
       try {
          // Écrire dans un nouveau fichier
          file_put_contents($fichier_module, $updated);
+         self::$Main::$Log->AddToLog("Class xORMHelper ".$ClassName." générée dans le dossier ".$fichier_module) ;
       } catch (\Throwable $th) {
          throw $th;
       }
