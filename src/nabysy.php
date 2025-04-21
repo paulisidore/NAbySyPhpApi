@@ -1504,8 +1504,14 @@ Class xNAbySyGS
 			'Port' => $this->db_port,
 		);
         return array(
-            'Module' => $this->MODULE,
-            'Connexion' => $conn,
+			'Serveur' => $this->db_serveur,
+			'DBUser' => $this->db_user,
+			'DBPwd' => '******',
+			'DB' =>  $this->DataBase,
+			'MasterDB' => $this->MainDataBase,
+			'Port' => $this->db_port,
+            'InfoClient' => $this->MODULE
+            
         );
     }
 
