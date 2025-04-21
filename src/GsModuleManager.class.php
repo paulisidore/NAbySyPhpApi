@@ -77,11 +77,17 @@ use xNAbySyCustomListOf;
  class xGSModuleCategory{
     public string $Nom ;
     public string $Dossier ;
-    public array $Modules = [] ;
+    public xNAbySyCustomListOf $Modules = [] ;
     public function __construct(string $Nom="", string $Dossier=""){
         $this->Nom = $Nom ;
         $this->Dossier = $Dossier ;
-        $this->Modules = [] ;
+        $this->Modules = new xNAbySyCustomListOf(xGSModuleCategory::class) ;
     }
+    public function __debugInfo() {
+      return array(
+			'Nom' => $this->Nom,
+			'Path' => $this->Dossier,
+			'Modules' => $this->Modules);
+   }
  }
 ?>
