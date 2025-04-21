@@ -291,6 +291,10 @@ use xNAbySyCustomListOf;
 
       $fichier_module=$DossierFinal.$ClassName.".class.php" ;
       if(file_exists($fichier_module)){
+         if(self::$CategoriesHote){
+            self::$Main::$Log->AddToLog("Attention le fichier ".$fichier_module." existe déjà.");
+         }
+         return true;
          throw new \Exception("Erreur impossible de créer le module. Le fichier ".$fichier_module." existe déjà", 0);
       }
 
