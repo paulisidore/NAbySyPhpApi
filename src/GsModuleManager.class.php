@@ -84,7 +84,7 @@ use xNAbySyCustomListOf;
     * @throws Exception 
     * @throws Throwable 
     */
-   public static function CreateCategorie(string $NomCategorie, bool $CreateApiAction = true, bool $CreateORMClass = true, string $Table){
+   public static function CreateCategorie(string $NomCategorie, bool $CreateApiAction = true, bool $CreateORMClass = true, ?string $Table=null){
       $DossierGS = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
       $DossierCateg = $DossierGS.DIRECTORY_SEPARATOR . $NomCategorie ;
 
