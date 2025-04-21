@@ -252,7 +252,8 @@ use xNAbySyCustomListOf;
          if(!is_dir($DossierCategorie)){
             mkdir($DossierCategorie, 0777, true) ;
          }
-         $DossMod = $DossierCategorie.$ClassName.DIRECTORY_SEPARATOR ;
+         $DossMod = $DossierCategorie.DIRECTORY_SEPARATOR ;
+         $DossMod = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$DossMod);
          if(!is_dir($DossMod)){
             mkdir($DossMod, 0777, true) ;
          }
@@ -261,13 +262,13 @@ use xNAbySyCustomListOf;
          throw $th;
       }
       if(!isset($DossierFinal)){
-         throw new \Exception("Impossible de créer le module ".$ClassName." dans la catégorie ".$DossierCategorie) ;
+         throw new \Exception("Impossible de créer le module ".$ClassName." dans la catégorie ".$DossierFinal) ;
          return false;
       }
 
       $fichier_module=$DossierFinal.$ClassName.".class.php" ;
       if(file_exists($fichier_module)){
-         throw new \Exception("Erreur impossible de créer le module. Le fichier existe déjà", 0);
+         throw new \Exception("Erreur impossible de créer le module. Le fichier ".$fichier_module." existe déjà", 0);
       }
 
       $templatePath =self::$Main::CurrentFolder() . 'templates/'.N_TYPE_ORM.'/'.N_TYPE_ORM.'Template.class.php';

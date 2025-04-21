@@ -56,7 +56,7 @@ class xLog{
             foreach ($Traces as $dbg) {
                 $niv++ ;
                 if($niv==$nbTraceArr){
-                    $Trace=$Dte." ".$dbg['file']." Ligne: ".$dbg['line']." ".$dbg['class'].":".$dbg['function']."-> " ;
+                    $Trace=$Dte." ".$dbg['file']." Ligne: ".$dbg['line'].": " ;
                 }
             }
             fputs($monfichier, $Trace);            
