@@ -282,7 +282,7 @@ use xNAbySyCustomListOf;
       $DossierFinal=null ;
       try {
          $lstDosMod=explode(DIRECTORY_SEPARATOR, $DossierCategorie);
-         if(count($lstDosMod) == 0){
+         if(count($lstDosMod) < 2){
             $DossierCategorie = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR.$DossierCategorie ;
          }
          if(!is_dir($DossierCategorie)){
