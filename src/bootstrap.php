@@ -31,4 +31,40 @@ if (!class_exists('N')) {
 	}
 }
 
-//echo "Package nabysyphpapi/xnabysygs chargé 🚀" . PHP_EOL;
+$fichierStart = N::CurrentFolder(true).'appinfos.php';
+$outputDir =  N::CurrentFolder(true) ;
+$fichier_sortie = $outputDir . 'appinfos.php';
+
+if (file_exists($fichierStart)) {
+	include_once $fichierStart;
+} else {
+	//Copie du fichier de démarrage par défaut
+	$templatePath = N::CurrentFolder().'templates/template_appinfos.php';
+	try {
+		$template = file_get_contents($templatePath);
+		// Remplacer dynamiquement des morceaux
+		$updated = str_replace([
+			'{DATE}',
+		], [
+			date('d/M/Y H:i:s'),
+		], $template);
+
+		// Créer le dossier si nécessaire
+		if (!is_dir($outputDir)) {
+			mkdir($outputDir, 0777, true);
+		}
+
+		try {
+			// Écrire dans un nouveau fichier
+			file_put_contents($fichier_sortie, $updated);
+			if(self::$DebugToLog){
+			self::$Main::$Log->AddToLog("Création du fichier d'action ".$fichier_sortie.".") ;
+			}
+		} catch (\Throwable $th) {
+			throw $th;
+		}
+	 } catch (\Throwable $th) {
+		throw $th;
+	 }
+	
+}
