@@ -43,21 +43,25 @@ switch ($action) {
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
+        exit;
 		break;
     case '[CATEGORIE]_CREATE': //Création: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
+        exit;
 		break;
     case '[CATEGORIE]_SAVE': //Enregistrement: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
+        exit;
         break;
     case '[CATEGORIE]_DELETE': //Suppression: {CATEGORIE}...
         $Reponse->OK=0;
         $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
         echo $Reponse->ToJSON();
+        exit;
         break;
     default:
         break;
