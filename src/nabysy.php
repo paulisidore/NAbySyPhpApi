@@ -877,7 +877,7 @@ Class xNAbySyGS
 			// $ListeR[]="fournisseur" ;
 			// $ListeR[]="facture" ;
 			$ListeR[]="bl" ;
-			//$ListeR[]="comptabilite" ;
+			$ListeR[]="comptabilite" ;
 			$ListeR[]="panier" ;
 			$ListeR[]="userapi" ;
 		}
