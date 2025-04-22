@@ -4,6 +4,7 @@
      * By Paul Isidore A. NIAMIE
      */
 use NAbySy\xErreur;
+use NAbySy\xNotification;
 use NAbySy\xUser;
 
 	$PARAM=$_REQUEST;
@@ -68,8 +69,9 @@ use NAbySy\xUser;
             $Utilisateur=new xUser($nabysy,$IdU,N::GLOBAL_AUTO_CREATE_DBTABLE);
 
             $Lst=$Utilisateur->ChargeListe($Critere);
-            
-            $Reponse=$nabysy->SQLToJSON($Lst);
+            $Reponse=new xNotification();
+            $Reponse->Autres="Liste des Utilisateurs";
+            $Reponse->Contenue=$nabysy->SQLToJSON($Lst);
             echo json_encode($Reponse);            
             
             exit;
