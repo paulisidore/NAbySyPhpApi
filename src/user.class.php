@@ -484,7 +484,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (isset($this->Main->MaBoutique)){
             $IdBout=(int)$this->Main->MaBoutique->Id;
         }
-        $Auth->Payload = array(
+        /* $Auth->Payload = array(
             "pam_application" => $this->Main->MODULE->Nom,
             "pam_client" => $this->Main->MODULE->MCP_CLIENT,
             "client_adr" => $this->Main->MODULE->MCP_ADRESSECLT,
@@ -502,7 +502,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             "nbf" => $dateexp,
             "exp" => $dateexp+$Auth->DureeVieSecode ,
             "Author" => $this->Main->MODULE->MCP_CLIENT
-        );
+        ); */
         
         $jwt=JWT::encode($Auth->Payload,$Auth->Key) ;
 

@@ -16,7 +16,7 @@ Class xAuth
     public $Payload ;
     public int $DureeVieSecode ;
 
-    public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600){
+    public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null){
         $this->Main=$nabysy ;
         $this->Key = $nabysy->MasterDataBase;
         $dateexp=time();
@@ -33,6 +33,12 @@ Class xAuth
             "exp" => $dateexp+$duree_exp_seconde,
             "Author" => "Paul Isidore A. NIAMIE"
         );
+
+        if(isset($User)){
+            $this->Payload["user_id"] = $User->Id ;
+            $this->Payload["user_login"] = $User->Login ;
+            $this->Payload["user_data"] = json_encode($User->RS) ;
+        }
     }
 
     public function GetToken(xUser &$User,$Algo='HS256'){
@@ -61,7 +67,7 @@ Class xAuth
             "NomPoste" => $NomPoste,
             "user_id" => $User->Id,
             "user_login" => $User->Login,
-            "user_data" => json_encode($User->RS),
+            "user_data" => json_encode($User->ToObject()),
             "iss" => "https://groupe-pam.net",
             "aud" => "https://groupe-pam.net",
             "iat" => $dateexp,
