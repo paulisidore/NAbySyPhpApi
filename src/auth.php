@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__.'/vendor/autoload.php';
+
 use NAbySy\xAuth;
 use NAbySy\xErreur;
 use NAbySy\xUser;
