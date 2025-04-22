@@ -76,7 +76,7 @@ if (!class_exists('N')) {
 
     
     if(strtolower($action) == 'auth'){
-        N::ReadHttpAuthRequest(true);
+        N::ReadHttpAuthRequest();
         return;
     }
 

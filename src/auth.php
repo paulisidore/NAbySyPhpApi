@@ -75,8 +75,6 @@ use NAbySy\xUser;
     $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null,$Login) ;
     $Err=new xErreur;
     $Err->Source='auth.php-'.$User->Id.':'.$Login;
-    //var_dump($User);
-
     if ($User->Id>0){
         if ($User->BLOQUE=='OUI'  ){
             $Err->TxErreur="Compte bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
@@ -100,12 +98,9 @@ use NAbySy\xUser;
         if ($User->CheckPassword($Password)){
             $Err->Source='auth.php: GetToken';
             $Token=$User->GetToken();
-            $Err->Extra='Token trouvé: '.$Token ;
-            //var_dump($Token);
         }
     }
     
-
     if ($Token){
         $Auth->EnteteAPI() ;
         $Notif=new xErreur;

@@ -473,30 +473,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             $this->Etat='Actif' ;
         }
         $Auth=new xAuth($this->Main,3600, $this) ;
-       
-        if ($this->BLOQUE=='OUI' || strtoupper($this->Etat ) !== 'ACTIF' ){
-            return '';
-        }
-        $dateexp=time();
-        $IdPoste=0;
-        $NomPoste=$_SERVER['SERVER_NAME'];
-        if(isset($_SERVER['REMOTE_HOST'])){
-            $NomPoste=$_SERVER['REMOTE_HOST'] ;
-        }
-        
-        if ((int)$this->Main->IdPosteClient != 0){
-            $IdPoste=(int)$this->Main->IdPosteClient;
-        }
-        if (trim($this->Main->NomPosteClient) !=='' ){
-            $NomPoste=$this->Main->NomPosteClient;
-        }
-
-        $IdBout=0;
-        if (isset($this->Main->MaBoutique)){
-            $IdBout=(int)$this->Main->MaBoutique->Id;
-        }
         $jwt=$Auth->GetToken($this);
-        //var_dump($jwt) ;
         return $jwt ;
     }
 }

@@ -1726,6 +1726,10 @@ Class xNAbySyGS
 		if(true){
 			$User=null ;
 			require 'auth.php';
+			if(isset($User) && !isset(self::getInstance()->User)){
+				var_dump("J'attribut l'utilisateur à NAbySyGS... ");
+				self::getInstance()->User=$User ;
+			}
 			if($SendReponse){
 				if(isset($User)){
 					$Notification=new xNotification;
