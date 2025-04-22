@@ -288,6 +288,14 @@ use xNAbySyCustomListOf;
          if(!is_dir($DossierCategorie)){
             mkdir($DossierCategorie, 0777, true) ;
          }
+
+         if(substr($ClassName,0,1) !== 'x' && substr($ClassName,0,1) !== 'X'){
+            $ClassName = 'x'.$ClassName ;
+         }
+         if(substr($ClassName,0,1) !== 'X'){
+            $ClassName = 'x'. substr($ClassName,1) ;
+         }
+
          $DossMod = $DossierCategorie.DIRECTORY_SEPARATOR ;
          $DossMod = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$DossMod);
          $DossMod = $DossMod.$ClassName.DIRECTORY_SEPARATOR ;
