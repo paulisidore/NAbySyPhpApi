@@ -895,7 +895,20 @@ Class xNAbySyGS
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
 			$AutoLoad->Register($LstObs,$debg) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;
-		}		
+		}
+		//On ajoute les modules de l'application hôte
+		$dossierMod = self::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
+		$liste=scandir($dossierMod) ;
+		foreach ($liste as $dossier){
+			if ($dossier!="." && $dossier!=".." && $dossier!="Thumbs.db"){
+				$dos=$dossierMod.$dossier ;
+				if (is_dir($dos)){
+					$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$dossier,$dossierMod);
+					$AutoLoad->Register($LstObs,1) ;
+					self::$ListeModuleAutoLoader[]=$AutoLoad ;
+				}
+			}
+		}	
 	}
 
 	/**
