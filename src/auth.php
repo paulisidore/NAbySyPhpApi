@@ -81,8 +81,10 @@ use NAbySy\xUser;
         if ($User->BLOQUE=='OUI'  ){
             $Err->TxErreur="Compte bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
             $Err->OK=0;
-            echo json_encode($Err) ;
-            http_response_code(419);
+            if($User->Main::$SendAuthReponse){
+                echo json_encode($Err) ;
+                http_response_code(419);
+            }
             exit ;
         }
         if(isset($_REQUEST['IsModuleConnexion'])){
@@ -111,17 +113,19 @@ use NAbySy\xUser;
         $Notif->Extra=$Token ;
         $Notif->Autres = $User->ToObject();
         $Notif->Source='auth.php-'.$User->Id.':'.$Login;
-        echo json_encode($Notif) ;
-        http_response_code(200);
-        //var_dump($Auth->DecodeToken($Token)) ;
+        $nabysy->User=$User ;
+        if($User->Main::$SendAuthReponse){
+            echo json_encode($Notif) ;
+            http_response_code(200);
+        }
     }else{
-        
         $Err->TxErreur="Vous etes pas authorisé." ;
         $Err->OK=0;
-        
-        http_response_code(401);
-        echo json_encode($Err) ;
-
+        //$nabysy->User=null ;
+        if($User->Main::$SendAuthReponse){
+            http_response_code(401);
+            echo json_encode($Err) ;
+        }
     }
 
 

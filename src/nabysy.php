@@ -157,6 +157,12 @@ Class xNAbySyGS
 
 	public static $RequetteToIgnoreInLOG=[] ;
 
+	/**
+	 * Si vrai, le module 'authentification de NAbySyGS enverra la reponse d'authentification
+	 * @var bool
+	 */
+	public static bool $SendAuthReponse=false ;
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306)
 	{
 		self::$Main = $this ;
@@ -1634,7 +1640,16 @@ Class xNAbySyGS
 			ini_set('display_startup_errors', 0);
 			error_reporting(E_ERROR);
 		}
-	}	
+	}
+
+	/**
+	 * Indique au module d'authentification NAbySyGS Auth de retourner ou non la réponse d'authentification directement au client
+	 * @param bool $SendReponse 
+	 * @return void 
+	 */
+	public static function SetSendAuthReponse(bool $SendReponse=true){
+		self::$SendAuthReponse=$SendReponse;
+	}
 
 	/**
 	 * Retourne la version de NAbySyGS
