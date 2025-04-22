@@ -313,7 +313,7 @@ Class xNAbySyGS
 			$this->MaBoutique->DBPassword = $this->db_pass;
 			$this->MaBoutique->ACTIF = 1;
 			$this->MaBoutique->IMP_LIGNE="";
-			$this->MaBoutique->IsBoutique=0; //Depôt principal
+			$this->MaBoutique->IsBoutique=0; //Depôt Mère
 			$this->MaBoutique->Enregistrer();
 		}
 		$Depot=$this->MaBoutique->GetDepot();

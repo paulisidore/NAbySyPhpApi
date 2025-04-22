@@ -28,14 +28,17 @@ Class xBoutique extends xORMHelper  {
 			$BoutiqueDBName=$NAbySy->DataBase ;
 		}
 		parent::__construct($NAbySy,$IdBoutique,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
-		if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET')){
-			$this->MySQL->AlterTable($this->Table,'LOGO_TICKET');
-		}
-		$this->Parametre=new xORMHelper($NAbySy,1,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
-		if ($this->Parametre->Id > 0){
-			//$this->AddToLog("Table Paramètre de la boutique Id ".$IdBoutique."=".$this->Parametre->ToJSON());
-		}else{
-			//$this->AddToLog("Table Paramètre vide sur la boutique Id ".$IdBoutique.". Id Param = 1");
+
+		if(isset($NAbySy->MaBoutique)){
+			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET')){
+				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET');
+			}
+			$this->Parametre=new xORMHelper($NAbySy,1,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
+			if ($this->Parametre->Id > 0){
+				//$this->AddToLog("Table Paramètre de la boutique Id ".$IdBoutique."=".$this->Parametre->ToJSON());
+			}else{
+				//$this->AddToLog("Table Paramètre vide sur la boutique Id ".$IdBoutique.". Id Param = 1");
+			}
 		}
 	}
 
