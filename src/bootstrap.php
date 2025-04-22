@@ -58,8 +58,8 @@ if (file_exists($fichierStart)) {
 		try {
 			// Écrire dans un nouveau fichier
 			file_put_contents($fichier_sortie, $updated);
-			if(self::$Main::$DebugToLog){
-				self::$Main::$Log->AddToLog("Création du fichier d'action ".$fichier_sortie.".") ;
+			if(N::$Main->ActiveDebug){
+				N::$Main::$Log->AddToLog("Création du fichier d'action ".$fichier_sortie.".") ;
 			}
 		} catch (\Throwable $th) {
 			throw $th;
