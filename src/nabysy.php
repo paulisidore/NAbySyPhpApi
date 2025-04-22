@@ -1624,6 +1624,18 @@ Class xNAbySyGS
 		
 	}
 
+	public static function SetShowDebug(bool $ShowDebug=true, int $DebugLevel=1){
+		if($ShowDebug){
+			ini_set('display_errors', $DebugLevel);
+			ini_set('display_startup_errors', $DebugLevel);
+			error_reporting(E_ALL);
+		}else{
+			ini_set('display_errors', 0);
+			ini_set('display_startup_errors', 0);
+			error_reporting(E_ERROR);
+		}
+	}	
+
 	/**
 	 * Retourne la version de NAbySyGS
 	 * @return string : Version de NAbySyGS
