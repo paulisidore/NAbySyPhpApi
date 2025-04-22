@@ -39,6 +39,8 @@ Class xAuth
             $this->Payload["user_login"] = $User->Login ;
             $this->Payload["user_data"] = json_encode($User->RS) ;
         }
+        $jwt=JWT::encode($this->Payload,$this->Key) ;
+        var_dump($jwt) ;
     }
 
     public function GetToken(xUser &$User,$Algo='HS256'){
