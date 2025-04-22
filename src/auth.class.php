@@ -46,9 +46,13 @@ Class xAuth
     }
 
     public function GetToken(xUser &$User,$Algo='HS256'){
-        if (!isset($User)){
+        if (isset($User)){
         }else{
             echo "<br>Utilisateur Null ici: ".__FILE__." Ligne ".__LINE__."</br>";
+            return '';
+        }
+        if (trim($User->Etat) ==''){
+            $User->Etat='Actif' ;
         }
         if ($User->BLOQUE=='OUI' || strtoupper($User->Etat ) !== 'ACTIF' ){
             return '';
