@@ -872,12 +872,12 @@ Class xNAbySyGS
 		if(count($ListeR) == 0){
 			$ListeR=[];
 			$ListeR[]="boutique" ;
-			$ListeR[]="stock" ;
-			$ListeR[]="client" ;
-			$ListeR[]="fournisseur" ;
-			$ListeR[]="facture" ;
+			// $ListeR[]="stock" ;
+			// $ListeR[]="client" ;
+			// $ListeR[]="fournisseur" ;
+			// $ListeR[]="facture" ;
 			$ListeR[]="bl" ;
-			$ListeR[]="comptabilite" ;
+			//$ListeR[]="comptabilite" ;
 			$ListeR[]="panier" ;
 			$ListeR[]="userapi" ;
 		}
