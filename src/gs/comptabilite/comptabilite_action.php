@@ -9,7 +9,6 @@
 use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Comptabilite\xHistoriqueTransaction;
 use NAbySy\GS\Comptabilite\xInfosCheque;
-use NAbySy\Lib\ModuleExterne\OilStation\xIndexPompe;
 use NAbySy\xErreur;
 use NAbySy\xNotification;
 
@@ -172,16 +171,6 @@ use NAbySy\xNotification;
         }
         if(isset($_REQUEST['TRACKERID'])){
             $Reponse->Source = $_REQUEST['TRACKERID'];
-        }
-        if(isset($_REQUEST['IDINDEX'])){
-            if ((int)$_REQUEST['IDINDEX']>0){
-                $IndexPompe=new xIndexPompe($Trans->Main,(int)$_REQUEST['IDINDEX'],N::GLOBAL_AUTO_CREATE_DBTABLE);
-                if($IndexPompe->Id){
-                    $IndexPompe->TotalASolder -= $Mt ;
-                    $IndexPompe->Enregistrer();
-                }                
-            }
-            
         }
         
         echo json_encode($Reponse);

@@ -1,9 +1,9 @@
 <?php
 
-use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xCodeBarShema;
-use NAbySy\GS\Stock\xProduit;
 use NAbySy\GS\Stock\xProduitNC;
+use NAbySy\xErreur;
+
     //include_once '../../nabysy_start.php' ;
     
     $PARAM=$_REQUEST;
