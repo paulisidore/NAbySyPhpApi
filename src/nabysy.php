@@ -1716,14 +1716,9 @@ Class xNAbySyGS
 	 */
 	public static function ReadHttpAuthRequest(){
 		
-		if(true){
-			$User=null ;
-			require 'auth.php';
-			if(isset($User) && !isset(self::getInstance()->User)){
-				self::getInstance()->User=$User ;
-			}
-			return;
-		}
+		$User=null ;
+		require 'auth.php';
+		return;
 
 		// Fichier PHP ciblé
 		// Obtenir la route et la méthode
