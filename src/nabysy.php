@@ -351,7 +351,7 @@ Class xNAbySyGS
 							//throw $th;
 						}
 					}
-					$IdUtilisateur=$Usr->user_data->ID ;
+					$IdUtilisateur=$Usr->user_data->Id ;
 					$this->IdPosteClient=$Usr->IdPoste;
 					$this->NomPosteClient=$Usr->NomPoste;
 				}else{
