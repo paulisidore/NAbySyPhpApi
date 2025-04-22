@@ -8,8 +8,8 @@
 use NAbySy\GS\Comptabilite\xCompteBancaire;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
-
- include_once 'nabysy_start.php';
+use NAbySy\xErreur;
+use NAbySy\xNotification;
 
     $Err=new xErreur ;
     $Err->TxErreur='Erreur';
@@ -55,12 +55,12 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
             
             $CompteB=new xCompteBancaire($nabysy);
 
-            if (count($nabysy::$ListeModulePaiement)>0){
-                foreach($nabysy::$ListeModulePaiement as $Mod){
+            if (count(N::$ListeModulePaiement)>0){
+                foreach(N::$ListeModulePaiement as $Mod){
                     //var_dump(get_class($Mod));
                     try{
                         if ($Mod instanceof IModulePaieManager){
-                            $Index=array_search($Mod,$nabysy::$ListeModulePaiement)+1 ;
+                            $Index=array_search($Mod,N::$ListeModulePaiement)+1 ;
                             if ($Ind>0){
                                 $Index=$Ind+1 ;
                                 //$vMd['INDEX']=$Index;

@@ -1,9 +1,7 @@
 <?php
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xProduit;
-
-
-include_once 'nabysy_start.php';
+use NAbySy\xErreur;
 
 $ChampAction='Action';
 $action=null ;

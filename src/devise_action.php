@@ -1,6 +1,4 @@
-<?php 
-    session_start();	  
-	include_once 'nabysy_start.php';
+<?php
 	
 	if (!isset($_POST['action'])){
 		if (!isset($_GET['action'])){

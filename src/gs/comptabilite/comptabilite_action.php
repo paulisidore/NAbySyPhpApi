@@ -10,8 +10,8 @@ use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Comptabilite\xHistoriqueTransaction;
 use NAbySy\GS\Comptabilite\xInfosCheque;
 use NAbySy\Lib\ModuleExterne\OilStation\xIndexPompe;
-
- //include_once 'nabysy_start.php';
+use NAbySy\xErreur;
+use NAbySy\xNotification;
 
  $Reponse=new xNotification;
  $Reponse->OK=1;

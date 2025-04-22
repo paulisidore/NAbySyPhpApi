@@ -1,8 +1,11 @@
 <?php
 	//Gestion des connexions
 	//----------------------------------
+
+use NAbySy\xErreur;
+use NAbySy\xUser;
+
 	$NoCSS=true ;
-	include_once 'nabysy_start.php';
 
 function MY_URL(){
 	return sprintf(

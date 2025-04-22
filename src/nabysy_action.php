@@ -1,8 +1,8 @@
 <?php
 use NAbySy\GS\Boutique\xBoutique;
+use NAbySy\xErreur;
+use NAbySy\xUser;
 
-	include_once 'nabysy_start.php';
-	
 	$PARAM=$_REQUEST;
 	
 

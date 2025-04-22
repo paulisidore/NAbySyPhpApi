@@ -15,8 +15,7 @@ use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
 use NAbySy\Lib\Sms\xMessageSMS;
 use NAbySy\Lib\Sms\xSMSOrange;
 use NAbySy\ORM\xORMHelper;
-
-     include_once 'nabysy_start.php';
+use NAbySy\xErreur;
 
      /**
       * Nous allon auto-logger un Utilisateur systeme pour simplifier la tache aux clients
