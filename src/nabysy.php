@@ -71,8 +71,6 @@ use NAbySy\xErreur;
 use ReflectionObject;
 use xNAbySyCustomListOf;
 
-;
-
 Class xNAbySyGS
 {
 	public ModuleMCP $MODULE ;
@@ -137,7 +135,7 @@ Class xNAbySyGS
 
 	public const GLOBAL_AUTO_CREATE_DBTABLE=true ; //Mettez True si vous etes en mode de developpement;
 
-	public const TEST_MODE=true;	//False pour le mode production
+	public const TEST_MODE=false;	//False pour le mode production
 
 	//La boutique par défaut ou la boutique en cour d'utilisation
 	public xBoutique $MaBoutique ;
