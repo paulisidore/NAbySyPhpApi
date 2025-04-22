@@ -75,7 +75,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             $this->Signature($this->_Signature);
         }
         if($this->ChampsExisteInTable('Signature')){
-            $TxSQL='select Signature from '.$this->TEntete.' where id="'.$this->Id.'" limit 1' ;
+            $TxSQL='select Signature from `'.$this->DataBase.'`.`'.$this->TEntete.'` where id="'.$this->Id.'" limit 1' ;
             $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
             if ($Ret->num_rows>0){
                 $Sign=$Ret->fetch_assoc() ;
