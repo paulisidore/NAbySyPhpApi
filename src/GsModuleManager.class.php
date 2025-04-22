@@ -281,6 +281,10 @@ use xNAbySyCustomListOf;
       $Rep->OK = 0;
       $DossierFinal=null ;
       try {
+         $lstDosMod=explode(DIRECTORY_SEPARATOR, $DossierCategorie);
+         if(count($lstDosMod) == 0){
+            $DossierCategorie = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR.$DossierCategorie ;
+         }
          if(!is_dir($DossierCategorie)){
             mkdir($DossierCategorie, 0777, true) ;
          }
