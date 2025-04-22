@@ -1000,7 +1000,7 @@ Class xNAbySyGS
 	 * Charge les Modules Externes tel que Le module de gestion interagissant via des API dstantes.
 	 */
 	public static function LoadExternalModuleLib($DebugLevel=0){  
-			$rep="moduleExterne" ;
+			$rep= self::CurrentFolder(true)."moduleExterne" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
 			if (!file_exists($rep)){
 				$Tache="CHARGEMENT DES LIBRAIRIES";
@@ -1069,8 +1069,7 @@ Class xNAbySyGS
 						self::$ListeModuleExterne[]=$Librairie;
 						//var_dump("Module externe ".$Librairie[0]." chargé.");
 					}else{
-						self::$Log->Write("La librairie ".$Librairie[0]." n'est pas un module compatible avec NAbySy RH & RS");
-						//var_dump("La librairie ".$Librairie[0]." n'est pas un module compatible avec NAbySyRH & RS");
+						self::$Log->Write("La librairie ".$Librairie[0]." n'est pas un module compatible avec NAbySyGS");
 					}					
 				}else{
 					//var_dump($FichierInterface." introuvable");
@@ -1081,12 +1080,8 @@ Class xNAbySyGS
 					if ($Lst->num_rows==0){
 						self::$Main->AddToJournal('SYSTEME',0,$Tache,$Note);
 					}
-					//On véfirie si l'entrée est déja présente dans le journal
 				}
 			}
-
-			//var_dump(self::$ListeModuleExterne);
-
             return $ListeDossier ;
     }
 
