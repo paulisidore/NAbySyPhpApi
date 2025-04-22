@@ -39,6 +39,7 @@ if (file_exists($fichierStart)) {
 	include_once $fichierStart;
 } else {
 	//Copie du fichier de démarrage par défaut
+	echo "<br>Le fichier de démarrage ".$fichierStart." n'existe pas !<br>";
 	$templatePath = N::CurrentFolder().'templates/template_appinfos.php';
 	try {
 		$template = file_get_contents($templatePath);
