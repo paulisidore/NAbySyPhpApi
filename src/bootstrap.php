@@ -62,6 +62,7 @@ if (file_exists($fichierStart)) {
 		} catch (\Throwable $th) {
 			throw $th;
 		}
+		include_once $fichierStart;
 	 } catch (\Throwable $th) {
 		throw $th;
 	 }
