@@ -469,7 +469,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
     }    
 
     public function GetToken(){
-        $Auth=new xAuth($this->Main) ;
+        $Auth=new xAuth($this->Main,3600, $this) ;
         if ($this->BLOQUE=='OUI' || strtoupper($this->Etat ) !== 'ACTIF' ){
             return '';
         }
@@ -505,7 +505,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         ); */
         
         $jwt=JWT::encode($Auth->Payload,$Auth->Key) ;
-
+        var_dump($jwt) ;
         return $jwt ;
     }
 }
