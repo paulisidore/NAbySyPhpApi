@@ -71,17 +71,16 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         }
         if(!$this->ChampsExisteInTable('Signature') && $this->Id>0){
             $this->AutoCreate=true;
-            $this->Signature();
-        }
-        if(!$this->ChampsExisteInTable('Signature')){
             $this->_Signature='';
-            return ;
+            $this->Signature($this->_Signature);
         }
-        $TxSQL='select Signature from '.$this->TEntete.' where id="'.$this->Id.'" limit 1' ;
-        $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
-        if ($Ret->num_rows>0){
-            $Sign=$Ret->fetch_assoc() ;
-            $this->_Signature=$Sign['Signature'];
+        if($this->ChampsExisteInTable('Signature')){
+            $TxSQL='select Signature from '.$this->TEntete.' where id="'.$this->Id.'" limit 1' ;
+            $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+            if ($Ret->num_rows>0){
+                $Sign=$Ret->fetch_assoc() ;
+                $this->_Signature=$Sign['Signature'];
+            }
         }
     }
 
