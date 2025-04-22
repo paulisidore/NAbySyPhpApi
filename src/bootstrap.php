@@ -59,8 +59,6 @@ if (file_exists($fichierStart)) {
 			// Écrire dans un nouveau fichier
 			file_put_contents($fichier_sortie, $updated);
 
-			N::getInstance()::$Log->AddToLog("Création du fichier d'action ".$fichier_sortie.".") ;
-
 		} catch (\Throwable $th) {
 			throw $th;
 		}
