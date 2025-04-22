@@ -2,6 +2,7 @@
 
 namespace NAbySy;
 
+use Firebase\JWT\JWT;
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Facture\xVente;
 
@@ -449,6 +450,42 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
 
     public function GetToken(){
         $Auth=new xAuth($this->Main) ;
-        return $Auth->GetToken($this) ;
+        if ($this->BLOQUE=='OUI' || strtoupper($this->Etat ) !== 'ACTIF' ){
+            return '';
+        }
+        $dateexp=time();
+        $IdPoste=0;
+        $NomPoste=$_SERVER['REMOTE_HOST'] ; //"SERVEUR";
+        if (isset($this->Main->IdPosteClient)){
+            $IdPoste=(int)$this->Main->IdPosteClient;
+            $NomPoste=$this->Main->NomPosteClient;
+        }
+        $IdBout=0;
+        if (isset($this->Main->MaBoutique)){
+            $IdBout=(int)$this->Main->MaBoutique->Id;
+        }
+        $Auth->Payload = array(
+            "pam_application" => $this->Main->MODULE->Nom,
+            "pam_client" => $this->Main->MODULE->MCP_CLIENT,
+            "client_adr" => $this->Main->MODULE->MCP_ADRESSECLT,
+            "client_tel" => $this->Main->MODULE->MCP_TELCLT,
+            "boutique_id" => $IdBout,
+            "IdBoutique" => $IdBout,
+            "IdPoste" => $IdPoste,
+            "NomPoste" => $NomPoste,
+            "user_id" => $this->Id,
+            "user_login" => $this->Login,
+            "user_data" => $this->ToJSON(),
+            "iss" => "https://groupe-pam.net",
+            "aud" => "https://groupe-pam.net",
+            "iat" => $dateexp,
+            "nbf" => $dateexp,
+            "exp" => $dateexp+$Auth->DureeVieSecode ,
+            "Author" => $this->Main->MODULE->MCP_CLIENT
+        );
+        
+        $jwt=JWT::encode($Auth->Payload,$Auth->Key) ;
+
+        return $jwt ;
     }
 }

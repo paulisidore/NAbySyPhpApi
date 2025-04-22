@@ -33,7 +33,6 @@ Class xAuth
             "exp" => $dateexp+$duree_exp_seconde,
             "Author" => "Paul Isidore A. NIAMIE"
         );
-        var_dump(JWT::encode($this->Payload,$this->Key)) ;
     }
 
     public function GetToken(xUser &$User,$Algo='HS256'){
