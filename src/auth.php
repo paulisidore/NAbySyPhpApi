@@ -54,6 +54,7 @@ use NAbySy\xUser;
         $Notif->TxErreur="Connexion Reussit" ;
         $Notif->Extra=json_encode($User) ;        
         $Notif->OK=1 ;
+        $nabysy->User=$User ;
         echo json_encode($Notif) ;
         exit ;
     }
