@@ -100,6 +100,8 @@ use NAbySy\xUser;
             $Token=$User->GetToken();
         }
     }
+
+    $UserToken = $Token;
     
     if ($Token){
         $Auth->EnteteAPI() ;
@@ -107,7 +109,7 @@ use NAbySy\xUser;
         $Notif->OK=1;
         $Notif->Extra=$Token ;
         $Notif->Autres = $User->ToObject();
-        $Notif->Source='auth.php-'.$User->Id.':'.$Login;
+        $Notif->Source=__FILE__.'-'.$User->Id.':'.$Login;
         $nabysy->User=$User ;
         if($User->Main::$SendAuthReponse){
             echo json_encode($Notif) ;

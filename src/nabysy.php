@@ -1714,20 +1714,12 @@ Class xNAbySyGS
 	 * Traite les demandes d'authentifications
 	 * @return void 
 	 */
-	public static function ReadHttpAuthRequest(bool $SendReponse=true){
-		// Obtenir la route et la méthode
-		$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-		$method = $_SERVER['REQUEST_METHOD'];
-
-		// Nettoyer et protéger
-		$path = trim($uri, '/');
-		$path = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $path);
-
+	public static function ReadHttpAuthRequest(bool $SendReponse=false){
+		
 		if(true){
 			$User=null ;
 			require 'auth.php';
 			if(isset($User) && !isset(self::getInstance()->User)){
-				var_dump("J'attribut l'utilisateur à NAbySyGS... ");
 				self::getInstance()->User=$User ;
 			}
 			if($SendReponse){
@@ -1745,7 +1737,16 @@ Class xNAbySyGS
 			}
 			return;
 		}
+		
 		// Fichier PHP ciblé
+		// Obtenir la route et la méthode
+		$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+		$method = $_SERVER['REQUEST_METHOD'];
+
+		// Nettoyer et protéger
+		$path = trim($uri, '/');
+		$path = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $path);
+
 		$routeFile = self::CurrentFolder(true) . "/routes/" . ($path ?: "index") . ".php";
 	}
 

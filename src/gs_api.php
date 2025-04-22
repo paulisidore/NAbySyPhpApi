@@ -74,12 +74,6 @@ if (!class_exists('N')) {
         exit;	
 	}
 
-    
-    if(strtolower($action) == 'auth'){
-        N::ReadHttpAuthRequest();
-        return;
-    }
-
     $PourAccesRobot=false;
     if (isset($PARAM['CLIENT_GENERAL'])){
         if ((int)$PARAM['CLIENT_GENERAL']>0){
@@ -97,8 +91,16 @@ if (!class_exists('N')) {
                 $nabysy->UserToken=$Token ;
                 $nabysy->User=$fakeUser ;
                 $PourAccesRobot =true;
+
+                $PARAM['Login']=$fakeUser->Login ;
+                $PARAM['Password']=$fakeUser->Password ;
             }
         }
+    }
+    
+    if(strtolower($action) == 'auth'){
+        N::ReadHttpAuthRequest();
+        return;
     }
 
     if (!$PourAccesRobot){
