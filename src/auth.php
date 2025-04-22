@@ -10,7 +10,7 @@ use NAbySy\xUser;
     $Password='' ;
     $Token=null;
     $nabysy=N::getInstance();
-    $Boutique=$nabysy->MaBoutique ;
+    
     $Auth=new xAuth($nabysy) ;
     $UserToken=null ;
     $Err=new xErreur;
@@ -69,7 +69,7 @@ use NAbySy\xUser;
     //print_r('IdBoutique='.$Boutique->Id.'  <= ') ;
     //$Auth=new xAuth($nabysy,3600) ; //Version Prod Token valable 1 heure
     $Auth=new xAuth($nabysy,86400) ; //Version Dev Token Valable 24 heures
-    $nabysy->SelectDB($nabysy->MaBoutique->DBname);
+    $nabysy->SelectDB($nabysy->DataBase);
     $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null,$Login) ;
     $Err=new xErreur;
     $Err->Source='auth.php-'.$User->Id.':'.$Login;
