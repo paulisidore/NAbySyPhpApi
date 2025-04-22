@@ -75,23 +75,23 @@ Class xNAbySyGS
 {
 	public ModuleMCP $MODULE ;
 	public static mysqli $db_link ;
-	public $dbase ;
-	public $DataBase ;
-	public $MainDataBase ;
-	public $db_user ;
-	public $db_pass ;
-	public $db_serveur ;
-	public int $db_port ;
-	public $BoutiqueID ;
-	public $BoutiqueNOM ;
+	public $dbase ="" ;
+	public $DataBase="" ;
+	public $MainDataBase="" ;
+	public $db_user ="";
+	public $db_pass="" ;
+	public $db_serveur="" ;
+	public int $db_port = 3306 ;
+	public $BoutiqueID = 0 ;
+	public $BoutiqueNOM ="" ;
 	public $Boutiques=array();
 	public $Erreur;
-	public $ISCONNECTED ;	
-	public $MCP_SEPARATEUR ;
+	public bool $ISCONNECTED = false ;	
+	public $MCP_SEPARATEUR ="" ;
 	
 	public $ActiveDebug=false ;
-	public $MODE_INVENTAIRE_BOUTIQUE ;
-	public $MODE_INVENTAIRE_DEPOT ;
+	public bool $MODE_INVENTAIRE_BOUTIQUE = false ;
+	public bool $MODE_INVENTAIRE_DEPOT = false ;
 	/* Gestion de redirection selon heure */
 	public $HeureOuverture ;
 	public $HeureFermeture ;
@@ -106,9 +106,9 @@ Class xNAbySyGS
 	public $Template ;
 	public xUser $User;
 
-	public $MasterDataBase ;
+	public $MasterDataBase ="" ;
 
-	public $UserToken ;
+	public $UserToken ="" ;
 
 	public $IsLinuxOS=true ;
 	public $OS_NAME='Linux OS';

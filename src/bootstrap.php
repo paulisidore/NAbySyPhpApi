@@ -36,7 +36,7 @@ $outputDir =  N::CurrentFolder(true) ;
 $fichier_sortie = $outputDir . 'appinfos.php';
 
 if (file_exists($fichierStart)) {
-	include_once $fichierStart;
+	include $fichierStart;
 } else {
 	//Copie du fichier de démarrage par défaut
 	//echo "<br>Le fichier de démarrage ".$fichierStart." n'existe pas !<br>";
@@ -62,7 +62,7 @@ if (file_exists($fichierStart)) {
 		} catch (\Throwable $th) {
 			throw $th;
 		}
-		include_once $fichierStart;
+		include $fichierStart;
 	 } catch (\Throwable $th) {
 		throw $th;
 	 }
