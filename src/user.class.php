@@ -69,6 +69,14 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (isset($this->RS)){
             $this->Acces=$this->NiveauAcces;
         }
+        if(!$this->ChampsExisteInTable('Signature') && $this->Id>0){
+            $this->AutoCreate=true;
+            $this->Signature();
+        }
+        if(!$this->ChampsExisteInTable('Signature')){
+            $this->_Signature='';
+            return ;
+        }
         $TxSQL='select Signature from '.$this->TEntete.' where id="'.$this->Id.'" limit 1' ;
         $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
         if ($Ret->num_rows>0){
