@@ -38,8 +38,9 @@ Class xAuth
         if(isset($User)){
             $this->Payload["user_id"] = $User->Id ;
             $this->Payload["user_login"] = $User->Login ;
-            $this->Payload["user_data"] = json_encode($User->RS) ;
+            $this->Payload["user_data"] = json_encode($User->ToObject()) ;
         }
+        var_dump($this->Payload) ;
         $jwt=JWT::encode($this->Payload,$this->Key) ;
         var_dump($jwt) ;
     }
