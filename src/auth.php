@@ -99,7 +99,7 @@ use NAbySy\xUser;
             $Err->Source='auth.php: GetToken';
             $Token=$User->GetToken();
             $Err->Extra='Token trouvé: '.$Token ;
-            var_dump($Token);
+            //var_dump($Token);
         }
     }
     

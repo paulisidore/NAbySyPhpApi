@@ -479,37 +479,24 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         }
         $dateexp=time();
         $IdPoste=0;
-        $NomPoste=$_SERVER['REMOTE_HOST'] ; //"SERVEUR";
-        if (isset($this->Main->IdPosteClient)){
+        $NomPoste=$_SERVER['SERVER_NAME'];
+        if(isset($_SERVER['REMOTE_HOST'])){
+            $NomPoste=$_SERVER['REMOTE_HOST'] ;
+        }
+        
+        if ((int)$this->Main->IdPosteClient != 0){
             $IdPoste=(int)$this->Main->IdPosteClient;
+        }
+        if (trim($this->Main->NomPosteClient) !=='' ){
             $NomPoste=$this->Main->NomPosteClient;
         }
+
         $IdBout=0;
         if (isset($this->Main->MaBoutique)){
             $IdBout=(int)$this->Main->MaBoutique->Id;
         }
-        /* $Auth->Payload = array(
-            "pam_application" => $this->Main->MODULE->Nom,
-            "pam_client" => $this->Main->MODULE->MCP_CLIENT,
-            "client_adr" => $this->Main->MODULE->MCP_ADRESSECLT,
-            "client_tel" => $this->Main->MODULE->MCP_TELCLT,
-            "boutique_id" => $IdBout,
-            "IdBoutique" => $IdBout,
-            "IdPoste" => $IdPoste,
-            "NomPoste" => $NomPoste,
-            "user_id" => $this->Id,
-            "user_login" => $this->Login,
-            "user_data" => $this->ToJSON(),
-            "iss" => "https://groupe-pam.net",
-            "aud" => "https://groupe-pam.net",
-            "iat" => $dateexp,
-            "nbf" => $dateexp,
-            "exp" => $dateexp+$Auth->DureeVieSecode ,
-            "Author" => $this->Main->MODULE->MCP_CLIENT
-        ); */
-        
-        $jwt=JWT::encode($Auth->Payload,$Auth->Key) ;
-        var_dump($jwt) ;
+        $jwt=$Auth->GetToken($this);
+        //var_dump($jwt) ;
         return $jwt ;
     }
 }

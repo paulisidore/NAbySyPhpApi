@@ -17,6 +17,8 @@ Class xAuth
     public $Payload ;
     public int $DureeVieSecode ;
 
+    public static string $lastToken = '';
+
     public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null){
         $this->Main=$nabysy ;
         $this->Key = $nabysy->MasterDataBase;
@@ -36,19 +38,14 @@ Class xAuth
         );
 
         if(isset($User)){
-            $this->Payload["user_id"] = $User->Id ;
-            $this->Payload["user_login"] = $User->Login ;
-            $this->Payload["user_data"] = json_encode($User->ToObject()) ;
+            self::$lastToken = $this->GetToken($User) ;
         }
-        var_dump($this->Payload) ;
-        $jwt=JWT::encode($this->Payload,$this->Key) ;
-        var_dump($jwt) ;
     }
 
-    public function GetToken(xUser &$User,$Algo='HS256'){
+    public function GetToken(xUser &$User,$Algo='HS256'):string{
         if (isset($User)){
         }else{
-            echo "<br>Utilisateur Null ici: ".__FILE__." Ligne ".__LINE__."</br>";
+            //echo "<br>Utilisateur Null ici: ".__FILE__." Ligne ".__LINE__."</br>";
             return '';
         }
         if (trim($User->Etat) ==''){
@@ -59,18 +56,30 @@ Class xAuth
         }
         $dateexp=time();
         $IdPoste=0;
-        $NomPoste="SERVEUR";
-        if (isset($this->Main->IdPosteClient)){
+        $NomPoste=$_SERVER['SERVER_NAME'];
+        if(isset($_SERVER['REMOTE_HOST'])){
+            $NomPoste=$_SERVER['REMOTE_HOST'] ;
+        }
+        
+        if ((int)$this->Main->IdPosteClient != 0){
             $IdPoste=(int)$this->Main->IdPosteClient;
+        }
+        if (trim($this->Main->NomPosteClient) !=='' ){
             $NomPoste=$this->Main->NomPosteClient;
         }
+
+        $IdBout=0;
+        if (isset($this->Main->MaBoutique)){
+            $IdBout=(int)$this->Main->MaBoutique->Id;
+        }
+
         $this->Payload = array(
             "pam_application" => $this->Main->MODULE->Nom,
             "pam_client" => $this->Main->MODULE->MCP_CLIENT,
             "client_adr" => $this->Main->MODULE->MCP_ADRESSECLT,
             "client_tel" => $this->Main->MODULE->MCP_TELCLT,
-            "boutique_id" => $this->Main->MaBoutique->Id,
-            "IdBoutique" => $this->Main->MaBoutique->Id,
+            "boutique_id" => $IdBout,
+            "IdBoutique" => $IdBout,
             "IdPoste" => $IdPoste,
             "NomPoste" => $NomPoste,
             "user_id" => $User->Id,
