@@ -226,9 +226,7 @@ class xORMHelper implements IORM , JsonSerializable{
         }
 
         public function jsonSerialize(): mixed{
-            return [
-                $this->ToObject()
-            ];
+            return $this->ToObject();
         }
     #endregion
 
