@@ -1714,27 +1714,13 @@ Class xNAbySyGS
 	 * Traite les demandes d'authentifications
 	 * @return void 
 	 */
-	public static function ReadHttpAuthRequest(bool $SendReponse=false){
+	public static function ReadHttpAuthRequest(){
 		
 		if(true){
 			$User=null ;
 			require 'auth.php';
-			exit;
 			if(isset($User) && !isset(self::getInstance()->User)){
 				self::getInstance()->User=$User ;
-			}
-			if($SendReponse){
-				if(isset($User)){
-					$Notification=new xNotification;
-					$Notification->OK=1;
-					$Notification->Autres="Connexion réussit";
-					$Notification->Contenue=$User ;
-					echo json_encode($Notification) ;
-				}else{
-					$Err->TxErreur='Vous n\'etes pas authentifié !' ;
-					$Err->Source= __FUNCTION__ ;
-					echo json_encode($Err) ;
-				}
 			}
 			return;
 		}
