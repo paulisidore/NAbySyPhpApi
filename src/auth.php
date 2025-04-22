@@ -10,7 +10,9 @@ use NAbySy\xUser;
     $Password='' ;
     $Token=null;
     $nabysy=N::getInstance();
-    
+    if(!isset($nabysy->MaBoutique)){
+        $nabysy->ChargeInfos();
+    }
     $Auth=new xAuth($nabysy) ;
     $UserToken=null ;
     $Err=new xErreur;

@@ -138,7 +138,7 @@ Class xNAbySyGS
 	public const TEST_MODE=false;	//False pour le mode production
 
 	//La boutique par défaut ou la boutique en cour d'utilisation
-	public xBoutique $MaBoutique ;
+	public ?xBoutique $MaBoutique ;
 
 	/** Identifiant du Poste de Saisie utilisé par l'utilisateur */
 	public int $IdPosteClient = 0 ;
