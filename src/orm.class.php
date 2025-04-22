@@ -5,6 +5,7 @@ include_once 'nabysy.php' ;
 use DateTime;
 use NAbySy\ORM\IORM;
 use Exception;
+use JsonSerializable;
 use mysqli_result;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\xDB;
@@ -12,7 +13,7 @@ use NAbySy\xNAbySyGS;
 use NAbySy\xErreur;
 
 //#[\AllowDynamicProperties] on verra ca une autre fois
-class xORMHelper implements IORM{
+class xORMHelper implements IORM , JsonSerializable{
     public $Table ;
     public int $Id=0 ;
     private array $RS ;
@@ -222,6 +223,12 @@ class xORMHelper implements IORM{
                 }
                 $this->ListeChampDB = $NewListe;
             }
+        }
+
+        public function jsonSerialize(): mixed{
+            return [
+                $this->ToArray()
+            ];
         }
     #endregion
 
