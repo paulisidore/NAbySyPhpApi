@@ -304,6 +304,18 @@ Class xNAbySyGS
 		//On charge la boutique par défaut qui est le Depot
 		//self::$Log->Write("Chargement des Données du Dépot...");
 		$this->MaBoutique=new xBoutique($this,0);
+		if($this->MaBoutique->Id == 0){
+			$this->MaBoutique->IdCompteClient=0;
+			$this->MaBoutique->Nom = $this->MODULE->MCP_CLIENT;
+			$this->MaBoutique->Serveur = $this->db_serveur;
+			$this->MaBoutique->DBName = $this->DataBase;
+			$this->MaBoutique->DBUser = $this->db_user;
+			$this->MaBoutique->DBPassword = $this->db_pass;
+			$this->MaBoutique->ACTIF = 1;
+			$this->MaBoutique->IMP_LIGNE="";
+			$this->MaBoutique->IsBoutique=0; //Depôt principal
+			$this->MaBoutique->Enregistrer();
+		}
 		$Depot=$this->MaBoutique->GetDepot();
 		//var_dump($Depot);
 		if (isset($Depot)){
