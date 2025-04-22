@@ -469,7 +469,11 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
     }    
 
     public function GetToken(){
+        if (trim($this->Etat) ==''){
+            $this->Etat='Actif' ;
+        }
         $Auth=new xAuth($this->Main,3600, $this) ;
+       
         if ($this->BLOQUE=='OUI' || strtoupper($this->Etat ) !== 'ACTIF' ){
             return '';
         }
