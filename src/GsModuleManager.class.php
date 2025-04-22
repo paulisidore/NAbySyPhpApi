@@ -292,7 +292,7 @@ use xNAbySyCustomListOf;
          if(substr($ClassName,0,1) !== 'x' && substr($ClassName,0,1) !== 'X'){
             $ClassName = 'x'.$ClassName ;
          }
-         if(substr($ClassName,0,1) !== 'X'){
+         if(substr($ClassName,0,1) == 'X'){
             $ClassName = 'x'. substr($ClassName,1) ;
          }
 
