@@ -1719,6 +1719,7 @@ Class xNAbySyGS
 		if(true){
 			$User=null ;
 			require 'auth.php';
+			exit;
 			if(isset($User) && !isset(self::getInstance()->User)){
 				self::getInstance()->User=$User ;
 			}
@@ -1737,7 +1738,7 @@ Class xNAbySyGS
 			}
 			return;
 		}
-		
+
 		// Fichier PHP ciblé
 		// Obtenir la route et la méthode
 		$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
