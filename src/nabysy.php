@@ -336,7 +336,7 @@ Class xNAbySyGS
 			
 			if (isset($Usr)){
 				$TxClass=get_class($Usr);
-				if ($TxClass !== 'xErreur'){
+				if ($TxClass !== 'xErreur' && $TxClass !== 'NAbySy\xErreur'){
 					if(is_string($Usr->user_data)){
 						try {
 							$vUsrD = json_decode($Usr->user_data);
