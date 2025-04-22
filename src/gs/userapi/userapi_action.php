@@ -3,12 +3,6 @@
      * END-POINT Gestion et Controle des UTILISATEURS
      * By Paul Isidore A. NIAMIE
      */
-
-use NAbySy\GS\Client\xClientEntreprise;
-use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
-use NAbySy\Lib\BonAchat\IBonAchatManager;
-use NAbySy\Lib\BonAchat\xBonAchatManager;
-use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
 use NAbySy\xErreur;
 use NAbySy\xUser;
 
