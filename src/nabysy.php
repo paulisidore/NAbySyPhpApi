@@ -1755,6 +1755,9 @@ Class xNAbySyGS
 	 * @return void 
 	 */
 	public static function ReadHttpRequest(){
+		if(!isset(self::$Main->User)){
+			self::$Main->ChargeInfos();
+		}
 		require 'gs_api.php';
 	}
 }
