@@ -3,6 +3,9 @@
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\GS\Stock\xProduitNC;
+use NAbySy\xErreur;
+use NAbySy\xNotification;
+
     //include_once '../../nabysy_start.php' ;
     
     $PARAM=$_REQUEST;
