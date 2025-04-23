@@ -894,7 +894,6 @@ class xORMHelper implements IORM , JsonSerializable{
             $UserN='SYS_ORM';
         }
         $this->Main->AddToJournal($UserN,$IdU,$Tache,$Note);
-        $this->Main->MaBoutique->AddToJournal($UserN,$IdU,$Tache,$Note);
         return true;        
     }
 

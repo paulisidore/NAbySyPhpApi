@@ -111,6 +111,12 @@ use NAbySy\xUser;
                 echo json_encode($Err) ;
                 exit;
             }
+            if (trim($PARAM['NOM'])==''){
+                $Err->TxErreur = "Le nom ne peut pas être vide. Impossible de continuer.";
+                echo json_encode($Err) ;
+                exit;
+            }
+            
             $newUser->NOM=$PARAM['NOM'] ;
 
             if (isset($PARAM['PRENOM'])){

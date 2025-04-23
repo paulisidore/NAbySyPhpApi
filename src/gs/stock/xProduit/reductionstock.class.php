@@ -289,7 +289,7 @@ Class xReductionStock
 									
 							$Note .=". Sont stock est passé de ".$PrecStockG." carton(s) ".$PrecStockD." pièce(s) 
 							à ".$NewStockG." carton(s) ".$NewStockD." pièce(s) </br>" ;
-							$this->MaBoutique->AddToJournal($_SESSION['user'],0,$Tache,$Note) ;
+							$this->MaBoutique->AddToJournal($Tache,$Note) ;
 
 						}
 							
@@ -364,7 +364,7 @@ Class xReductionStock
 		// ****************************************************************************
 						$Note .=". Sont stock est passé de ".$PrecStockG." carton(s) ".$PrecStockD." pièce(s) 
 						à ".$NewStockG." carton(s) ".$NewStockD." pièce(s) </br>" ;
-						$this->MaBoutique->AddToJournal($_SESSION['user'],0,$Tache,$Note) ;
+						$this->MaBoutique->AddToJournal($Tache,$Note) ;
 					}
 					
 				}
@@ -515,7 +515,7 @@ Class xReductionStock
 						if ($IsOK){							
 							$Note .=". Sont stock est passé de ".$PrecStockG." carton(s) ".$PrecStockD." pièce(s) 
 							à ".$NewStockG." carton(s) ".$NewStockD." pièce(s). Quantité retournée: ".$PrecP['qte']." (Vente en Gros=".$PrecP['typev'].") </br>" ;
-							$this->MaBoutique->AddToJournal($_SESSION['user'],0,$Tache,$Note) ;
+							$this->MaBoutique->AddToJournal($Tache,$Note) ;
 						}
 						//On va supprimer la ligne de vente supprimer du panier
 						$TxSQL="delete from ".$TableD." where IDRETOUR='".$PanierToSup->IdFacture."' and IDPRODUIT='".$Article->Pdt->Id."'" ;
@@ -554,7 +554,7 @@ Class xReductionStock
 
 				$Tache="Suppresion de la Réduction du Stock N° ".$NPanier->IdFacture." avec ".$NPanier->getNbProductsInCart()." article(s) " ;
 				$cNote="Total Retour est passé à ".$NPanier->getTotalPriceCart();			
-				$this->MaBoutique->AddToJournal($_SESSION['user'],0,$Tache,$cNote) ;
+				$this->MaBoutique->AddToJournal($Tache,$cNote) ;
 
 			}
 		}
@@ -594,10 +594,10 @@ Class xReductionStock
 		if (isset($IdLigne)){
 			$Note = "La reduction du stock numero ".$IdFacture." du MOTIF=".$Reduct->Motif." a vue sa ligne numero ".$IdLigne." supprimee. (".$this->Main->MaBoutique->Nom.")" ;
 		}
-		$this->MaBoutique->AddToJournal($_SESSION['user'],'0',$Tache,$Note) ;
+		$this->MaBoutique->AddToJournal($Tache,$Note) ;
 		
 		if ($NoRetournePdt == 1){
-			$this->MaBoutique->AddToJournal($_SESSION['user'],'0',$Tache,"La suppression de la reduction numero ".$IdFacture." ligne ".$IdLigne.
+			$this->MaBoutique->AddToJournal($Tache,"La suppression de la reduction numero ".$IdFacture." ligne ".$IdLigne.
 			" est fait sans impacter le stock comme souhaité par ".$_SESSION['user']) ;
 		}
 		
@@ -646,7 +646,7 @@ Class xReductionStock
 						$Note="Suite à la suppression de la réduction, " ;
 						$Note .=" le stock de ".$Article->Nom." est passé de ".$PrecStockG." carton(s) ".$PrecStockD." pièce(s) 
 						à ".$NewStockG." carton(s) ".$NewStockD." pièce(s) </br>" ;
-						$this->MaBoutique->AddToJournal($_SESSION['user'],0,$Tache,$Note) ;
+						$this->MaBoutique->AddToJournal($Tache,$Note) ;
 					}
 				}
 				if ($IsOK){

@@ -839,7 +839,7 @@ Class xNAbySyGS
 			if ($_SESSION['user']){
 				$User=$_SESSION['user'] ;
 			}
-			$nabysy->MaBoutique->AddToJournal($User,'0',$Tache,$Note) ;
+			$nabysy->MaBoutique->AddToJournal($Tache,$Note) ;
 		}	
 		 
 		return $i;

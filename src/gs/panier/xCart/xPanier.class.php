@@ -69,7 +69,7 @@ Class xPanier
 					$Note .=" passé à (Stock suivant: ".$StockSuivG." ".$Article->Pdt->unitec." et ".$StockSuivD." ".$Article->Pdt->united.")" ;
 				}				
 				$IsOK=$Article->Pdt->RetirerStock($Article->Qte) ;
-				$this->Main->MaBoutique->AddToJournal($this->Main->User->Login,$this->Main->User->Id,$Tache,$Note) ;
+				$this->Main->MaBoutique->AddToJournal($Tache,$Note) ;
 				
 				//Recharge du panier car il peut y avoir le meme article dans le panier avec peut etre ou non une quantite au det ou gros
 				$this->Actualiser() ;				
@@ -119,7 +119,7 @@ Class xPanier
 					$Note .=" (Stock ".$TxStockDet." précédent: ".$StockPrecG." ".$Article->Pdt->unitec." et ".$StockPrecD." ".$Article->Pdt->united.")" ;
 				}
 				$Article->Pdt->AjouterStock($Article->Qte,false,$VenteDet) ;
-				$this->Main->MaBoutique->AddToJournal($this->Main->User->Login,$this->Main->User->Id,$Tache,$Note) ;
+				$this->Main->MaBoutique->AddToJournal($Tache,$Note) ;
 				$this->Main->AddToJournal($this->Main->User->Login,$this->Main->User->Id,$Tache,$Note) ;
 				
 				//Recharge du panier car il peut y avoir le meme article dans le panier avec peut etre ou non une quantite au det ou gros
