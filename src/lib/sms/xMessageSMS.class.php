@@ -1,6 +1,8 @@
 <?php
     namespace NAbySy\Lib\Sms ;
-    use NAbySy\xNAbySyGS;
+
+use NAbySy\ORM\xChampDB;
+use NAbySy\xNAbySyGS;
 
 /**
      * Represente un Message à envoyer.
@@ -121,6 +123,9 @@
          * Cette methode permet de enclancher le processus de traitement du SMS par le moteur SMS de NAbySy
          */
         public function Enregistrer():bool{
+            if($this->MyRS->count() == 1){
+                $this->MyRS->ChangeTypeChamps('HttpHeader','LONGTEXT','');
+            }
             $rep=$this->MyRS->Enregistrer();
             if ($rep){
                 $this->IdEnvoie=$this->MyRS->Id ;
