@@ -131,7 +131,7 @@ namespace NAbySy ;
 
         public function AlterTable($NomTable,$NomChamp,$TypeVar='VARCHAR(255)',$AddOrChange='ADD',$ValDefaut='',$DBaseName=null){
             if (isset($DBaseName)){
-                $NomTable="`".$DBaseName."`.".$NomTable." " ;
+                $NomTable="`".$DBaseName."`.`".$NomTable."` " ;
             }
             if (!isset($TypeVar)){
                 $TypeVar = 'VARCHAR(255)';
@@ -139,14 +139,14 @@ namespace NAbySy ;
             if (!isset($AddOrChange)){
                 $AddOrChange = 'ADD';
             }
+            if (strtoupper(trim($AddOrChange)) == 'CHANGE'){
+                $AddOrChange = 'CHANGE COLUMN';
+            }
             if (!isset($ValDefaut)){
                 $ValDefaut = '';
             }
-            $TxSQL="ALTER TABLE ".$NomTable." ".$AddOrChange." ".$NomChamp." ".$TypeVar." NOT NULL DEFAULT '".$ValDefaut."' " ;
-            if ($this->DebugMode){
-                //echo '</br>Création du Champs '.$NomTable.'.'.$NomChamp.': ' ;
-                //echo '</br>'.$TxSQL;
-            }
+            $TxSQL="ALTER TABLE ".$NomTable." ".$AddOrChange." `".$NomChamp."` ".$TypeVar." NOT NULL DEFAULT '".$ValDefaut."' " ;
+            $TxSQL = str_replace("``","`",$TxSQL) ;
 
             $ok=$this->Main->ReadWrite($TxSQL,true,null,false) ;
             if ($ok>=1){
