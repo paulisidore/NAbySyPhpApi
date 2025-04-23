@@ -8,7 +8,7 @@ use NAbySy\xNAbySyGS ;
 include_once 'xObservOrangeSMS.class.php';
 
     /**
-     * Module permettant l'envoie et la réception d'SMS
+     * Module permettant l'envoie de SMS
      * Auteur: Paul et Aïcha Machinerie SARL
      * Support: Paul Isidore A. NIAMIE ; paul_isidore@hotmail.com
      * VErsion PHP supporté >= 8.1
@@ -18,9 +18,9 @@ include_once 'xObservOrangeSMS.class.php';
         public const OPERATOR_NAME = 'Orange SN';   
 
         /** Le numéro de téléphone expéditeur */
-        public $ORIG_PHONE_NUMBER = '+221775618816';
+        public $ORIG_PHONE_NUMBER = '+221';
 
-        public static $SENDER_NAME ='NAbySY RH-RS';
+        public static $SENDER_NAME ='NAbySy';
 
         /** Le end-point ou seront reçus et traité les accusés de reception */
         public const DELIVERY_REPORT_ENDPOINT ='https://{{dev_host}}:443/{{OPERATOR_NAME}}/smsdr.php' ;
@@ -46,6 +46,28 @@ include_once 'xObservOrangeSMS.class.php';
             $AppToken='' ;
             $OriginePhoneNumber='' ;
 
+            $TableOrange="orangesn";
+            if(!$NAbySy->TableExiste($TableOrange)){
+                $TxSQL="
+                    CREATE TABLE IF NOT EXISTS `".$TableOrange."` (
+                        `ID` int(11) NOT NULL AUTO_INCREMENT,
+                        `IdClientPam` int(11) NOT NULL DEFAULT 0,
+                        `ExpediteurPhone` varchar(255) NOT NULL DEFAULT '+221',
+                        `TOKEN_AUTH` longtext NOT NULL DEFAULT '',
+                        `AppToken` text NOT NULL DEFAULT '',
+                        `SenderName` varchar(255) NOT NULL DEFAULT 'NAbySy',
+                        `Active` int(11) NOT NULL DEFAULT 1,
+                        `TOKEN_REFRESH` longtext NOT NULL DEFAULT '',
+                        `SonatelSmsEndPoint` varchar(255) NOT NULL DEFAULT '',
+                        `useSonatelProvider` int(11) NOT NULL DEFAULT 1,
+                        `SonatelPrivateKey` varchar(255) NOT NULL DEFAULT '',
+                        `SonatelToken` varchar(255) NOT NULL DEFAULT '',
+                        `SonatelSmsLogin` varchar(255) NOT NULL DEFAULT '',
+                        PRIMARY KEY (`ID`)
+                        ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+                ";
+                $NAbySy->ReadWrite($TxSQL,true);
+            }
             $IdConfig=1; //A définir selon l'API PAM-SMS
             self::$MyRS=new xORMHelper(self::$Main,$IdConfig,self::$Main::GLOBAL_AUTO_CREATE_DBTABLE,"orangesn") ;
             if (self::$MyRS->Id){
