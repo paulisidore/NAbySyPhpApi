@@ -41,7 +41,7 @@ use NAbySy\xUser;
         $User=new xUser($nabysy,$UserToken->user_id) ;
         //print_r($UserToken) ;
         //echo "Reponse=: ".$UserToken->user_login ; // Marche bien et retourne la bonne infos
-        if ($User->BLOQUE=='OUI' || $User->Etat !=='Actif' ){
+        if ($User->BLOQUE=='OUI' || ($User->Etat !=='Actif' && $User->Etat !=='A') ){
             $Err->TxErreur="Compte bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
             $Err->OK=0;
             echo json_encode($Err) ;

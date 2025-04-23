@@ -51,7 +51,7 @@ Class xAuth
         if (trim($User->Etat) ==''){
             $User->Etat='Actif' ;
         }
-        if ($User->BLOQUE=='OUI' || strtoupper($User->Etat ) !== 'ACTIF' ){
+        if ($User->BLOQUE=='OUI' && strtoupper($User->Etat ) !== 'ACTIF' && strtoupper($User->Etat ) !== 'A' ){
             return '';
         }
         $dateexp=time();
