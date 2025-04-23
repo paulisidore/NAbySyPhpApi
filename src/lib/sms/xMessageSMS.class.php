@@ -123,7 +123,7 @@ use NAbySy\xNAbySyGS;
          * Cette methode permet de enclancher le processus de traitement du SMS par le moteur SMS de NAbySy
          */
         public function Enregistrer():bool{
-            if($this->MyRS->count() == 1){
+            if($this->MyRS->count() <= 1){
                 $this->MyRS->ChangeTypeChamps('HttpHeader','LONGTEXT','');
             }
             $rep=$this->MyRS->Enregistrer();
