@@ -472,7 +472,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (trim($this->Etat) ==''){
             $this->Etat='Actif' ;
         }
-        $Auth=new xAuth($this->Main,3600, $this) ;
+        $Auth=new xAuth($this->Main,$this->Main::$AUTH_DUREE_SESSION, $this) ;
         $jwt=$Auth->GetToken($this);
         return $jwt ;
     }

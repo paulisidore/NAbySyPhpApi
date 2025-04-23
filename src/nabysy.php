@@ -161,6 +161,13 @@ Class xNAbySyGS
 	 */
 	public static bool $SendAuthReponse=false ;
 
+	/**
+	 * La durée d'une session utilisateur en seconde. 3 heures Par défaut
+	 * 3600 secondes X 3h = 10 800 (3heures)
+	 * @var int
+	 */
+	public static int $AUTH_DUREE_SESSION = 3600 * 3 ;
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306)
 	{
 		self::$Main = $this ;
@@ -1668,6 +1675,19 @@ Class xNAbySyGS
 	 */
 	public static function SetSendAuthReponse(bool $SendReponse=true){
 		self::$SendAuthReponse=$SendReponse;
+	}
+
+	/**
+	 * Définit la durée d'une session utilisateur
+	 * @param int $DureeAuth 
+	 * @return bool 
+	 */
+	public static function SetAuthSessionTime(int $DureeAuth = 10800):bool{
+		if($DureeAuth<0){
+			return false;
+		}
+		self::$AUTH_DUREE_SESSION = $DureeAuth ;
+		return true;
 	}
 
 	/**

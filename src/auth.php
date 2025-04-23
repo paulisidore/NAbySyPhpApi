@@ -13,7 +13,7 @@ use NAbySy\xUser;
     if(!isset($nabysy->MaBoutique)){
         $nabysy->ChargeInfos();
     }
-    $Auth=new xAuth($nabysy) ;
+    $Auth=new xAuth($nabysy, N::$AUTH_DUREE_SESSION) ;
     $UserToken=null ;
     $Err=new xErreur;
 
@@ -71,7 +71,7 @@ use NAbySy\xUser;
 
     //print_r('IdBoutique='.$Boutique->Id.'  <= ') ;
     //$Auth=new xAuth($nabysy,3600) ; //Version Prod Token valable 1 heure
-    $Auth=new xAuth($nabysy,86400) ; //Version Dev Token Valable 24 heures
+    $Auth=new xAuth($nabysy,N::$Main::$AUTH_DUREE_SESSION) ; //Version Dev Token Valable 24 heures
     $nabysy->SelectDB($nabysy->DataBase);
     $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null,$Login) ;
     $Err=new xErreur;
