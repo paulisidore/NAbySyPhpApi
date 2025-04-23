@@ -116,7 +116,7 @@ use NAbySy\xUser;
                 echo json_encode($Err) ;
                 exit;
             }
-            
+
             $newUser->NOM=$PARAM['NOM'] ;
 
             if (isset($PARAM['PRENOM'])){
@@ -175,7 +175,7 @@ use NAbySy\xUser;
             }
 
             $eUser=new xUser($nabysy,$IdU);
-            if ($eUser->Id<0){
+            if ($eUser->Id<=0){
                 $Err->TxErreur = "Utilisateur introuvable.";
                 echo json_encode($Err) ;
                 exit;
