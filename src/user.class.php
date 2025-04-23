@@ -76,7 +76,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         }
         if($this->ChampsExisteInTable('Signature')){
             $TxSQL='select Signature from `'.$this->DataBase.'`.`'.$this->TEntete.'` where id="'.$this->Id.'" limit 1' ;
-            $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+            $Ret=$this->Main->ReadWrite($TxSQL,false,null) ;
             if ($Ret->num_rows>0){
                 $Sign=$Ret->fetch_assoc() ;
                 $this->_Signature=$Sign['Signature'];
@@ -133,7 +133,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
 
         if (isset($Id)){
             $TxSQL="select * from `".$this->Boutique->DBName."`.`".$this->TablePageInterdite."` where _id like '".$Id."' AND utilisateur_id =".$this->Id ;
-            $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+            $Ret=$this->Main->ReadWrite($TxSQL,false,null) ;
             if ($Ret->num_rows>0){
                 $Page=$Ret->fetch_assoc() ;
             }
@@ -142,7 +142,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (isset($Titre)){
             echo "Je recherche Page avec Titre=".$Titre ;
             $TxSQL="select * from `".$this->Boutique->DBName."`.`".$this->TablePageInterdite."` where _titre like '".$Titre."' AND utilisateur_id =".$this->Id ;
-            $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+            $Ret=$this->Main->ReadWrite($TxSQL,false,null) ;
             if ($Ret->num_rows>0){
                 $Page=$Ret->fetch_assoc() ;
             }
@@ -152,7 +152,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (isset($Lien) && $Page==null){
             //echo "Je recherche Page avec Lien=".$Lien ;
             $TxSQL="select * from `".$this->Boutique->DBName."`.`".$this->TablePageInterdite."` where _lien like '".$Lien."' AND utilisateur_id =".$this->Id ;
-            $Ret=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+            $Ret=$this->Main->ReadWrite($TxSQL,false,null) ;
             if ($Ret->num_rows>0){
                 $Page=$Ret->fetch_assoc() ;
             }            
@@ -197,7 +197,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             $Username=$this->Login ;
         }
         $TxSQL='select * from '.$this->Boutique->DBName.'.'.$this->TEntete.' where Login like "'.$Username.'" ';
-        $Rep=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect);
+        $Rep=$this->Main->ReadWrite($TxSQL,false,null);
         
         if (isset($Rep)){
             if ($Rep->num_rows>0){
@@ -228,7 +228,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             $IdU=$this->Id ;
         }
         $TxSQL='select * from '.$this->Boutique->DBName.'.'.$this->Table.' where Id="'.$IdU.'" ';
-        $Rep=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect);
+        $Rep=$this->Main->ReadWrite($TxSQL,false,null);
         if (isset($Rep)){
             if ($Rep->num_rows>0){
                 $xRS=$Rep->fetch_assoc();
@@ -266,7 +266,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
 
 		$TxSQL="select C.* from ".$Table." C ".$TxC ;
 		$OK=false;
-		$reponse=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+		$reponse=$this->Main->ReadWrite($TxSQL,false,null) ;
 		if (!$reponse)
 			return null ;
 		
@@ -300,7 +300,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             //Le Module existe, on va le configurer
             $TxSQL="select ".$Champ." as 'CH' from ".$Table." U where id=".$this->Id ;
             //var_dump($TxSQL) ;
-            $reponse=$this->Main->ReadWrite($TxSQL,true,null,$this->DebugSelect) ;
+            $reponse=$this->Main->ReadWrite($TxSQL,true,null) ;
             if (!$reponse){
                 return false ;
             }
@@ -342,7 +342,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
 
         if ($DB->ChampsExiste('boutique',$Champ,$this->Main->MasterDataBase)){
             $TxSQL="select ".$Champ." from ".$Table." where Id='".$BoutiqueId."' " ;
-            $ListeI=$this->Main->ReadWrite($TxSQL,false,null,$this->DebugSelect) ;
+            $ListeI=$this->Main->ReadWrite($TxSQL,false,null) ;
             if ($ListeI->num_rows>0){
                 $row=$ListeI->fetch_assoc() ;
                 $Lst=json_decode($row[$Champ]);                

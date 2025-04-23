@@ -283,7 +283,6 @@ Class xHistoriqueTransaction extends xTransactionInfos{
         }
         $SelectChamp = "SUM(Montant) as 'Montant', COUNT(ID) as 'NB' " ;
         //Recherche du total des Transactions en versement
-        $Trans->DebugSelect=false ;
         $Lst=$Trans->ChargeListe($Critere." and TypeTransaction like 'E'",null,$SelectChamp);
         if($Lst->num_rows>0){
             $rw=$Lst->fetch_assoc();
@@ -291,7 +290,6 @@ Class xHistoriqueTransaction extends xTransactionInfos{
             $Resume['VERSEMENT']['NB']=(int)$rw['NB'];
         }
         //Recherche du total des Transactions en dépense
-        $Trans->DebugSelect=false ;
         $Lst=$Trans->ChargeListe($Critere." and TypeTransaction not like 'E'",null,$SelectChamp);
         if($Lst->num_rows>0){
             $rw=$Lst->fetch_assoc();
