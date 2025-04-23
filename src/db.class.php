@@ -140,12 +140,12 @@ namespace NAbySy ;
                 $AddOrChange = 'ADD';
             }
             if (strtoupper(trim($AddOrChange)) == 'CHANGE'){
-                $AddOrChange = 'CHANGE COLUMN';
+                $AddOrChange = "CHANGE COLUMN `".$NomChamp."` ";
             }
             if (!isset($ValDefaut)){
                 $ValDefaut = '';
             }
-            $TxSQL="ALTER TABLE ".$NomTable." ".$AddOrChange." `".$NomChamp."` `".$NomChamp."` ".$TypeVar." NOT NULL DEFAULT '".$ValDefaut."' " ;
+            $TxSQL="ALTER TABLE ".$NomTable." ".$AddOrChange." `".$NomChamp."` ".$TypeVar." NOT NULL DEFAULT '".$ValDefaut."' " ;
             $TxSQL = str_replace("``","`",$TxSQL) ;
 
             $ok=$this->Main->ReadWrite($TxSQL,true,null,false) ;
