@@ -497,6 +497,7 @@ class xORMHelper implements IORM , JsonSerializable{
             //exit ;
             $LastId=$this->Main->ReadWrite($TxSQL,true,$Tabl,$this->DebugMode);
             if ($LastId){
+                $this->__set('ID',$LastId) ;
                 $this->Id=$LastId ;
                 //echo 'NewID='.$LastId.'</br>' ;
                 //On déclenche un eventuel evenement
@@ -1289,7 +1290,7 @@ class xORMHelper implements IORM , JsonSerializable{
             if ($TypeChamp =='NAbySy\ORM\xChampDB'){
                 if (!is_object($Champ->Valeur)){
                     $listeV['ID']=$this->Id ; 
-                    $listeV[$Champ->Nom]=$Champ->Valeur ;
+                $listeV[$Champ->Nom]=$Champ->Valeur ;
                 }
             }
         }
