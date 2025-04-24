@@ -1288,7 +1288,8 @@ class xORMHelper implements IORM , JsonSerializable{
             $TypeChamp=get_class($Champ);
             if ($TypeChamp =='NAbySy\ORM\xChampDB'){
                 if (!is_object($Champ->Valeur)){
-                   $listeV[$Champ->Nom]=$Champ->Valeur ; 
+                    $listeV['ID']=$this->Id ; 
+                    $listeV[$Champ->Nom]=$Champ->Valeur ;
                 }
             }
         }
