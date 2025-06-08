@@ -313,6 +313,22 @@ Class xBoutique extends xORMHelper  {
 				$TxI=" AND ID='".$Id."' " ;
 			}			
 		}
+		if(!$this->TableExiste()){
+			//La table n'existe pas, on la crée
+			$this->Main->CreateTable($this->Table) ;
+			$this->IdCompteClient=0 ;
+			$this->Nom = $this->Main->MODULE->MCP_CLIENT ;
+			$this->Isboutique=0 ;
+			$this->IsDepot=1 ;
+			$this->MasterDataBase = $this->Main->MasterDataBase ;
+			$this->DBName = $this->Main->MasterDataBase ;
+			$this->DBase = $this->Main->MasterDataBase ;
+			$this->Serveur = $this->Main->db_serveur ;
+			$this->DBUser = $this->Main->db_user ;
+			$this->DBPassword = $this->Main->db_pass ;
+			$this->Actif = 1;
+			$this->Enregistrer() ;
+		}
 		$TxSQL="select Id,Nom from ".$this->Main->MasterDataBase.".boutique where IdCompteClient='0' ".$TxI." " ;
 		$OK=false;
 		//var_dump($TxSQL);
