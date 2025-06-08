@@ -262,7 +262,21 @@ Class xNAbySyGS
 				Autoload des interfaces/class du dossier rs
 					Autoload des interfaces (sous dossier rs)
 			*/
-			
+			if(!is_dir(self::CurrentFolder()."gs" )){
+				try {
+					mkdir(self::CurrentFolder()."gs", 0777, true);
+				} catch (\Throwable $th) {
+					//throw $th;
+					if(!is_dir(self::CurrentFolder()."gs" )){
+						self::$Log->Write("Impossible de créer le dossier gs dans ".self::CurrentFolder()."gs");
+						$Err=new xErreur();
+						$Err->OK=0;
+						$Err->TxErreur="Impossible de créer le dossier gs dans ".self::CurrentFolder()."gs";
+						echo json_encode($Err);
+						exit;
+					}
+				}
+			}
 			self::LoadModuleLib();
 						
 			self::LoadModuleGS();
