@@ -81,7 +81,7 @@ use xNAbySyCustomListOf;
    }
 
    /**
-    * Crée et génère automatiquement une catégorie NAbySyGS
+    * Crée et génère automatiquement une catégorie NAbySyGS si elle n'existe pas déjà.
     * @param string $NomCategorie 
     * @param bool $CreateApiAction | Si Vrai, le fichier action sera crée automatiquement pour cette catégorie.
     * @param bool $CreateORMClass | Si Vrai, une class xORM sera crée automatiquement avec le nom de la catégorie
@@ -104,11 +104,7 @@ use xNAbySyCustomListOf;
             }
          }
       }
-      if(!$CanAdd){
-         return true;
-         throw new Exception("La catégorie ".$NomCategorie." existe déjà dans le dossier ".$DossierCateg, ERR_SYSTEM);
-      }
-
+      
       try {
          if(!is_dir($DossierGS)){
             mkdir($DossierGS, 0777, true) ;
