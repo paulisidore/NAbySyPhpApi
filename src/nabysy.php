@@ -885,6 +885,21 @@ Class xNAbySyGS
 			$sourceProperty->setAccessible(true);
 			$name = $sourceProperty->getName();
 			$value = $sourceProperty->getValue($sourceObject);
+			if (is_object($value) && get_class($value) === 'stdClass') {
+				$value = $this->Cast($name, $value); // ou autre logique
+			}
+			// Traitement récursif pour tableaux
+			if (is_array($value)) {
+				$value = array_map(function ($item) use ($name) {
+					if (is_object($item) && get_class($item) === 'stdClass') {
+						$className = ucfirst(rtrim($name, 's')); // ex : "users" → "User"
+						if (class_exists($className)) {
+							return $this->Cast($className, $item);
+						}
+					}
+					return $item;
+				}, $value);
+			}
 			if ($destinationReflection->hasProperty($name)) {
 				$propDest = $destinationReflection->getProperty($name);
 				$propDest->setAccessible(true);
@@ -1546,20 +1561,14 @@ Class xNAbySyGS
 		
 			$MySQL=new xDB($this) ;
 			$MySQL->DebugMode=false ;
-			/*
-			if (!$MySQL->TableExiste($RetourF->TEntete,$DB)){
+			$Tabl="parametre";
+			if (!$MySQL->TableExiste($Tabl)){
 				//Création de la Table Entete
-				$MySQL->CreateTable($RetourF->TEntete,$DB);
+				$MySQL->CreateTable($Tabl);
 				//Création des Champs
-				$MySQL->AlterTable($RetourF->TEntete,'DATERETOUR','DATE','ADD','2000-01-01',$DB) ;
-				$MySQL->AlterTable($RetourF->TEntete,'HEURERETOUR','TIME','ADD','00:00:00',$DB) ;
-				$MySQL->AlterTable($RetourF->TEntete,'IDUTILISATEUR','INT(11)','ADD','0',$DB) ;
-				$MySQL->AlterTable($RetourF->TEntete,'TotalRetour','INT(11)','ADD','0',$DB) ;
-				$MySQL->AlterTable($RetourF->TEntete,'MOTIF','VARCHAR(255)','ADD','',$DB) ;
-				$MySQL->AlterTable($RetourF->TEntete,'RESPONSABLE','VARCHAR(255)','ADD','',$DB) ;
-				
-			}	
-			*/									
+				$MySQL->AlterTable($Tabl,'MONNAIS','VARCHAR(255)','ADD','F CFA') ;
+				$MySQL->AlterTable($Tabl,'MONNAIS2','VARCHAR(255)','ADD','FRANCS CFA') ;				
+			}							
 			return true ;	
 				
 	}		
