@@ -873,7 +873,7 @@ Class xNAbySyGS
 	 * @param object $sourceObject
 	 * @return object
 	 */
-	function Cast($destination, $sourceObject)
+	function Cast($destination, $sourceObject):object
 	{
 		if (is_string($destination)) {
 			$destination = new $destination();

@@ -23,7 +23,7 @@ Class xErreur
      */
     public function ToJSON(){
         try {
-            return json_encode($this);
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (\Throwable $th) {
             throw $th;
         }
