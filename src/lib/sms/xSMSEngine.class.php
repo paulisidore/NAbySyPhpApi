@@ -173,6 +173,129 @@
             return $result ;
         }
 
+        public static function EnvoieRequeteteAvecAuth($url, string $login, string $pwd, $ListeParametre=[],
+        $HttpHeader = null, $Method=CURLOPT_POST, string $BodyData=''):string{
+            //echo "Debut d'envoie de la requete...</br>" ;
+            
+            if (isset($ListeParametre)){
+                if (count($ListeParametre)){
+                    $postdata = http_build_query($ListeParametre);
+                }
+            }
+            //var_dump($BodyData);
+            //exit;
+
+            $TxDeb=__FILE__." Ligne: ".__LINE__." Parametre Requette SMS vers ".$url." : " . json_encode($ListeParametre) ;
+            //var_dump($TxDeb);
+            //self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." Parametre Requette SMS vers ".$url." : " . json_encode($ListeParametre));
+           
+            $ch = curl_init() ;
+            curl_setopt($ch,CURLOPT_URL, $url);
+            if ($Method==CURLOPT_POST){
+                curl_setopt($ch,CURLOPT_POST, true);
+                curl_setopt($ch,CURLOPT_POSTFIELDS, $BodyData);
+            }else{
+                $url .= "?" . $postdata;
+                curl_setopt($ch,CURLOPT_HTTPGET, true);
+            }
+            
+            curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
+
+            if (isset($Headers)){
+                curl_setopt($ch, CURLOPT_HTTPHEADER,$Headers);
+            }
+
+            //Delais pour l'établissement de la connexion (20sec)
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20); 
+
+            //Delais maximum du script CURL dans sa globalité (2mn)
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+            $NAbySyVersion='NAbySy/'.self::$Main->MODULE->Version ;
+            curl_setopt($ch, CURLOPT_USERAGENT, $NAbySyVersion);
+
+            curl_setopt($ch,CURLINFO_HEADER_OUT,true);
+
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($ch, CURLOPT_USERPWD, "$login:$pwd");
+            //echo $url."</br>";
+            //var_dump($ch);
+            //exit;
+            $result = curl_exec($ch);
+            //var_dump($result);
+            //self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." CURL SMS Reponse ".$url." : " . $result);
+            $EnteteEnvoie=curl_getinfo($ch,CURLINFO_HEADER_OUT ) ;
+            //self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." CURL SMS Entete Envoie ".json_encode($EnteteEnvoie));
+            //var_dump($EnteteEnvoie);
+            //var_dump($BodyData);
+            if (curl_errno($ch)) {
+                $result = curl_error($ch).'<>'.$result;
+                self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." ERR SMS : " . $result);
+                var_dump($result);
+            }else{
+                $info = curl_getinfo($ch);
+                //var_dump($info);
+                //self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." CURL SMS Info Retour ".json_encode($info));
+                if((int)$info['http_code'] == 404){
+                    //echo "<p>ERREUR TROUVEE: " . $info['http_code'] . "</p></br>" ;
+                    self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." CURL SMS Erreurr ".json_encode($info));
+                    //exit;
+                }elseif((int)$info['http_code'] == 404){
+                    self::$Main::$Log->AddToLog(__FILE__." Ligne: ".__LINE__." CURL SMS Envoyé correctement ".json_encode($info));
+                }
+            }
+            //var_dump($result);
+            return $result ;
+        }
+
+        public static function EnvoieRequeteteAvecAuth2($uri, string $login, string $pwd, $ListeParametre=[],
+            $HttpHeader = null, string $MethodePostOrGet='POST', string $Message=''){
+            // try {
+            //     $response = null;
+            //     var_dump($ListeParametre);
+            //     if($MethodePostOrGet !=='POST'){
+                    
+            //         try {
+            //             $uri .="?" ;
+            //             foreach($ListeParametre as $key => $valeur){
+            //                 $uri .= $key . "=" . $valeur . "&";
+            //             }
+            //             $response = \Httpful\Request::get($uri)
+            //             ->authenticateWith($login, $pwd)
+            //             ->send() ;
+            //         } catch (\Throwable $th) {
+            //             throw $th;
+            //         }
+            //     }else{
+            //         try {
+            //             $response = \Httpful\Request::post($uri)
+            //         ->authenticateWith($login, $pwd)
+            //         ->body(http_build_query($ListeParametre))
+            //         ->send() ;
+            //         } catch (\Throwable $th) {
+            //             throw $th;
+            //         }
+            //         echo "La reponse POST: </br>" ;
+            //         var_dump($response);
+            //     }
+            //     self::$Main::$Log->AddToLog(__FILE__." Func:".__FUNCTION__." Ligne ".__LINE__.": Reponse API: ".json_encode($response));
+            //     //Traiter les reponses
+
+            //     return $response ;
+            //     /************************** */
+            // } catch (\Throwable $th) {
+            //     self::$Main::$Log->Write(__FILE__." Ligne ".__LINE__.": Erreur: ".json_encode($th->getMessage()));
+            //     throw $th;
+            //     return false;
+            // }
+            
+            return true;
+        }
+
     }
 
 

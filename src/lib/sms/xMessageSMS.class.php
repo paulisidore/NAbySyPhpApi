@@ -9,8 +9,9 @@ use NAbySy\xNAbySyGS;
      * Cet message sera placer dans la file d'attente du moteur SMS de NAbySy
      */
     class xMessageSMS{
-        public xNAbySyGS $Main ;
+public xNAbySyGS $Main ;
         public $URL='';
+        public string $Sujet ='NAbySy';
         public $Expediteur='';
         public $Destinataire='';
         public $Message='';
@@ -32,6 +33,12 @@ use NAbySy\xNAbySyGS;
         public const SMS_ENVOYE='SMS_ENVOYE';
         public const SMS_EN_ATTENTE='SMS_EN_ATTENTE';
         public const ERR_ENVOIE='ERR_ENVOIE';
+
+        /**
+         * Si Oui l'envoie va se faire avec le module HttpFul
+         * @var bool
+         */
+        public bool $UseHttpFull = false ;
 
         public function __construct(xNAbySyGS $NAbySy, $url='',$Expediteur='',$Destinataire='',$Message='',array $ListeParametre=[], ISmsOperatorHelper $oSmsDLR=null)
         {
@@ -123,9 +130,7 @@ use NAbySy\xNAbySyGS;
          * Cette methode permet de enclancher le processus de traitement du SMS par le moteur SMS de NAbySy
          */
         public function Enregistrer():bool{
-            if($this->MyRS->count() <= 1){
-                $this->MyRS->ChangeTypeChamps('HttpHeader','LONGTEXT','');
-            }
+            //var_dump("Je valide Enregistrer dans ".__CLASS__);
             $rep=$this->MyRS->Enregistrer();
             if ($rep){
                 $this->IdEnvoie=$this->MyRS->Id ;

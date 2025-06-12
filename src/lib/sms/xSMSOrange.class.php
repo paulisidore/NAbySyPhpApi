@@ -1,14 +1,17 @@
 <?php
     namespace NAbySy\Lib\Sms ;
 
+use DOMDocument;
+use Httpful\Httpful;
 use NAbySy\ORM\xORMHelper;
-use NAbySy\xErreur ;
-use NAbySy\xNAbySyGS ;
+use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
+use UConverter;
 
 include_once 'xObservOrangeSMS.class.php';
 
     /**
-     * Module permettant l'envoie de SMS
+     * Module permettant l'envoie et la réception d'SMS
      * Auteur: Paul et Aïcha Machinerie SARL
      * Support: Paul Isidore A. NIAMIE ; paul_isidore@hotmail.com
      * VErsion PHP supporté >= 8.1
@@ -18,9 +21,9 @@ include_once 'xObservOrangeSMS.class.php';
         public const OPERATOR_NAME = 'Orange SN';   
 
         /** Le numéro de téléphone expéditeur */
-        public $ORIG_PHONE_NUMBER = '+221';
+        public $ORIG_PHONE_NUMBER = '+221775618816';
 
-        public static $SENDER_NAME ='NAbySy';
+        public static $SENDER_NAME ='YOUR_SENDER_NAME';
 
         /** Le end-point ou seront reçus et traité les accusés de reception */
         public const DELIVERY_REPORT_ENDPOINT ='https://{{dev_host}}:443/{{OPERATOR_NAME}}/smsdr.php' ;
@@ -30,7 +33,7 @@ include_once 'xObservOrangeSMS.class.php';
         public static $TOKEN_AUTH='' ;
         public $APP_TOKEN='' ; //"Basic WkdpYjk5ZzhJM2syZXMzVm1kbGc3VXRuOHdZdG5Velo6ZEdkSWJRUE5SUXJGcFE2Uw==" sur le site de l'opérateur
 
-        public int $Pam_IdClient=0 ;
+        public int $Pam_IdClient=1 ;
 
         public $Ready=false ;
 
@@ -40,34 +43,18 @@ include_once 'xObservOrangeSMS.class.php';
         public static \NAbySy\ORM\xORMHelper $MyRS ;
         protected static xObservOrangeSMS $Observateur ;
 
+        public static bool $useSonatelProvider = true;
+        public static string $SonatelPrivateKey = "__YOUR_SMS_PPROVIDER_TOKEN"; //__YOUR_SMS_PPROVIDER_TOKEN
+        public static string $SonatelToken = "dc7d4e37f94ffcce0f8fca6fc1a64224" ;
+        public static string $SonatelSmsEndPoint = "https://{{smsapi_host}}:443/{{OPERATOR_NAME}}";
+        public static string $SonatelSMSLogin = "pauletaicha" ;
+
         /** Le numéro de téléphone expéditeur */
         public function __construct(xNAbySyGS $NAbySy){
             $this::$Main=$NAbySy ;
             $AppToken='' ;
             $OriginePhoneNumber='' ;
 
-            $TableOrange="orangesn";
-            if(!$NAbySy->TableExiste($TableOrange)){
-                $TxSQL="
-                    CREATE TABLE IF NOT EXISTS `".$TableOrange."` (
-                        `ID` int(11) NOT NULL AUTO_INCREMENT,
-                        `IdClientPam` int(11) NOT NULL DEFAULT 0,
-                        `ExpediteurPhone` varchar(255) NOT NULL DEFAULT '+221',
-                        `TOKEN_AUTH` longtext NOT NULL DEFAULT '',
-                        `AppToken` text NOT NULL DEFAULT '',
-                        `SenderName` varchar(255) NOT NULL DEFAULT 'NAbySy',
-                        `Active` int(11) NOT NULL DEFAULT 1,
-                        `TOKEN_REFRESH` longtext NOT NULL DEFAULT '',
-                        `SonatelSmsEndPoint` varchar(255) NOT NULL DEFAULT '',
-                        `useSonatelProvider` int(11) NOT NULL DEFAULT 1,
-                        `SonatelPrivateKey` varchar(255) NOT NULL DEFAULT '',
-                        `SonatelToken` varchar(255) NOT NULL DEFAULT '',
-                        `SonatelSmsLogin` varchar(255) NOT NULL DEFAULT '',
-                        PRIMARY KEY (`ID`)
-                        ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-                ";
-                $NAbySy->ReadWrite($TxSQL,true);
-            }
             $IdConfig=1; //A définir selon l'API PAM-SMS
             self::$MyRS=new xORMHelper(self::$Main,$IdConfig,self::$Main::GLOBAL_AUTO_CREATE_DBTABLE,"orangesn") ;
             if (self::$MyRS->Id){
@@ -77,11 +64,28 @@ include_once 'xObservOrangeSMS.class.php';
                 self::$SENDER_NAME=self::$MyRS->SenderName ;
                 $this->Pam_IdClient=self::$MyRS->IdClientPAM ;
                 $this->Active=(int)self::$MyRS->Active ;
+                if(!self::$MyRS->ChampsExisteInTable("useSonatelProvider")){
+                    //self::$MyRS->Enregistrer();
+                    self::$MyRS->SonatelSmsEndPoint = self::$SonatelSmsEndPoint ;
+                    //var_dump(self::$MyRS->SonatelSmsEndPoint );
+                    self::$MyRS->useSonatelProvider = 1; // self::$useSonatelProvider;
+                    self::$MyRS->SonatelPrivateKey = "__YOUR_SMS_PPROVIDER_TOKEN" ;// self::$SonatelPrivateKey ;
+                    self::$MyRS->SonatelToken = self::$SonatelToken ;
+                    self::$MyRS->SonatelSmsLogin = self::$SonatelSMSLogin ;
+                    self::$MyRS->Enregistrer();
+                }
             }
+
+            self::$useSonatelProvider=self::$MyRS->useSonatelProvider;
+            self::$SonatelSmsEndPoint = self::$MyRS->SonatelSmsEndPoint ;
+            self::$SonatelPrivateKey = self::$MyRS->SonatelPrivateKey ;
+            self::$SonatelToken = self::$MyRS->SonatelToken ;
+            self::$SonatelSMSLogin = self::$MyRS->SonatelSmsLogin ;
 
             $this->ORIG_PHONE_NUMBER=$OriginePhoneNumber ;
             $this->APP_TOKEN=$AppToken ;
             //On recherche le Token dÁuthentification si l'on souhaite
+            //echo "Auth Token: ".self::$TOKEN_AUTH ;
             
             self::$MyRS->IdClientPam=$this->Pam_IdClient ;
             self::$MyRS->ExpediteurPhone=$this->ORIG_PHONE_NUMBER ;
@@ -94,7 +98,7 @@ include_once 'xObservOrangeSMS.class.php';
             if (self::$MyRS->AppToken !=='' &&  $this->ORIG_PHONE_NUMBER !=='' ){
                 if (self::$TOKEN_AUTH==''){
                     self::$Main::$Log->Write("Orange SMS: Demande de renouvellement du Token...");
-                    $this->GetToken("https://api.orange.com/oauth/v3/token",$this->APP_TOKEN);
+                    $this->GetToken("https://{{smsapi_host}}:443/{{OPERATOR_NAME}}oauth/v3/token",$this->APP_TOKEN);
                 }else{
                     $this->Ready=true;
                 }
@@ -123,8 +127,7 @@ include_once 'xObservOrangeSMS.class.php';
 
         }
 
-        public function EnvoieSms($DestPhoneNumber, string $Message): bool
-        {
+        public function EnvoieSms($DestPhoneNumber, string $Message, bool $OnlyForTest = false): bool {
             if ($this->Active==0){
                 return false ;
             }
@@ -138,6 +141,12 @@ include_once 'xObservOrangeSMS.class.php';
                 self::$Main::$Log->Write(json_encode($Err));
                 return false;
             }
+
+            if(self::$useSonatelProvider){
+                return $this->EnvoieSMSBySonatel("NAbySy",self::$SENDER_NAME,$DestPhoneNumber,$Message, $OnlyForTest);
+            }
+
+
             $Headers=array(
                 "Cache-Control: no-cache",
                 "Authorization: Bearer ".self::$TOKEN_AUTH,
@@ -164,8 +173,8 @@ include_once 'xObservOrangeSMS.class.php';
             
             $Data=json_encode($BodyData);
                 
-            $URL="https://api.orange.com/smsmessaging/v1/outbound/tel%3A%2B".$this->ORIG_PHONE_NUMBER."/requests";
-            $URL="https://api.orange.com/smsmessaging/v1/outbound/tel".urlencode(':'.$this->ORIG_PHONE_NUMBER)."/requests";
+            $URL="https://{{smsapi_host}}:443/{{OPERATOR_NAME}}smsmessaging/v1/outbound/tel%3A%2B".$this->ORIG_PHONE_NUMBER."/requests";
+            $URL="https://{{smsapi_host}}:443/{{OPERATOR_NAME}}smsmessaging/v1/outbound/tel".urlencode(':'.$this->ORIG_PHONE_NUMBER)."/requests";
             $Msg=new xMessageSMS($this::$Main,$URL,$this->ORIG_PHONE_NUMBER,$DestPhoneNumber,$Data,$Parametres,$this);
             $Msg->HttpHeader=json_encode($Headers) ;
             $Err=null ;            
@@ -173,21 +182,144 @@ include_once 'xObservOrangeSMS.class.php';
  
         }
 
+        function GetParamSMSBySonatel (string $subject,string $signature,string $TelDest,string $MsgText){
+            
+            //self::$Main::$Log->AddToLog("[Liste des Encodeur de Charactère] => ". json_encode( UConverter::getAvailable()) );
 
+            $Token = self::EncodeTextTo("UTF-8", self::$SonatelToken);
+            $esubject = self::EncodeTextTo("UTF-8", $subject);
+            $esignature = self::EncodeTextTo("UTF-8", $signature);
+            $eTelDest = self::EncodeTextTo("UTF-8", $TelDest);
+            $eMsgText = self::EncodeTextTo("UTF-8", $MsgText);
+
+            $esignature = $signature;
+            $eTelDest = $TelDest;
+            $eMsgText = $MsgText;
+            
+            $timestamp=time();
+            $etimestamp = self::EncodeTextTo("UTF-8", $timestamp);
+            $msgToEncrypt=$Token . $esubject . $esignature . $eTelDest . $eMsgText . $etimestamp;
+
+            $key=hash_hmac('sha1', $msgToEncrypt, self::$SonatelPrivateKey);
+
+            $params = array(
+            'token' => $Token,
+            'subject' => $esubject,
+            'signature' => $esignature,
+            'recipient' => $eTelDest,
+            'content' => $eMsgText,
+            'timestamp' => $etimestamp,
+            'key' => $key
+            );
+            return $params ;
+        }
+
+        function EnvoieSMSBySonatel (string $subject,string $signature,string $TelDest,string $MsgText, bool $OnlyForTest=false){
+            if($TelDest !== ""){
+                $TelDest = trim($TelDest);
+                $pos = strpos($TelDest,'+');
+                if($pos !== false){
+                    if($pos==0){
+                        $TelDest=str_replace('+','',$TelDest) ;
+                    }
+                }
+            }
+
+            $params = $this->GetParamSMSBySonatel($subject,$signature,$TelDest,$MsgText);
+
+            // $timestamp=time();
+            // $msgToEncrypt=self::$SonatelToken . $subject . $signature . $TelDest . $MsgText . $timestamp;
+            // $key=hash_hmac('sha1', $msgToEncrypt, self::$SonatelPrivateKey);
+
+            /* $params = array(
+            'token' => self::$SonatelToken,
+            'subject' => $subject,
+            'signature' => $signature,
+            'recipient' => $TelDest,
+            'content' => $MsgText,
+            'timestamp' => $timestamp,
+            'key' => $key
+            ); */
+
+            if($OnlyForTest){
+                self::$Main::$Log->AddToLog("PARAMTRE POUR LE TEST D'ENVOIE SMS: ");
+                self::$Main::$Log->AddToLog("Params: ".json_encode($params));
+                return true;
+            }
+            
+            $uri = self::$SonatelSmsEndPoint ; // 'https://{{smsapi_host}}:443/{{OPERATOR_NAME}}';
+            
+            $Msg=new xMessageSMS($this::$Main,$uri,$this->ORIG_PHONE_NUMBER,$TelDest,$MsgText,$params,$this);
+            if($subject !==''){
+                $Msg->Sujet = trim($subject) ;
+            }
+            $Msg->UseHttpFull = true ;
+                       
+            $Err=null ;
+            return $this::$Main::$SMSEngine->SendSMS($Msg,$Err) ;
+        }
 
         /** Fonction de rappel pour le traitement des Accusés de réceptions */
-        public function CallBack(string $api_reponse): bool
-        {
+        public function CallBack(string $api_reponse): bool {
             $IsOK=false ;
 
             return $IsOK ;
         }
         
-        public function TraiterReponse(xMessageSMS $Message, string $send_reponse, ?string $erreur = null): bool
-        {
+        public function TraiterReponse(xMessageSMS $Message, string $send_reponse, ?string $erreur = null): bool {
             $IsOK=false ;
-            //var_dump($send_reponse);
-            //var_dump($erreur);
+            if(self::$useSonatelProvider){
+                if(trim($send_reponse)==""){
+                    return false;
+                }
+                $doc = new DOMDocument();
+                $Message->MyRS->TextReponse=$send_reponse ;
+                $doc->loadHTML($send_reponse);
+                //var_dump($doc->firstChild);
+                $body = $doc->getElementsByTagName('body');
+                if ( $body && 0<$body->length ) {
+                    $body = $body->item(0);
+                    //var_dump($body);
+                    $listeNode = $body->getElementsByTagName('small');
+                    $lstReponse=[];
+                    if($listeNode){
+                        foreach ($listeNode as $item) {
+                            $valeur = $item->nodeValue ;
+                            $val = explode(":",$valeur,2);
+                            if(count($val)>1){
+                                $lstReponse[trim($val[0])]=trim($val[1]);
+                            }
+                        }
+                    }
+                    $Message->MyRS->Etat=xMessageSMS::SMS_NON_ENVOYE ;
+                    $IsOK=false ;
+                    if(count($lstReponse)){
+                        if(isset($lstReponse['STATUS_CODE'])){
+                            if((int)$lstReponse['STATUS_CODE'] == 200){
+                                $Message->MyRS->Etat=xMessageSMS::SMS_ENVOYE ;
+                                $Message->MyRS->TextReponse = json_encode($lstReponse) ;
+                                if ((int)$Message->MyRS->IdClientPAM==0){
+                                    $Message->MyRS->IdClientPAM=$this->Pam_IdClient ;
+                                }
+                                $IsOK=true ;
+                                //var_dump($Message->MyRS->GetUpDateSQLString());
+                                $Message->Enregistrer() ;
+                                //exit;
+                                //var_dump($Message->MyRS->ToObject());
+                            }else{
+                                $MsgErr = json_encode($lstReponse);
+                                $Message->MyRS->TextErreur=$MsgErr ;
+                                $Message->Enregistrer() ;
+                                $IsOK=false;
+                            }
+                        }
+                    }
+                    //var_dump($Message->MyRS->ToJSON());
+                    return $IsOK ;
+                }
+                return false ;
+            }
+            
             $Err=json_decode($send_reponse);
             //var_dump($Err) ;
             if ((int)$Message->MyRS->IdClientPAM==0){
@@ -202,8 +334,7 @@ include_once 'xObservOrangeSMS.class.php';
                 }elseif (is_array($Err) && !is_object($Err)) {
                     self::$Main::$Log->Write(self::OPERATOR_NAME." ".$this->ORIG_PHONE_NUMBER." Erreur :".$send_reponse.". ".$erreur);
                     return false ;
-                }           
-                
+                }
             }
             
             if (!is_object($Err)){
@@ -271,9 +402,11 @@ include_once 'xObservOrangeSMS.class.php';
             ) ;
             $Data="grant_type=client_credentials" ;
 
+            self::$Main::$Log->AddToLog("Envoie de la demande de Token vers... ".$AuthURL) ;
+            self::$Main::$Log->AddToLog("Http Header: ".json_encode($Headers));
             $Rep=self::$Main::$SMSEngine::EnvoieRequette($AuthURL,[],$Headers,CURLOPT_POST,$Data);
+            self::$Main::$Log->AddToLog("Reponse API: ".$Rep);
             $data=json_decode($Rep);
-            //var_dump($data);
             if (isset($data)){
                 self::$TOKEN_AUTH=$data->access_token;
                 self::$MyRS->TOKEN_AUTH=self::$TOKEN_AUTH ;
@@ -286,13 +419,13 @@ include_once 'xObservOrangeSMS.class.php';
 
             //Gestion des Erreur
             $Err=$Rep ;
-            self::$Main::$Log->Write("Orange SMS: Erreur du renouvellement Token.");
+            self::$Main::$Log->Write("Orange SMS: Erreur du renouvellement Token. ".json_encode($Err));
             
         }
 
         public function TokenRefresh(){
             self::$Main::$Log->Write("Orange SMS Token Refresh.");
-            return $this->GetToken("https://api.orange.com/oauth/v3/token",$this->APP_TOKEN);
+            return $this->GetToken("https://{{smsapi_host}}:443/{{OPERATOR_NAME}}oauth/v3/token",$this->APP_TOKEN);
         }
 
         public  function GetSMSBalance(){
@@ -305,7 +438,7 @@ include_once 'xObservOrangeSMS.class.php';
                 echo $Ret ;
                 return $Err;
             }
-            $URL="https://api.orange.com/sms/admin/v1/contracts" ;
+            $URL="https://{{smsapi_host}}:443/{{OPERATOR_NAME}}sms/admin/v1/contracts" ;
             $Headers=array(
                 "Cache-Control: no-cache",
                 "Authorization: Bearer ".self::$TOKEN_AUTH,
@@ -375,6 +508,33 @@ include_once 'xObservOrangeSMS.class.php';
             $Parametre=[];
             // il n'y a pas de paramètre à envoyer avec Orange
             return $Parametre ;
+        }
+
+        /**
+         * Change l'ecodage du texte entré
+         * @param mixed $EncodedTarget 
+         * @param mixed $Text 
+         * @param string|null $VarNameToLog : Si fournit, le traitement est inscrit dans le journal
+         * @return string|false 
+         */
+        public static function EncodeTextTo(string $EncodedTarget = 'UTF-8', string $Text='', string $VarNameToLog=null){
+            $listeEnc[]="BASE64";
+            $listeEnc[]="Windows-1251";
+            $listeEnc[]="Windows-1252";
+            $listeEnc[]="ISO-8859-1";
+            $listeEnc[]="CP932";
+            $listeEnc[]="CP51932";
+            $listeEnc[]="UTF-8";
+            $listeEnc[]="ASCII";
+            $EncodindFind = 'ISO-8859-1'; // mb_detect_encoding($Text, $listeEnc,true);
+            //$eText = iconv($EncodindFind,$EncodedTarget, $Text);
+            $eText = UConverter::transcode($Text,$EncodedTarget,$EncodindFind);
+            $EncodindResult = mb_detect_encoding($eText, $listeEnc,true);
+            if($VarNameToLog){
+                self::$Main::$Log->AddToLog($VarNameToLog." était de type ".$EncodindFind. " il est maintenant de type ". $EncodindResult);
+                self::$Main::$Log->AddToLog("[Valeur]".$Text ." => ". $eText);
+            }
+            return $eText;
         }
 
     }

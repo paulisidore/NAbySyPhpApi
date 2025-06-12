@@ -605,7 +605,7 @@ class xORMHelper implements IORM , JsonSerializable{
         foreach ($this->ListeChampDB as $Champ){
             $TypeChamp=get_class($Champ);
             if ($TypeChamp =='NAbySy\ORM\xChampDB'){
-                if (!is_object($Champ->Valeur)){
+                if (!is_object($Champ->Valeur) && !is_array($Champ->Valeur)){
                     $Ch=new xChampDB($Champ->Nom,$Champ->Valeur) ;
                     $CanAdd = true;
                     if ($IgnoreID && strtoupper($Champ->Nom) =="ID"){
