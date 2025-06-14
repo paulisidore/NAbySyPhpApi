@@ -248,7 +248,7 @@ use NAbySy\xNotification;
  //readfile(__DIR__."\modulepaie_action.php");
  
  try {
-    include_once __DIR__."\modulepaie_action.php";
+    include_once "modulepaie_action.php";
  } catch (\Throwable $th) {
     throw $th;
  }

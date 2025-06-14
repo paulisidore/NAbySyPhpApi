@@ -168,9 +168,20 @@ Class xNAbySyGS
 	 */
 	public static int $AUTH_DUREE_SESSION = 3600 * 3 ;
 
-	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306)
+	/**
+	 * Si fournit, la variable sera compléter à la racine du site web qui heberge NAbySY
+	 * @var null|string
+	 */
+	public static ?string $BASEDIR = null ;
+
+	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, string $baseDir=null)
 	{
 		self::$Main = $this ;
+		if(isset($baseDir)){
+			if( $baseDir !==''){
+				self::$BASEDIR = $baseDir ;
+			}
+		}
 		if (!isset(self::$Log)){
 			$Dt=date('mY') ;
 			self::$Log=new xLog($this,"NAbySyGS_Log-".$Dt.".csv") ;
@@ -532,7 +543,6 @@ Class xNAbySyGS
 			}
 			if ($DEBUG){	
 				$ignoreRequete=self::$RequetteToIgnoreInLOG;
-				$ignoreRequete[]='select';
 				$ignoreRequete[]='ALTER TABLE';
 				$CanLog=true;
 				foreach($ignoreRequete as $ignore){
@@ -1659,7 +1669,8 @@ Class xNAbySyGS
 	 */
 	public static function Init(string $AppName="NAbySyGS-PAM Internal Service API", string $NomClient="Paul & Aïcha Machinerie SARL",
 		string $AdresseClient="Dakar Zack Mbao", string $TelClt="+221 33 836 14 77", string $Database="nabysygs", 
-		string $MasterDataBase="nabysygs", string $Server="127.0.0.1", string $DBUser="root", string $DBPwd="", int $DBPort=3306):xNAbySyGS{
+		string $MasterDataBase="nabysygs", string $Server="127.0.0.1", string $DBUser="root", string $DBPwd="", int $DBPort=3306,
+		?string $baseDir):xNAbySyGS{
 		$InfoClientMCP = new ModuleMCP();
 		$InfoClientMCP->Nom = $AppName ;
 		$InfoClientMCP->MCP_CLIENT = $NomClient;
@@ -1673,6 +1684,7 @@ Class xNAbySyGS
 		$Connexion->DBUser= $DBUser;
 		$Connexion->DBPwd= $DBPwd;
 		$Connexion->Port= $DBPort;
+		self::$BASEDIR = $baseDir ;
 
 		$StartInfo = new xStartUpInfo($InfoClientMCP, $Connexion);
 		return self::Start($StartInfo);
@@ -1729,6 +1741,12 @@ Class xNAbySyGS
 	public static function CurrentFolder(bool $HostAppFolder=false):string{
 		if ($HostAppFolder){
 			$Rep = $_SERVER['DOCUMENT_ROOT'] ;
+			if(isset(self::$BASEDIR) && self::$BASEDIR !==''){
+				$Rep .= DIRECTORY_SEPARATOR.self::$BASEDIR ;
+				if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+					echo "ATTENTION: Basedir ".$Rep."Introuvable !" ;
+				}
+			}
 			$Rep=str_replace('/',DIRECTORY_SEPARATOR,$Rep)  ;
 		}else{
 			$Rep=dirname(__FILE__);
