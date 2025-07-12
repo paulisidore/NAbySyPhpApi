@@ -1,5 +1,5 @@
 <?php
-namespace NAbySyPhpApi ;
+namespace NAbySy\UI ;
 
 use DOMDocument;
 use DOMXPath;

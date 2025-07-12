@@ -15,7 +15,7 @@
       * Creation of defaut module xClent for NAbySyGS. It's used for NAbySyGS modules xPanier, xVente, xComptabilite and xProforma
       * If you don't planed to use them, you can delete or comment this line.
       */
-     N::$GSModManager::CreateCategorie("client",true,true,"client");
+     //N::$GSModManager::CreateCategorie("client",true,true,"client");
 
     /**
      * Craate new Module category: 

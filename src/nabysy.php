@@ -1789,6 +1789,106 @@ Class xNAbySyGS
 		return self::$Main;
 	}
 
+	/**
+	 * Permet de personnaliser les champs de la base de donnée à partir d'un fichier de configuration JSON
+	 */
+	public  static function LoadConfigFile(string $FichierConfig = "",bool $forceArray=true, bool $createIfNotExist=true){
+		if($FichierConfig==''){
+			$FichierConfig = self::$Main->CurrentFolder(true) . "appconfig.json" ;
+		}
+        if (!file_exists($FichierConfig)){
+			if (!$createIfNotExist){
+				return false ;
+			}
+			$ParamDefaut['APP']=self::$Main->MODULE->Nom;
+			$ParamDefaut['APP_VERSION']=self::$Main->MODULE->Version;
+			if (!self::SaveConfigToFile($FichierConfig, $ParamDefaut)){
+				return false;
+			}
+        }
+        //On récupere la configuration
+        $string = file_get_contents($FichierConfig);
+		if ($string==""){
+			$ParamDefaut['APP']=self::$Main->MODULE->Nom;
+			$ParamDefaut['APP_VERSION']=self::$Main->MODULE->Version;
+			if (!self::SaveConfigToFile($FichierConfig, $ParamDefaut)){
+				return false;
+			}
+			$string = file_get_contents($FichierConfig);
+		}
+		try{
+			$MyParametre = json_decode($string,$forceArray);
+		}catch(Exception $ex){
+			$TxMsg[] = "JSON ERROR: " . json_last_error();
+			$TxMsg[] = $ex->getMessage();
+			self::$Main->AddToJournal(__CLASS__.'.SaveConfigToFile', 0, "", "ERR: L".__LINE__.": ".json_encode($TxMsg));
+			return false;
+		}
+        if (isset($MyParametre)){
+            if (is_array($MyParametre) || is_object($MyParametre)){
+                return $MyParametre;
+            }
+        }
+		return false;
+    }
+
+	public function SaveConfigToFile(string $FichierConfig='' ,array | object $Config):bool{
+		if(trim($FichierConfig)==""){
+			$FichierConfig = self::$Main->CurrentFolder(true). "appconfig.json" ;
+		}
+		$JsonFormat = "{}";
+		if (trim($FichierConfig) ==''){
+			return false;
+		}
+		try{
+			if (is_object($Config)){
+				$JsonFormat = json_encode($Config, JSON_FORCE_OBJECT);
+			}
+			if (is_array($Config)){
+				$JsonFormat = json_encode($Config);
+			}
+		}catch(Exception $ex){
+			$TxMsg[] = "JSON ERROR: " . json_last_error();
+			$TxMsg[] = $ex->getMessage();
+			self::$Main->AddToJournal(__CLASS__.'.SaveConfigToFile', 0, "", "ERR: L".__LINE__.": ".json_encode($TxMsg));
+			return false;
+		}
+		try {
+			// Extraire le chemin du répertoire à partir du chemin du fichier
+			$repertoire = dirname($FichierConfig);
+			// Vérifier si le répertoire existe, sinon le créer
+			if (!is_dir($repertoire)) {
+				if (!mkdir($repertoire, 0777, true)) {
+					die("Erreur : Impossible de créer le répertoire $repertoire.\n");
+				}
+			}
+		} catch (\Throwable $th) {
+			self::$Main->AddToJournal("DEBUG",0,"LOAD ".__FUNCTION__,"Impossible de créer le dossier ". $repertoire);
+		}
+		try{
+			//echo "Ecriture dans le fichier ". realpath($FichierConfig)."</br>" ;
+			self::$Main->AddToJournal("DEBUG",0,"LOAD ".__FUNCTION__,"Ecriture dans ".realpath($FichierConfig));
+			$file = fopen($FichierConfig,'w');
+			if ($file){
+				fwrite($file, $JsonFormat);
+				fclose($file);
+			}else{
+				echo "Erreur d'écriture dans le fichier ". realpath($FichierConfig)."</br>" ;
+				echo "ERREUR SYSTEME DE FICHIER: Impossible d'ecrire dans le fichier: ".realpath($FichierConfig)."</br>Debug Trace: ";
+				echo json_encode(debug_backtrace());
+				return false;
+				//exit;
+			}
+			
+		}catch(Exception $ex){
+			$TxMsg[] = $ex->getMessage();
+			self::$Main->AddToJournal(__CLASS__.'.SaveConfigToFile', 0, "", "ERR: L".__LINE__.": ".json_encode($TxMsg));
+			return false;
+		}
+		return true;
+		
+	}
+
 
 	/**
 	 * Traite les demandes d'authentifications

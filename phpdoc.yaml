@@ -1,0 +1,40 @@
+phpdocumentor:
+  configVersion: 3
+  title: NAbySyGS-PHP API Serveur Docs
+
+  files:
+    directories:
+      - src
+
+  transformer:
+    target: docs
+    templates:
+      - name: clean
+
+  parser:
+    extensions:
+      - php
+    ignoreHidden: true
+    markers:
+      - TODO
+      - FIXME
+    encoding: "utf-8"
+    paths:
+      exclude:
+        - vendor
+        - node_modules
+        - tests
+        - lib
+        - mod_ext
+        - src/**/vendor  # <== exclut tous les dossiers "vendor" dans src et sous-répertoires
+        - src/**/tests   # <== pareil pour "tests"
+        - src/**/lib     # <== si des libs internes traînent
+        - src/**/node_modules
+
+  ignore:
+    paths:
+      - vendor
+      - tests
+      - node_modules
+      - lib
+      - mod_ext
