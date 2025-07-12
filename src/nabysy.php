@@ -527,6 +527,9 @@ Class xNAbySyGS
 					return false;
 				}
 		
+		if(is_bool($req)){
+			$NoReponse=true;
+		}
 		if (!$NoReponse){
 			$nb_total_ligne=$req->num_rows;                     // Nombre total de ligne	
 		}
