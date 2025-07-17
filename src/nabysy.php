@@ -1835,7 +1835,7 @@ Class xNAbySyGS
 		return false;
     }
 
-	public function SaveConfigToFile(string $FichierConfig='' ,array | object $Config=null):bool{
+	public static function SaveConfigToFile(string $FichierConfig='' ,array | object $Config=null):bool{
 		if(trim($FichierConfig)==""){
 			$FichierConfig = self::$Main->CurrentFolder(true). "appconfig.json" ;
 		}
