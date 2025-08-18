@@ -68,3 +68,33 @@ if (file_exists($fichierStart)) {
 	 }
 	
 }
+
+$htaccess_file = N::CurrentFolder(true).'.htaccess' ;
+if(!file_exists($htaccess_file)){
+	//Création du fichier htaccess afin de rediriger les chemin inconnus vers le gestionnaire des appels api
+	$templatePath = N::CurrentFolder().'templates/template_htaccess.txt';
+	try {
+		$template = file_get_contents($templatePath);
+		if(strlen($template)>0){
+			//{NABYSYROOT}
+			// Remplacer dynamiquement des morceaux
+			$updated = str_replace([
+				'{NABYSYROOT}',
+			], [
+				N::CurrentFolder(),
+			], $template);
+
+			//copy($templatePath, $htaccess_file);
+			try {
+				// Écrire dans un nouveau fichier
+				file_put_contents($htaccess_file, $updated);
+			} catch (\Throwable $th) {
+				N::$Log->AddToLog("Error on writing new .htaccess file: ".$th->getMessage());
+				throw $th;
+			}
+		}
+	} catch (\Throwable $th) {
+		//throw $th;
+		N::$Log->AddToLog("Error on reading .htaccess template file: ".$th->getMessage());
+	}
+}
