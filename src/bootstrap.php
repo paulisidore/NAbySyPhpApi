@@ -72,7 +72,7 @@ if (file_exists($fichierStart)) {
 $htaccess_file = N::CurrentFolder(true).'.htaccess' ;
 if(!file_exists($htaccess_file)){
 	//Création du fichier htaccess afin de rediriger les chemin inconnus vers le gestionnaire des appels api
-	$templatePath = N::CurrentFolder().'templates/template_htaccess.txt';
+	$templatePath = N::CurrentFolder().'templates/template_htaccess';
 	try {
 		$template = file_get_contents($templatePath);
 		if(strlen($template)>0){

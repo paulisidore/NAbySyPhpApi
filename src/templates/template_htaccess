@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Si le fichier ou dossier existe, on ne touche à rien
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Sinon, rediriger vers gs_api.php
+RewriteRule ^ {NABYSYROOT}gs_api.php [QSA,L]
