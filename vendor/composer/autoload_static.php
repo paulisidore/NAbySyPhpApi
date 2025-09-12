@@ -9,6 +9,7 @@ class ComposerStaticInitd824a21759b1d10220af6d8f574f749a
     public static $files = array (
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
@@ -16,11 +17,9 @@ class ComposerStaticInitd824a21759b1d10220af6d8f574f749a
         'ffecb95d45175fd40f75be8a23b34f90' => __DIR__ . '/..' . '/twig/twig/src/Resources/debug.php',
         'c7baa00073ee9c61edf148c51917cfb4' => __DIR__ . '/..' . '/twig/twig/src/Resources/escaper.php',
         'f844ccf1d25df8663951193c3fc307c8' => __DIR__ . '/..' . '/twig/twig/src/Resources/string_loader.php',
-        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         '2203a247e6fda86070a5e4e07aed533a' => __DIR__ . '/..' . '/symfony/clock/Resources/now.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
-        'e13ef13a912c306071ad266d2731a94e' => __DIR__ . '/..' . '/cypresslab/php-curry/src/Cypress/Curry/functions.php',
         '9eb40347f70870d4d4c016d3dd2f5056' => __DIR__ . '/..' . '/jawira/plantuml-encoding/src/plantuml_functions.php',
         'fa34c98812fe933c7eb09d51a30b8893' => __DIR__ . '/..' . '/parsica-php/parsica/src/characters.php',
         'ba0e2c712a105864c1ebb79dec0b46fe' => __DIR__ . '/..' . '/parsica-php/parsica/src/combinators.php',
@@ -33,6 +32,7 @@ class ComposerStaticInitd824a21759b1d10220af6d8f574f749a
         'dc39f6e3574dbe007bf5257cefb47de2' => __DIR__ . '/..' . '/parsica-php/parsica/src/strings.php',
         '1573166c90cc6845fe3af0c5d696dd47' => __DIR__ . '/..' . '/parsica-php/parsica/src/Expression/expression.php',
         '19db2fddbdac45468003bc044f3896dd' => __DIR__ . '/..' . '/parsica-php/parsica/src/Internal/FP.php',
+        '549bd6f8e2401b9115114ebcad00190a' => __DIR__ . '/..' . '/parsica-php/parsica/src/Curry/functions.php',
         'f676b98f38a402a86808bdc0d7751f5c' => __DIR__ . '/..' . '/phpdocumentor/reflection/src/php-parser/Modifiers.php',
         '2324d0e5cadd603331d27de142371f0b' => __DIR__ . '/..' . '/symfony/contracts/Deprecation/function.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
@@ -407,16 +407,6 @@ class ComposerStaticInitd824a21759b1d10220af6d8f574f749a
         ),
     );
 
-    public static $prefixesPsr0 = array (
-        'C' => 
-        array (
-            'Cypress\\Curry' => 
-            array (
-                0 => __DIR__ . '/..' . '/cypresslab/php-curry/src',
-            ),
-        ),
-    );
-
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
@@ -579,7 +569,6 @@ class ComposerStaticInitd824a21759b1d10220af6d8f574f749a
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitd824a21759b1d10220af6d8f574f749a::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitd824a21759b1d10220af6d8f574f749a::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitd824a21759b1d10220af6d8f574f749a::$prefixesPsr0;
             $loader->classMap = ComposerStaticInitd824a21759b1d10220af6d8f574f749a::$classMap;
 
         }, null, ClassLoader::class);

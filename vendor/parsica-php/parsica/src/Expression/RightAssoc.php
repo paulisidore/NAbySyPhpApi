@@ -11,7 +11,7 @@
 namespace Parsica\Parsica\Expression;
 
 use Parsica\Parsica\Parser;
-use function Cypress\Curry\curry;
+use function Parsica\Parsica\Curry\curry;
 use function Parsica\Parsica\choice;
 use function Parsica\Parsica\collect;
 use function Parsica\Parsica\Internal\FP\foldr;
@@ -24,6 +24,7 @@ use function Parsica\Parsica\pure;
  * @internal
  * @template TSymbol
  * @template TExpressionAST
+ * @psalm-immutable
  */
 final class RightAssoc implements ExpressionType
 {
@@ -33,6 +34,8 @@ final class RightAssoc implements ExpressionType
     /**
      * @internal
      * @psalm-param non-empty-list<BinaryOperator<TSymbol, TExpressionAST>> $operators
+     * @psalm-pure
+     * @psalm-suppress ImpureVariable
      */
     function __construct(array $operators)
     {
@@ -46,7 +49,7 @@ final class RightAssoc implements ExpressionType
     public function buildPrecedenceLevel(Parser $previousPrecedenceLevel): Parser
     {
         /**
-         * @psalm-var list<Parser<callable(Parser<TExpressionAST>):Parser<TExpressionAST>>> $operatorParsers
+         * @psalm-var list<Parser<pure-callable(Parser<TExpressionAST>):Parser<TExpressionAST>>> $operatorParsers
          */
         $operatorParsers = [];
         foreach ($this->operators as $operator) {
@@ -63,14 +66,14 @@ final class RightAssoc implements ExpressionType
             ),
 
             /**
-             * @psalm-param array{0: list<callable(TExpressionAST):TExpressionAST>, 1: TExpressionAST} $o
+             * @psalm-param array{0: list<pure-callable(TExpressionAST):TExpressionAST>, 1: TExpressionAST} $o
              * @psalm-return TExpressionAST
              */
             fn(array $o) => foldr(
                 $o[0],
 
                 /**
-                 * @psalm-param callable(TExpressionAST):TExpressionAST $appl
+                 * @psalm-param pure-callable(TExpressionAST):TExpressionAST $appl
                  * @psalm-param TExpressionAST $acc
                  * @psalm-return TExpressionAST
                  */

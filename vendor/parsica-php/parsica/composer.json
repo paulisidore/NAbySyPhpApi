@@ -24,16 +24,15 @@
     ],
     "require": {
         "php": "^7.4 || ^8.0",
-        "ext-mbstring": "*",
-        "cypresslab/php-curry": "^0.5.0"
+        "ext-mbstring": "*"
     },
     "require-dev": {
         "ext-json": "*",
         "mathiasverraes/uptodocs": "dev-main",
         "phpunit/phpunit": "^9.0",
-        "phpbench/phpbench": "dev-master",
+        "phpbench/phpbench": "^1.0.1",
         "psr/event-dispatcher": "^1.0",
-        "vimeo/psalm": "^4.1"
+        "vimeo/psalm": "^4.30"
     },
     "autoload": {
         "psr-4": {
@@ -50,12 +49,13 @@
             "src/space.php",
             "src/strings.php",
             "src/Expression/expression.php",
-            "src/Internal/FP.php"
+            "src/Internal/FP.php",
+            "src/Curry/functions.php"
         ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Verraes\\Parsica\\": "tests/"
+            "Tests\\Parsica\\Parsica\\": "tests/"
         }
     },
     "scripts": {

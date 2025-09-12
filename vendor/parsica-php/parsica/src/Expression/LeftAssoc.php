@@ -11,7 +11,7 @@
 namespace Parsica\Parsica\Expression;
 
 use Parsica\Parsica\Parser;
-use function Cypress\Curry\curry;
+use function Parsica\Parsica\Curry\curry;
 use function Parsica\Parsica\choice;
 use function Parsica\Parsica\collect;
 use function Parsica\Parsica\Internal\FP\flip;
@@ -24,6 +24,7 @@ use function Parsica\Parsica\pure;
  * @internal
  * @template TSymbol
  * @template TExpressionAST
+ * @psalm-immutable
  */
 final class LeftAssoc implements ExpressionType
 {
@@ -33,6 +34,8 @@ final class LeftAssoc implements ExpressionType
     /**
      * @internal
      * @psalm-param non-empty-list<BinaryOperator<TSymbol, TExpressionAST>> $operators
+     * @psalm-pure
+     * @psalm-suppress ImpureVariable
      */
     function __construct(array $operators)
     {
@@ -42,11 +45,12 @@ final class LeftAssoc implements ExpressionType
     /**
      * @psalm-param Parser<TExpressionAST> $previousPrecedenceLevel
      * @psalm-return Parser<TExpressionAST>
+     * @psalm-mutation-free
      */
     public function buildPrecedenceLevel(Parser $previousPrecedenceLevel): Parser
     {
         /**
-         * @psalm-var list<Parser<callable(Parser<TExpressionAST>):Parser<TExpressionAST>>> $operatorParsers
+         * @psalm-var list<Parser<pure-callable(Parser<TExpressionAST>):Parser<TExpressionAST>>> $operatorParsers
          */
         $operatorParsers = [];
         // @todo use folds?
@@ -64,16 +68,18 @@ final class LeftAssoc implements ExpressionType
             ),
 
             /**
-             * @psalm-param array{0: TExpressionAST, 1: list<callable(TExpressionAST):TExpressionAST>} $o
+             * @psalm-param array{0: TExpressionAST, 1: list<pure-callable(TExpressionAST):TExpressionAST>} $o
              * @psalm-return TExpressionAST
+             * @psalm-pure
              */
             fn(array $o) => foldl(
                 $o[1],
 
                 /**
                  * @psalm-param TExpressionAST $acc
-                 * @psalm-param callable(TExpressionAST):TExpressionAST $appl
+                 * @psalm-param pure-callable(TExpressionAST):TExpressionAST $appl
                  * @psalm-return TExpressionAST
+                 * @psalm-pure
                  */
                 fn($acc, callable $appl)  => $appl($acc),
                 $o[0]

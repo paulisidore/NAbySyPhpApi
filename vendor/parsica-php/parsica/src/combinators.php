@@ -25,7 +25,7 @@ use function Parsica\Parsica\Internal\FP\foldl;
  * @api
  *
  * @template T
- *
+ * @psalm-pure
  */
 function identity(Parser $parser): Parser
 {
@@ -41,7 +41,7 @@ function identity(Parser $parser): Parser
  * @api
  *
  * @template T
- *
+ * @psalm-pure
  */
 function pure($output): Parser
 {
@@ -56,6 +56,7 @@ function pure($output): Parser
  * @psalm-return Parser<T|null>
  * @api
  * @template T
+ * @psalm-pure
  */
 function optional(Parser $parser): Parser
 {
@@ -69,25 +70,28 @@ function optional(Parser $parser): Parser
  * This is a monadic bind aka flatmap.
  *
  * @psalm-param Parser<T1> $parser
- * @psalm-param callable(T1) : Parser<T2> $f
+ * @psalm-param pure-callable(T1) : Parser<T2> $f
  *
  * @psalm-return Parser<T2>
  * @api
  * @template T1
  * @template T2
- *
+ * @psalm-pure
  */
 function bind(Parser $parser, callable $f): Parser
 {
-    /** @psalm-var Parser<T2> $finalParser */
-    $finalParser = Parser::make($parser->getLabel(), static function (Stream $input) use ($parser, $f) : ParseResult {
+    /**
+     * @psalm-var pure-callable(Stream) : ParseResult<T2> $parserFunction
+     */
+    $parserFunction = static function (Stream $input) use ($parser, $f): ParseResult {
         $result = $parser->run($input)->map($f);
         if ($result->isFail()) {
             return $result;
         }
         $p2 = $result->output();
         return $result->continueWith($p2);
-    });
+    };
+    $finalParser = Parser::make($parser->getLabel(), $parserFunction);
     return $finalParser;
 }
 
@@ -101,15 +105,18 @@ function bind(Parser $parser, callable $f): Parser
  *
  * @template T1
  * @template T2
- * @psalm-param Parser<callable(T1):T2> $parser1
+ * @psalm-param Parser<pure-callable(T1):T2> $parser1
  * @psalm-param Parser<T1> $parser2
  * @psalm-return Parser<T2>
  * @api
+ * @psalm-pure
  */
 function apply(Parser $parser1, Parser $parser2): Parser
 {
-    /** @psalm-var Parser<T2> $parser */
-    $parser = Parser::make($parser1->getLabel(), static function (Stream $input) use ($parser2, $parser1) : ParseResult {
+    /**
+     * @psalm-var pure-callable(Stream): ParseResult<T2>
+     */
+    $parserFunction = static function (Stream $input) use ($parser2, $parser1): ParseResult {
         $r1 = $parser1->run($input);
         if ($r1->isFail()) {
             return $r1;
@@ -118,7 +125,8 @@ function apply(Parser $parser1, Parser $parser2): Parser
         Assert::isCallable($f, "apply() can only be used when the output of the first parser is a callable with 1 argument. Use currying for functions with more than 1 argument.");
         // @todo assert that the arity of $f == 1
         return $r1->continueWith($parser2)->map($f);
-    });
+    };
+    $parser = Parser::make($parser1->getLabel(), $parserFunction);
     return $parser;
 }
 
@@ -135,7 +143,7 @@ function apply(Parser $parser1, Parser $parser2): Parser
  * @template T2
  * @api
  * @see Parser::sequence()
- *
+ * @psalm-pure
  */
 function sequence(Parser $first, Parser $second): Parser
 {
@@ -149,8 +157,9 @@ function sequence(Parser $first, Parser $second): Parser
  * @template T2
  * @psalm-param Parser<T1> $first
  * @psalm-param Parser<T2> $second
- * @psalm-return Parser<T2>
+ * @psalm-return Parser<T1>
  * @api
+ * @psalm-pure
  */
 function keepFirst(Parser $first, Parser $second): Parser
 {
@@ -164,7 +173,13 @@ function keepFirst(Parser $first, Parser $second): Parser
 /**
  * Sequence two parsers, and return the output of the second one.
  *
+ * @template T1
+ * @template T2
+ * @psalm-param Parser<T1> $first
+ * @psalm-param Parser<T2> $second
+ * @psalm-return Parser<T2>
  * @api
+ * @psalm-pure
  */
 function keepSecond(Parser $first, Parser $second): Parser
 {
@@ -184,12 +199,15 @@ function keepSecond(Parser $first, Parser $second): Parser
  *
  * @template T1
  * @template T2
- *
+ * @psalm-pure
  */
 function either(Parser $first, Parser $second): Parser
 {
     $label = $first->getLabel() . " or " . $second->getLabel();
-    return Parser::make($label, static function (Stream $input) use ($second, $first, $label): ParseResult {
+    /**
+     * @psalm-var pure-callable(Stream): ParseResult<T1|T2> $parserFunction
+     */
+    $parserFunction = static function (Stream $input) use ($second, $first, $label): ParseResult {
         // @todo Megaparsec doesn't do automatic rollback, for performance reasons, and requires the user to add try
         //       combinators. We could mimic that behaviour as it is probably more performant
         $r1 = $first->run($input);
@@ -203,7 +221,9 @@ function either(Parser $first, Parser $second): Parser
         }
 
         return new Fail($label, $r2->got());
-    });
+    };
+
+    return Parser::make($label, $parserFunction);
 }
 
 
@@ -216,7 +236,7 @@ function either(Parser $first, Parser $second): Parser
  * @psalm-return Parser<T|null>
  * @api
  * @template T
- *
+ * @psalm-pure
  */
 function append(Parser $left, Parser $right): Parser
 {
@@ -236,9 +256,11 @@ function append(Parser $left, Parser $right): Parser
  * @template T
  * @psalm-suppress MixedReturnStatement
  * @psalm-suppress MixedInferredReturnType
+ * @psalm-pure
  */
 function assemble(Parser ...$parsers): Parser
 {
+    /** @psalm-suppress ImpureMethodCall */
     Assert::atLeastOneArg($parsers, "assemble()");
     $first = array_shift($parsers);
     /** @psalm-suppress InvalidArgument */
@@ -251,6 +273,7 @@ function assemble(Parser ...$parsers): Parser
  * @psalm-param list<Parser<mixed>> $parsers
  * @psalm-return Parser<mixed>
  * @api
+ * @psalm-pure
  */
 function collect(Parser ...$parsers): Parser
 {
@@ -274,6 +297,7 @@ function collect(Parser ...$parsers): Parser
  * @psalm-param non-empty-list<Parser<mixed>> $parsers
  * @psalm-return Parser<mixed>
  * @api
+ * @psalm-pure
  */
 function any(Parser ...$parsers): Parser
 {
@@ -300,6 +324,7 @@ function any(Parser ...$parsers): Parser
  * @psalm-param non-empty-list<Parser<mixed>> $parsers
  * @psalm-return Parser<mixed>
  * @api
+ * @psalm-pure
  */
 function choice(Parser ...$parsers): Parser
 {
@@ -314,50 +339,56 @@ function choice(Parser ...$parsers): Parser
  * @psalm-return Parser<T>
  * @template T
  * @psalm-suppress MixedArgumentTypeCoercion
+ * @psalm-pure
  */
 function atLeastOne(Parser $parser): Parser
 {
-    return Parser::make(
-        "at least one " . $parser->getLabel(),
-        static function (Stream $input) use ($parser) : ParseResult {
-            $result = $parser->run($input);
-            if ($result->isFail()) {
-                return $result;
-            }
-            $final = new Succeed(null, $result->remainder());
-            while ($result->isSuccess()) {
-                $final = $final->append($result);
-                $result = $parser->continueFrom($result);
-            }
-            return $final;
+    /**
+     * @psalm-var pure-callable(Stream): ParseResult<T> $parserFunction
+     */
+    $parserFunction = static function (Stream $input) use ($parser): ParseResult {
+        $result = $parser->run($input);
+        if ($result->isFail()) {
+            return $result;
         }
+        $final = new Succeed(null, $result->remainder());
+        while ($result->isSuccess()) {
+            $final = $final->append($result);
+            $result = $parser->continueFrom($result);
+        }
+        return $final;
+    };
+    return Parser::make(
+        "at least one " . $parser->getLabel(), $parserFunction
     );
 }
 
 /**
  * Zero or more repetitions of Parser, with the outputs appended.
  *
- * @deprecated @TODO Untested
+ * @TODO Untested
  *
  * @api
  * @psalm-param Parser<T> $parser
  * @psalm-return Parser<T>
  * @template T
  * @psalm-suppress MixedArgumentTypeCoercion
+ * @psalm-pure
  */
 function zeroOrMore(Parser $parser): Parser
 {
-    return Parser::make(
-        "zero or more " . $parser->getLabel(),
-        static function (Stream $input) use ($parser) : ParseResult {
-            $result = new Succeed(null, $input);
-            $final = $result;
-            while ($result->isSuccess()) {
-                $final = $final->append($result);
-                $result = $parser->continueFrom($result);
-            }
-            return $final;
+    /** @var pure-callable(Stream):ParseResult<T> $parserFunction */
+    $parserFunction = static function (Stream $input) use ($parser): ParseResult {
+        $result = new Succeed(null, $input);
+        $final = $result;
+        while ($result->isSuccess()) {
+            $final = $final->append($result);
+            $result = $parser->continueFrom($result);
         }
+        return $final;
+    };
+    return Parser::make(
+        "zero or more " . $parser->getLabel(), $parserFunction
     );
 }
 
@@ -370,6 +401,7 @@ function zeroOrMore(Parser $parser): Parser
  *
  * @psalm-return Parser<T>
  * @api
+ * @psalm-pure
  */
 function repeat(int $n, Parser $parser): Parser
 {
@@ -387,18 +419,38 @@ function repeat(int $n, Parser $parser): Parser
  *
  * @template T
  *
+ * @psalm-param positive-int $n
  * @psalm-param Parser<T> $parser
  *
- * @psalm-return Parser<T>
+ * @psalm-return Parser<list<T>>
  * @api
+ * @psalm-pure
  */
 function repeatList(int $n, Parser $parser): Parser
 {
-    $parser = map($parser, /** @psalm-param mixed $output */ fn($output): array => [$output]);
+    /** @palm-var Parser<list<T>> $parser */
+    $parser = map(
+        $parser,
+        /**
+         * @psalm-param T $output
+         * @psalm-return list<T>
+         */
+        fn($output): array => [$output]
+    );
 
     $parsers = array_fill(0, $n - 1, $parser);
+
     return foldl(
         $parsers,
+        /**
+         * @psalm-param Parser<list<T>> $l
+         * @psalm-param Parser<list<T>> $r
+         * @psalm-return Parser<list<T>>
+         *
+         * @psalm-suppress InvalidReturnType
+         * @psalm-suppress InvalidReturnStatement
+         * @psalm-pure
+         */
         fn(Parser $l, Parser $r): Parser => append($l, $r),
         $parser
     )->label("$n times " . $parser->getLabel());
@@ -413,13 +465,13 @@ function repeatList(int $n, Parser $parser): Parser
  * @psalm-return Parser<list<T>>
  *
  * @api
+ * @psalm-pure
  */
 function some(Parser $parser): Parser
 {
     return map(
             collect($parser, many($parser)),
             /**
-             * @template T
              * @psalm-param array{0: T, 1: list<T>} $o
              * @psalm-return list<T>
              */
@@ -436,6 +488,7 @@ function some(Parser $parser): Parser
  * @psalm-return Parser<list<T>>
  *
  * @api
+ * @psalm-pure
  */
 function many(Parser $parser): Parser
 {
@@ -476,6 +529,7 @@ function many(Parser $parser): Parser
  *
  * @psalm-return Parser<TM>
  * @api
+ * @psalm-pure
  */
 function between(Parser $open, Parser $close, Parser $middle): Parser
 {
@@ -497,6 +551,7 @@ function between(Parser $open, Parser $close, Parser $middle): Parser
  * @psalm-return Parser<list<T>>
  *
  * @api
+ * @psalm-pure
  */
 function sepBy(Parser $separator, Parser $parser): Parser
 {
@@ -518,6 +573,7 @@ function sepBy(Parser $separator, Parser $parser): Parser
  * @psalm-suppress MissingClosureReturnType
  *
  * @api
+ * @psalm-pure
  */
 function sepBy1(Parser $separator, Parser $parser): Parser
 {
@@ -541,6 +597,7 @@ function sepBy1(Parser $separator, Parser $parser): Parser
  * @psalm-suppress MissingClosureReturnType
  *
  * @api
+ * @psalm-pure
  */
 function sepBy2(Parser $separator, Parser $parser): Parser
 {
@@ -565,6 +622,7 @@ function sepBy2(Parser $separator, Parser $parser): Parser
  * @see Parser::notFollowedBy()
  *
  * @api
+ * @psalm-pure
  */
 function notFollowedBy(Parser $parser): Parser
 {
@@ -585,9 +643,10 @@ function notFollowedBy(Parser $parser): Parser
  *
  * @template T1
  * @template T2
- * @psalm-param callable(T1) : T2 $transform
+ * @psalm-param pure-callable(T1) : T2 $transform
  * @psalm-return Parser<T2>
  * @api
+ * @psalm-pure
  */
 function map(Parser $parser, callable $transform): Parser
 {
@@ -604,6 +663,7 @@ function map(Parser $parser, callable $transform): Parser
  * @psalm-return Parser<T>
  *
  * @api
+ * @psalm-pure
  */
 function lookAhead(Parser $parser): Parser
 {

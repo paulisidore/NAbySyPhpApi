@@ -11,13 +11,16 @@
 namespace Parsica\Parsica\Internal;
 
 use InvalidArgumentException;
-use Parsica\Parsica\Parser;
 
 /**
  * @internal
+ * @psalm-immutable
  */
 final class Assert
 {
+    private function __construct()
+    {
+    }
     /**
      * @throws InvalidArgumentException
      * @internal
@@ -30,10 +33,13 @@ final class Assert
     /**
      * @psalm-assert list $l
      * @psalm-assert !empty $l
+     * @throws InvalidArgumentException
      */
     public static function nonEmptyList(array $l, string $message): void
     {
-        if (empty($l)) throw new InvalidArgumentException($message);
+        if (empty($l)) {
+            throw new InvalidArgumentException($message);
+        }
     }
 
     /**
