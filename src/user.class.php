@@ -39,7 +39,6 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         $this->Boutique = $NabySy->MaBoutique;
 
         $MySQL=new xDB($this->Main) ;
-        $this->Boutique->DBName ;
 
         $MySQL->DebugMode=false ;
         if (!$MySQL->ChampsExiste($this->TEntete,'Signature',$this->DBase)){

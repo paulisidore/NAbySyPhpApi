@@ -23,6 +23,8 @@
          */
         public xConnexionInfo $Connexion ;
 
+        public ?bool $DesableTokenAuth = false ;
+
         public function __construct(?ModuleMCP $Info = null,xConnexionInfo $ConnInfo = null){
             $this->InfoClientMCP = $Info ;
             $this->Connexion = new xConnexionInfo() ;

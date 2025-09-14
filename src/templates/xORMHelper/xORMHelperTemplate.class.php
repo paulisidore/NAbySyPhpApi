@@ -16,6 +16,11 @@
             if ($TableName==''){
                 $TableName="ModelTable";
             }
+            if(!isset($DBName)){
+                $DBName=$NabySy->MaBoutique->DataBase;
+            }elseif(trim($DBName)==''){
+                $DBName=$NabySy->MaBoutique->DataBase;
+            }
             parent::__construct($NabySy,(int)$Id,$AutoCreate,$TableName,$DBName);
         }
     }
