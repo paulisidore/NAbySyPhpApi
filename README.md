@@ -1345,32 +1345,7 @@ $validated = $request->validate([
    - Concepts simples
    - Résultats immédiats
 
-#### ❌ **À Éviter Pour :**
 
-1. **Applications à Grande Échelle**
-   - Millions d'utilisateurs
-   - Données massives (Big Data)
-   - Performances critiques
-
-2. **Projets avec Relations Complexes**
-   - Modèles très interconnectés
-   - Beaucoup de Many-to-Many
-   - Héritage de tables (STI, CTI)
-
-3. **Applications Multi-bases**
-   - Besoin de PostgreSQL
-   - Réplication maître-esclave
-   - Sharding
-
-4. **Équipes Importantes**
-   - > 10 développeurs
-   - Normes strictes (PSR, SOLID)
-   - Tests automatisés complexes
-
-5. **SaaS avec Multi-tenancy**
-   - Isolation stricte des données
-   - Migration de schéma par tenant
-   - Gestion de versions complexe
 
 ### 🔄 Migration vers NAbySyGS
 
