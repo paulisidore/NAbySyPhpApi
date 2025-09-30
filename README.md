@@ -1241,9 +1241,9 @@ $client = $commande->client; // Automatique via relation définie
    - Projets avec deadline serrée
 
 2. **Petites et Moyennes Applications**
-   - < 50 tables
-   - < 100 000 enregistrements par table
-   - Équipe de 1-5 développeurs
+   - < 200 tables
+   - < 500 000 enregistrements par table
+   - Équipe de 1-50 développeurs
 
 3. **Applications Métier Internes**
    - ERP légers
