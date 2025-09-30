@@ -705,6 +705,7 @@ Class xNAbySyGS
 		$ChampDate="DateEnreg" ;
 		$ChampHeure="HeureEnreg" ;
 		$ChampOperation = "OPERATION" ;
+		$ChampPortClient = "PortClient";
 		$MyDB=new xDB($this) ;
 		if(!$MyDB->ChampsExiste("journal",$ChampDate,$this->MainDataBase)){
 			if($MyDB->ChampsExiste("journal","Date",$this->MainDataBase)){
@@ -716,7 +717,13 @@ Class xNAbySyGS
 		if(!$MyDB->ChampsExiste("journal","IdUtilisateur",$this->MainDataBase)){
 			$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","ADD","0",$this->MainDataBase) ;
 		}
-		$sqljo="INSERT INTO ".$this->MasterDataBase.".journal (".$ChampDate.", ".$ChampHeure.", IdUtilisateur, IP, PortClient, ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
+		if(!$MyDB->ChampsExiste("journal","IP",$this->MainDataBase)){
+			$MyDB->AlterTable("journal","IP","VARCHAR(255)","ADD","0.0.0.0",$this->MainDataBase) ;
+		}
+		if(!$MyDB->ChampsExiste("journal",$ChampPortClient,$this->MainDataBase)){
+			$MyDB->AlterTable("journal",$ChampPortClient,"INT(11)","ADD","0",$this->MainDataBase) ;
+		}
+		$sqljo="INSERT INTO ".$this->MasterDataBase.".journal (".$ChampDate.", ".$ChampHeure.", IdUtilisateur, IP, ".$ChampPortClient.", ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
 		$reqJ=$this->ReadWrite($sqljo,true,'journal',false) ;
 		if (!$reqJ)
 			{
@@ -1867,18 +1874,28 @@ Class xNAbySyGS
 		if ($HostAppFolder){
 			$Rep = $_SERVER['DOCUMENT_ROOT'] ;
 			if(isset(self::$BASEDIR) && self::$BASEDIR !==''){
+				$PrecRep = $Rep ;
 				$Rep .= DIRECTORY_SEPARATOR.self::$BASEDIR ;
 				if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
-					throw new Exception("Basedir ".$Rep." introuvable !", 1);
-				}
-				$PrecRep = $Rep ;
-				if(self::$GSSubDirectory !== ""){
-					$Rep .= DIRECTORY_SEPARATOR.self::$GSSubDirectory ;
-					//echo "Creation du dossier ".self::$GSSubDirectory." dans ". $PrecRep ." !</br>";
+					echo "Creation du dossier ".$Rep." dans ". $PrecRep ." !</br>";
 					try {
 						mkdir($Rep,0777,true);
 					} catch (\Throwable $th) {
 							throw $th;
+					}
+				}
+				if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+					throw new Exception("Basedir ".$Rep." introuvable !", 1);
+				}
+				if(self::$GSSubDirectory !== ""){
+					$Rep .= DIRECTORY_SEPARATOR.self::$GSSubDirectory ;
+					if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+						echo "Creation du sous-dossier ".self::$GSSubDirectory." dans ". $PrecRep ." !</br>";
+						try {
+							mkdir($Rep,0777,true);
+						} catch (\Throwable $th) {
+								throw $th;
+						}
 					}
 					if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
 						throw new Exception("GS Sub Directory ".self::$GSSubDirectory." introuvable dans ". $PrecRep ." !", 1);

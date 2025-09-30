@@ -85,12 +85,15 @@ use NAbySy\xUser;
 
     if (isset($_REQUEST['Login'])){
         $Login=$_REQUEST['Login'] ;
-    }
-    if (isset($_REQUEST['User'])){
+    }elseif (isset($_REQUEST['LOGIN'])){
+        $Login=$_REQUEST['LOGIN'] ;
+    }elseif (isset($_REQUEST['User'])){
         $Login=$_REQUEST['User'] ;
     }
     if (isset($_REQUEST['Password'])){
         $Password=$_REQUEST['Password'] ;
+    } if (isset($_REQUEST['PASSWORD'])){
+        $Password=$_REQUEST['PASSWORD'] ;
     }
 
     //$Auth=new xAuth($nabysy,3600) ; //Version Prod Token valable 1 heure
@@ -103,6 +106,8 @@ use NAbySy\xUser;
         $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null,$Login) ;
     }elseif($ConnectByToken){
         $User=$nabysy->User ;
+    }else{
+        $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE) ;
     }
     $Err=new xErreur;
     $Err->Source='auth.php-'.$User->Id.':'.$Login;
