@@ -411,6 +411,459 @@ $clone = $produitOriginal->Clone();
 $clone = $produitOriginal->Clone("autre_base");
 ```
 
+## 🎭 Gestion des Événements (Observer Pattern)
+
+NAbySyGS intègre un système d'événements puissant qui permet de réagir automatiquement aux changements dans votre application.
+
+### Événements Disponibles
+
+Le framework déclenche automatiquement des événements lors de certaines opérations :
+
+- **`{CLASS}_ADD`** - Déclenché après la création d'un enregistrement
+- **`{CLASS}_EDIT`** - Déclenché après la modification d'un enregistrement
+- **`{CLASS}_DEL`** - Déclenché après la suppression d'un enregistrement
+- **`DIRECTION_ADD`** - Ajout d'une direction
+- **`DIRECTION_EDIT`** - Modification d'une direction
+- **`SERVICE_ADD`** - Ajout d'un service
+- **`SERVICE_EDIT`** - Modification d'un service
+- **`MVT_AFFECTATION`** - Mouvement d'affectation
+- **`SIEGE_EDIT`** - Modification du siège
+
+### Créer un Observateur
+
+#### 1. Créer la Classe Observateur
+
+Créez un fichier dans `gs/votre_module/xObservVotreModule/xObservVotreModule.class.php` :
+
+```php
+<?php
+namespace NAbySy\OBSERVGEN;
+
+use NAbySy\xNAbySyGS;
+
+class xObservProduit extends xObservGen {
+    
+    public function __construct(xNAbySyGS $NabySyGS) {
+        // Liste des événements à observer
+        $listeObservable = [
+            'xProduit_ADD',    // Création de produit
+            'xProduit_EDIT',   // Modification de produit
+            'xProduit_DEL',    // Suppression de produit
+        ];
+        
+        // Initialiser l'observateur
+        parent::__construct(
+            $NabySyGS,
+            'ObservateurProduit',  // Nom unique
+            $listeObservable
+        );
+    }
+    
+    /**
+     * Cette méthode est appelée automatiquement lors des événements
+     * 
+     * @param string $ClassName - Nom de la classe source
+     * @param array $EventType - Type d'événement et paramètres
+     * @param mixed $EventArg - Arguments supplémentaires
+     */
+    public function RaiseEvent($ClassName, $EventType, &$EventArg) {
+        $action = $EventType[0] ?? null;
+        
+        switch ($action) {
+            case 'xProduit_ADD':
+                $idProduit = $EventType[1];
+                $this->onProduitCreated($idProduit);
+                break;
+                
+            case 'xProduit_EDIT':
+                $idProduit = $EventType[1];
+                $produitObjet = $EventType[2] ?? null;
+                $this->onProduitUpdated($idProduit, $produitObjet);
+                break;
+                
+            case 'xProduit_DEL':
+                $idProduit = $EventType[1];
+                $produitObjet = $EventType[2] ?? null;
+                $this->onProduitDeleted($idProduit, $produitObjet);
+                break;
+        }
+    }
+    
+    /**
+     * Gérer la création d'un produit
+     */
+    private function onProduitCreated($idProduit) {
+        // Exemple : Envoyer une notification
+        $this->Main::$Log->Write("Nouveau produit créé : ID $idProduit");
+        
+        // Exemple : Mettre à jour un cache
+        // $this->updateCache($idProduit);
+        
+        // Exemple : Déclencher une action externe
+        // $this->notifyExternalSystem($idProduit);
+        
+        // Journaliser dans la base
+        $this->Main->AddToJournal(
+            'SYSTEME',
+            0,
+            'PRODUIT_CREATED',
+            "Nouveau produit ajouté avec ID: $idProduit"
+        );
+    }
+    
+    /**
+     * Gérer la modification d'un produit
+     */
+    private function onProduitUpdated($idProduit, $produit) {
+        if (!$produit) return;
+        
+        $this->Main::$Log->Write("Produit modifié : {$produit->Nom} (ID: $idProduit)");
+        
+        // Exemple : Vérifier le stock
+        if ($produit->Stock < 10) {
+            $this->alertLowStock($produit);
+        }
+        
+        // Journaliser
+        $this->Main->AddToJournal(
+            'SYSTEME',
+            0,
+            'PRODUIT_UPDATED',
+            "Produit {$produit->Nom} modifié"
+        );
+    }
+    
+    /**
+     * Gérer la suppression d'un produit
+     */
+    private function onProduitDeleted($idProduit, $produit) {
+        $this->Main::$Log->Write("Produit supprimé : ID $idProduit");
+        
+        // Exemple : Nettoyer les données associées
+        // $this->cleanupRelatedData($idProduit);
+        
+        // Journaliser
+        $this->Main->AddToJournal(
+            'SYSTEME',
+            0,
+            'PRODUIT_DELETED',
+            "Produit ID $idProduit supprimé"
+        );
+    }
+    
+    /**
+     * Alerte de stock faible
+     */
+    private function alertLowStock($produit) {
+        // Envoyer un email ou SMS
+        $message = "Alerte stock : {$produit->Nom} - Stock: {$produit->Stock}";
+        $this->Main::$Log->Write($message);
+        
+        // Utiliser le module SMS si disponible
+        // $this->Main::$SMSEngine->EnvoieSMS('+221771234567', $message);
+    }
+}
+```
+
+#### 2. Activer l'Observateur
+
+L'observateur est chargé automatiquement au démarrage de NAbySyGS. Assurez-vous que votre classe :
+- Hérite de `xObservGen`
+- Est dans un dossier `xObserv*` sous votre module
+- Implémente la méthode `RaiseEvent()`
+
+### Exemple Complet : Système de Notifications
+
+#### Créer un Observateur pour les Commandes
+
+```php
+<?php
+namespace NAbySy\OBSERVGEN;
+
+use NAbySy\xNAbySyGS;
+use NAbySy\ORM\xORMHelper;
+
+class xObservCommande extends xObservGen {
+    
+    public function __construct(xNAbySyGS $NabySyGS) {
+        parent::__construct(
+            $NabySyGS,
+            'ObservateurCommande',
+            [
+                'xCommande_ADD',
+                'xCommande_EDIT',
+            ]
+        );
+    }
+    
+    public function RaiseEvent($ClassName, $EventType, &$EventArg) {
+        $action = $EventType[0];
+        $idCommande = $EventType[1];
+        
+        switch ($action) {
+            case 'xCommande_ADD':
+                $this->onNewOrder($idCommande);
+                break;
+                
+            case 'xCommande_EDIT':
+                $commande = $EventType[2];
+                $this->onOrderStatusChanged($commande);
+                break;
+        }
+    }
+    
+    /**
+     * Nouvelle commande créée
+     */
+    private function onNewOrder($idCommande) {
+        $commande = new xORMHelper($this->Main, $idCommande, false, "commandes");
+        
+        // 1. Notifier le client
+        $this->notifyCustomer($commande);
+        
+        // 2. Notifier l'équipe
+        $this->notifyTeam($commande);
+        
+        // 3. Mettre à jour les statistiques
+        $this->updateStats($commande);
+        
+        // 4. Déclencher le workflow
+        $this->triggerWorkflow($commande);
+    }
+    
+    /**
+     * Statut de commande modifié
+     */
+    private function onOrderStatusChanged($commande) {
+        if ($commande->Statut === 'Livrée') {
+            // Envoyer email de confirmation
+            $this->sendDeliveryConfirmation($commande);
+            
+            // Demander un avis client
+            $this->requestReview($commande);
+        }
+        
+        if ($commande->Statut === 'Annulée') {
+            // Restaurer le stock
+            $this->restoreStock($commande);
+            
+            // Notifier le client
+            $this->sendCancellationNotice($commande);
+        }
+    }
+    
+    private function notifyCustomer($commande) {
+        $client = new xORMHelper($this->Main, $commande->IdClient, false, "clients");
+        
+        $message = "Bonjour {$client->Nom}, votre commande #{$commande->Id} a été enregistrée.";
+        
+        // Envoyer SMS
+        if ($this->Main::$SMSEngine) {
+            $this->Main::$SMSEngine->EnvoieSMS($client->Telephone, $message);
+        }
+        
+        $this->Main::$Log->Write("Notification client envoyée : Commande #{$commande->Id}");
+    }
+    
+    private function notifyTeam($commande) {
+        // Envoyer notification à l'équipe (email, Slack, etc.)
+        $this->Main::$Log->Write("Nouvelle commande #{$commande->Id} - Montant: {$commande->MontantTotal}");
+    }
+    
+    private function updateStats($commande) {
+        // Mettre à jour les statistiques du jour
+        $stats = new xORMHelper($this->Main, null, true, "statistiques_ventes");
+        $today = date('Y-m-d');
+        
+        // Chercher ou créer l'entrée du jour
+        $existing = $stats->ChargeListe("Date = '$today'");
+        
+        if ($existing->num_rows > 0) {
+            $row = $existing->fetch_assoc();
+            $stats = new xORMHelper($this->Main, $row['ID'], true, "statistiques_ventes");
+            $stats->NombreCommandes += 1;
+            $stats->MontantTotal += $commande->MontantTotal;
+        } else {
+            $stats->Date = $today;
+            $stats->NombreCommandes = 1;
+            $stats->MontantTotal = $commande->MontantTotal;
+        }
+        
+        $stats->Enregistrer();
+    }
+    
+    private function triggerWorkflow($commande) {
+        // Créer automatiquement une tâche pour la préparation
+        $tache = new xORMHelper($this->Main, null, true, "taches");
+        $tache->Titre = "Préparer commande #{$commande->Id}";
+        $tache->Type = "Préparation";
+        $tache->IdCommande = $commande->Id;
+        $tache->Statut = "En attente";
+        $tache->DateCreation = date('Y-m-d H:i:s');
+        $tache->Enregistrer();
+    }
+    
+    private function restoreStock($commande) {
+        // Restaurer les quantités en stock
+        $lignes = new xORMHelper($this->Main, null, false, "ligne_commande");
+        $liste = $lignes->ChargeListe("IdCommande = {$commande->Id}");
+        
+        while ($ligne = $liste->fetch_assoc()) {
+            $produit = new xORMHelper($this->Main, $ligne['IdProduit'], false, "produits");
+            $produit->Stock += $ligne['Quantite'];
+            $produit->Enregistrer();
+        }
+        
+        $this->Main::$Log->Write("Stock restauré pour commande annulée #{$commande->Id}");
+    }
+}
+```
+
+### Déclencher Manuellement un Événement
+
+Si vous créez une classe personnalisée qui n'hérite pas de `xORMHelper`, vous pouvez déclencher manuellement des événements :
+
+```php
+<?php
+use NAbySy\xNAbySyGS;
+
+class MaClasseMetier {
+    private $nabysy;
+    
+    public function __construct(xNAbySyGS $nabysy) {
+        $this->nabysy = $nabysy;
+    }
+    
+    public function faireQuelqueChose() {
+        // ... votre logique ...
+        
+        // Déclencher un événement personnalisé
+        $eventArgs = [
+            'MonEvenement_CUSTOM',
+            123,  // ID ou données
+            'Information supplémentaire'
+        ];
+        
+        $this->nabysy::RaiseEvent('MaClasseMetier', $eventArgs);
+    }
+}
+```
+
+### Cas d'Usage Pratiques
+
+#### 1. Synchronisation avec API Externe
+
+```php
+<?php
+private function onProduitCreated($idProduit) {
+    $produit = new xORMHelper($this->Main, $idProduit, false, "produits");
+    
+    // Synchroniser avec système externe
+    $curl = $this->Main::$CURL;
+    $data = [
+        'nom' => $produit->Nom,
+        'prix' => $produit->Prix,
+        'stock' => $produit->Stock
+    ];
+    
+    $response = $curl->Post('https://api-externe.com/products', $data);
+    
+    if ($response['success']) {
+        $produit->IdExterne = $response['id'];
+        $produit->Enregistrer();
+    }
+}
+```
+
+#### 2. Audit Trail Automatique
+
+```php
+<?php
+public function RaiseEvent($ClassName, $EventType, &$EventArg) {
+    $action = $EventType[0];
+    $id = $EventType[1];
+    $objet = $EventType[2] ?? null;
+    
+    // Créer automatiquement un journal d'audit
+    $audit = new xORMHelper($this->Main, null, true, "audit_log");
+    $audit->Action = $action;
+    $audit->TableCible = $ClassName;
+    $audit->IdEnregistrement = $id;
+    $audit->DateAction = date('Y-m-d H:i:s');
+    $audit->Utilisateur = $this->Main->User->Login ?? 'SYSTEM';
+    
+    if ($objet) {
+        $audit->DonneesAvant = json_encode($objet->ToObject());
+    }
+    
+    $audit->Enregistrer();
+}
+```
+
+#### 3. Cache Invalidation
+
+```php
+<?php
+private function onProduitUpdated($idProduit, $produit) {
+    // Invalider le cache
+    $cacheKey = "produit_$idProduit";
+    
+    if (function_exists('apcu_delete')) {
+        apcu_delete($cacheKey);
+    }
+    
+    // Ou avec Redis
+    // $redis->del($cacheKey);
+    
+    $this->Main::$Log->Write("Cache invalidé pour produit #$idProduit");
+}
+```
+
+### Désactiver un Observateur
+
+```php
+<?php
+// Dans votre observateur
+public function RaiseEvent($ClassName, $EventType, &$EventArg) {
+    // Vérifier si l'observateur est actif
+    if (!$this->State()) {
+        return;
+    }
+    
+    // ... logique normale ...
+}
+
+// Pour désactiver/activer
+$observateur->State(false); // Désactiver
+$observateur->State(true);  // Activer
+```
+
+### Bonnes Pratiques avec les Événements
+
+1. **Nommage cohérent** : Utilisez `{Classe}_{Action}` pour les événements
+2. **Logging** : Toujours logger les actions importantes
+3. **Performances** : Évitez les traitements lourds dans les observateurs
+4. **Async** : Pour les traitements longs, utilisez des queues (Beanstalkd, RabbitMQ)
+5. **Test** : Créez des observateurs de test pour vérifier le déclenchement
+6. **Documentation** : Documentez les événements disponibles dans votre module
+
+### Debug des Événements
+
+```php
+<?php
+// Activer les logs détaillés
+$nabysy->ActiveDebug = true;
+
+// Dans votre observateur
+public function RaiseEvent($ClassName, $EventType, &$EventArg) {
+    if ($this->Main->ActiveDebug) {
+        $this->Main::$Log->Write("Événement déclenché : " . json_encode($EventType));
+    }
+    
+    // ... logique ...
+}
+```
+
 ## 🎯 Bonnes Pratiques
 
 1. **Toujours utiliser `ValideUser()`** pour protéger vos endpoints sensibles
@@ -418,6 +871,8 @@ $clone = $produitOriginal->Clone("autre_base");
 3. **Utiliser xNotification** pour les réponses réussies, `xErreur` pour les erreurs
 4. **Activer le debug** uniquement en développement
 5. **Versionner** votre fichier `appinfos.php` pour la configuration personnalisée
+6. **Créer des observateurs** pour automatiser les tâches répétitives
+7. **Logger les événements importants** pour faciliter le débogage
 
 ## 📝 Structure de Réponse
 
