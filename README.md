@@ -1231,91 +1231,6 @@ $commande = Commande::find(1);
 $client = $commande->client; // Automatique via relation définie
 ```
 
-##### 2. **Performance sur Gros Volumes**
-- ⚠️ **Pas d'optimisation de requêtes** - SELECT * par défaut
-- ⚠️ **Pas de lazy loading** - Charge toutes les données
-- ⚠️ **Pas de batch insert optimisé**
-
-```php
-// NAbySyGS - Boucle (lent pour 10000 records)
-for ($i = 0; $i < 10000; $i++) {
-    $produit = new xORMHelper($nabysy, null, true, "produits");
-    $produit->Nom = "Produit $i";
-    $produit->Enregistrer(); // 10000 requêtes SQL
-}
-
-// Eloquent - Batch insert (rapide)
-Produit::insert($arrayOf10000Records); // 1 requête SQL
-```
-
-##### 3. **Pas de Support Multi-bases**
-- ❌ MySQL/MariaDB uniquement
-- ❌ Pas de PostgreSQL, SQLite, SQL Server
-
-**Autres ORM :**
-- Doctrine : MySQL, PostgreSQL, Oracle, SQLite, SQL Server
-- Eloquent : MySQL, PostgreSQL, SQLite, SQL Server
-
-##### 4. **Typage Dynamique (pas de IDE autocomplete)**
-```php
-// NAbySyGS - Pas d'autocomplétion
-$produit->Nom = "...";  // L'IDE ne connaît pas ce champ
-
-// Doctrine/Eloquent - Autocomplétion complète
-$produit->setNom("...");  // L'IDE suggère les méthodes
-```
-
-##### 5. **Pas de Migration Versionnée**
-- ❌ Pas d'historique des changements de schéma
-- ❌ Difficile de revenir en arrière (rollback)
-- ❌ Pas de versioning entre environnements
-
-**Autres ORM :**
-```bash
-# Doctrine
-php bin/console doctrine:migrations:migrate
-
-# Laravel
-php artisan migrate
-php artisan migrate:rollback
-```
-
-##### 6. **Documentation et Communauté Limitées**
-- ⚠️ Moins de ressources en ligne
-- ⚠️ Communauté plus petite
-- ⚠️ Moins d'exemples et tutoriels
-
-**Autres ORM :**
-- Doctrine : Documentation exhaustive, Stack Overflow
-- Eloquent : Laravel Docs, Laracasts, communauté massive
-
-##### 7. **Tests Unitaires Complexes**
-```php
-// Difficile de mocker xORMHelper
-class MonTest extends PHPUnit\Framework\TestCase {
-    public function testProduit() {
-        // Comment mocker $nabysy et la connexion MySQL ?
-    }
-}
-
-// Eloquent - Facile avec factories
-$produit = Produit::factory()->create();
-```
-
-##### 8. **Validation des Données Manuelle**
-```php
-// NAbySyGS - Validation manuelle
-if (empty($produit->Nom) || $produit->Prix < 0) {
-    throw new Exception("Données invalides");
-}
-
-// Laravel Eloquent - Validation intégrée
-$validated = $request->validate([
-    'nom' => 'required|max:255',
-    'prix' => 'required|numeric|min:0'
-]);
-```
-
 ### 🎯 Quand Utiliser NAbySyGS ?
 
 #### ✅ **Idéal Pour :**
@@ -1406,46 +1321,6 @@ $produit->Enregistrer();
 - Vous êtes **seul ou en petite équipe**
 - Vous préférez la **simplicité à la puissance**
 
-**Utilisez Doctrine/Eloquent si :**
-- Projet à **long terme avec évolution complexe**
-- Besoin de **performances optimales**
-- Équipe **expérimentée en PHP**
-- Application **critique avec gros trafic**
-- Besoin de **tests unitaires robustes**
-
-### 🔮 Évolutions Futures Possibles
-
-Pour améliorer NAbySyGS, considérez d'ajouter :
-
-1. ✅ **Query Builder Fluent**
-```php
-$produits = $orm->table('produits')
-    ->where('prix', '>', 1000)
-    ->orderBy('nom')
-    ->limit(10)
-    ->get();
-```
-
-2. ✅ **Relations Automatiques**
-```php
-$client->Commandes;  // Charge automatiquement les commandes
-```
-
-3. ✅ **Support PostgreSQL**
-
-4. ✅ **Validation Intégrée**
-```php
-$produit->validate([
-    'nom' => 'required|max:255',
-    'prix' => 'numeric|min:0'
-]);
-```
-
-5. ✅ **Batch Operations**
-```php
-$orm->insertBatch($array);  // Insert massif optimisé
-```
-
 ## 🎯 Bonnes Pratiques
 
 1. **Toujours utiliser `ValideUser()`** pour protéger vos endpoints sensibles
@@ -1488,7 +1363,7 @@ $orm->insertBatch($array);  // Insert massif optimisé
 
 Les contributions sont les bienvenues ! N'hésitez pas à :
 
-1. Fork le projet
+1. Proposer des suggestions aux projet
 2. Créer une branche (`git checkout -b feature/amelioration`)
 3. Commit vos changements (`git commit -m 'Ajout fonctionnalité'`)
 4. Push sur la branche (`git push origin feature/amelioration`)
@@ -1506,7 +1381,7 @@ MIT License - voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ## 🙏 Remerciements
 
-Développé par **Paul & Aïcha Machinerie (PAM)** et **MCP**.
+Développé par **Paul & Aïcha Machinerie (PAM)** et **Micro Computer Programme (MCP)**.
 
 ---
 
