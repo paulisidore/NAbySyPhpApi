@@ -103,6 +103,11 @@ Class xNAbySyGS
 	public $BaseSite ;
 	public $RacineSite ;
 
+	/**
+	 * Sous-Repertoire de stockage des Modules NAbySy-GS
+	 */
+	public static string $GSSubDirectory="" ;
+
 	public $Template ;
 	public xUser $User;
 
@@ -174,8 +179,19 @@ Class xNAbySyGS
 	 */
 	public static ?string $BASEDIR = null ;
 
-	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, string $baseDir=null)
-	{
+	/**
+	 * Id de la boutique chargée de l'authentification des Utilisateurs
+	 * @var null|int
+	 */
+	public static ?int $AUTH_BOUTIQUE_ID = null ;
+
+	public bool $DesableTokenCheckingOnLoad = true ;
+
+	public static ?xNAbySyGS $ParentNAbySy = null ;
+
+	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
+		string $baseDir=null, ?bool $desableTokenAuth=true)
+	{ 
 		self::$Main = $this ;
 		if(isset($baseDir)){
 			if( $baseDir !==''){
@@ -186,6 +202,9 @@ Class xNAbySyGS
 			$Dt=date('mY') ;
 			self::$Log=new xLog($this,"NAbySyGS_Log-".$Dt.".csv") ;
 			//self::$Log->Write("Chargement du Module Principal NAbySy RH-RS");
+		}
+		if(isset($desableTokenAuth)){
+			$this->DesableTokenCheckingOnLoad = $desableTokenAuth ;
 		}
 		$Chemin=explode("/",$_SERVER['REQUEST_URI']) ;
 		$this->RacineSite=$Chemin[1] ;
@@ -233,7 +252,7 @@ Class xNAbySyGS
 			}
 		}
 		
-		if(!isset(self::$db_link)){
+		if(!isset(self::$db_link) || $Myserveur !== $this->db_serveur ){
 			if($port <= 0){
 				$port=3306;
 			}
@@ -253,7 +272,7 @@ Class xNAbySyGS
 			$this->db_pass=$Mypasswd ;
 			$this->db_serveur=$Myserveur ;
 			$this->UserToken=null ;
-			
+
 			if ($this->IsLinuxOS){
 				try{
 					//self::$db_link->query("SET time_zone = 'Africa/Dakar'");
@@ -302,13 +321,29 @@ Class xNAbySyGS
 
 			//$this->AddToJournal("SYSTEME",0,"DEBUG","Prêt pour les opérations !") ;
 			
-			$this->ChargeInfos() ;			
-						
+			$this->ChargeInfos() ;
+			
+			if($this->MaBoutique->DataBase !== $this->DataBase){
+				var_dump("Choix de la base de donnée de la boutique en cours : ".$this->MaBoutique->DataBase);
+				$Lst=$this->MaBoutique->ChargeListe("dbname like '".$this->DataBase."'") ;
+				if($Lst->num_rows>0){
+					$rw=$Lst->fetch_array() ;
+					$IdB=0;
+					if(isset($rw['id'])){
+						$IdB=$rw['id'] ;
+					}elseif(isset($rw['ID'])){
+						$IdB=$rw['ID'] ;
+					}elseif(isset($rw['Id'])){
+						$IdB=$rw['Id'] ;
+					}
+					$Bout=new xBoutique($this,$IdB) ;
+					$this->MaBoutique=$Bout ;
+				}
+			}			
 			
 			self::$SMSEngine=new xSMSEngine($this);
 			
 			self::$BonAchatManager=new xBonAchatManager($this);			
-			
 
 			foreach (self::$ListeModuleAutoLoader as $AutoLoad){
 				//On chargera uniquement les Observateurs
@@ -326,24 +361,30 @@ Class xNAbySyGS
 			self::$GSModManager = new xGSModuleManager(self::$Main);
 
 			$this->ReadConfig() ;
+
+			self::$Main = $this ;
 		}
 
 	}
-	public function ChargeInfos(){
+	public function ChargeInfos(xBoutique $StartBoutique=null){
 		$postData=$this->ConvertBodyPostToArray();
 		$PARAM=$_REQUEST;
-		
 		//On charge la boutique par défaut qui est le Depot
 		//self::$Log->Write("Chargement des Données du Dépot...");
-		$this->MaBoutique=new xBoutique($this,0);
 		
-		$Depot=$this->MaBoutique->GetDepot();
-		//var_dump($Depot);
-		if (isset($Depot)){
-			if ($Depot->Id>0){
-				$this->MaBoutique=$Depot;
+		if(isset($StartBoutique)){
+			$this->MaBoutique=$StartBoutique ;
+		}else{
+			$this->MaBoutique=new xBoutique($this,0);
+			$Depot=$this->MaBoutique->GetDepot();
+			//var_dump($Depot);
+			if (isset($Depot)){
+				if ($Depot->Id>0){
+					$this->MaBoutique=$Depot;
+				}
 			}
 		}
+
 		if($this->MaBoutique->Id == 0){
 			$this->MaBoutique->IdCompteClient=0;
 			$this->MaBoutique->Nom = $this->MODULE->MCP_CLIENT;
@@ -374,7 +415,8 @@ Class xNAbySyGS
 		}
 
 		$IdUtilisateur=null;
-		if (isset($_REQUEST['Token'])){
+		
+		if (isset($_REQUEST['Token']) && !$this->DesableTokenCheckingOnLoad){
 			$Auth=new xAuth($this) ;
 			//echo 'je cherche ici NAbySyMain...' ;
 			$Usr=$Auth->DecodeToken($_REQUEST['Token']);
@@ -417,8 +459,7 @@ Class xNAbySyGS
 			$this->User=new xUser($this,$IdUser) ;
 			$Auth=new xAuth($this) ;
 			$this->UserToken=$Auth->GetToken($this->User);
-		}
-		
+		}		
 	}		
 	
 
@@ -433,6 +474,46 @@ Class xNAbySyGS
 		}
 		self::$db_link->select_db($base);
 		return true;
+	}
+
+	public function SelectBoutique(int $IdBoutique){
+		$xBoutique=new xBoutique($this,$IdBoutique) ;
+		if (isset($xBoutique)){
+			if ($xBoutique->Id>0){
+				$this->MaBoutique=$xBoutique ;
+				$this->SelectDB($xBoutique->DBName) ;
+				return true ;
+			}
+		}
+		return false ;
+	}
+
+	public static function SelectDefautBoutique(int $IdBoutique){
+		$xBoutique=new xBoutique(self::$Main,$IdBoutique) ;
+		if (isset($xBoutique)){
+			if ($xBoutique->Id>0){
+				self::$Main->MaBoutique=$xBoutique ;
+				self::$Main->SelectDB($xBoutique->DBName) ;
+				return true ;
+			}
+		}
+		return false ;
+	}
+
+	/**
+	 * Retourne la Boutique ayant le Id = IdBoutique.
+	 * Si IdBoutique = 0, La fonction retourne le dépôt
+	 * @param int $IdBoutique 
+	 * @return null|xBoutique 
+	 * @throws Exception 
+	 */
+	public static function GetBoutiqueByID(int $IdBoutique):null|xBoutique{
+		$nab=self::getInstance();
+		if(isset(self::$ParentNAbySy)){
+			$nab = self::$ParentNAbySy ;
+		}
+		$Bout=$nab->MaBoutique->GetDepot($IdBoutique);
+		return $Bout ;
 	}
 
 	public function ReadSQLArray($SQL,$Debug=true){
@@ -511,7 +592,22 @@ Class xNAbySyGS
 			fclose($monfichier);
 
 			//En cas d'erreur on l'inscrit dans le journal systeme
-			$ErrSQL="insert into ".$this->MasterDataBase.".journal (`DATEENREG`,`HEUREENREG`,`OPERATION`,`NOTE`) values(
+			$ChampDate="DateEnreg" ;
+			$ChampHeure="HeureEnreg" ;
+			$ChampOperation = "OPERATION" ;
+			$MyDB=new xDB($this) ;
+			if(!$MyDB->ChampsExiste("journal",$ChampDate,$this->MainDataBase)){
+				if($MyDB->ChampsExiste("journal","Date",$this->MainDataBase)){
+					$ChampDate="Date" ;
+					$ChampHeure="Heure" ;
+					$ChampOperation = "Tache" ;
+				}
+			}
+			if(!$MyDB->ChampsExiste("journal","IdUtilisateur",$this->MainDataBase)){
+				$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","ADD","0",$this->MainDataBase) ;
+			}
+			
+			$ErrSQL="insert into ".$this->MasterDataBase.".journal (`".$ChampDate."`,`".$ChampHeure."`,`".$ChampOperation."`,`NOTE`) values(
 			'".$Dat."','".$Tim."','".$Tache."','".$Note."')" ;
 			$OkErr=self::$db_link->query($ErrSQL);
 			if (!$OkErr){
@@ -606,7 +702,28 @@ Class xNAbySyGS
 		$Note=self::$db_link->real_escape_string($Note);
 		$Tache=self::$db_link->real_escape_string($Tache);
 		
-		$sqljo="INSERT INTO ".$this->MasterDataBase.".journal (DateEnreg, HeureEnreg, IdUtilisateur, IP, PortClient, Operation,Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
+		$ChampDate="DateEnreg" ;
+		$ChampHeure="HeureEnreg" ;
+		$ChampOperation = "OPERATION" ;
+		$ChampPortClient = "PortClient";
+		$MyDB=new xDB($this) ;
+		if(!$MyDB->ChampsExiste("journal",$ChampDate,$this->MainDataBase)){
+			if($MyDB->ChampsExiste("journal","Date",$this->MainDataBase)){
+				$ChampDate="Date" ;
+				$ChampHeure="Heure" ;
+				$ChampOperation = "Tache" ;
+			}
+		}
+		if(!$MyDB->ChampsExiste("journal","IdUtilisateur",$this->MainDataBase)){
+			$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","ADD","0",$this->MainDataBase) ;
+		}
+		if(!$MyDB->ChampsExiste("journal","IP",$this->MainDataBase)){
+			$MyDB->AlterTable("journal","IP","VARCHAR(255)","ADD","0.0.0.0",$this->MainDataBase) ;
+		}
+		if(!$MyDB->ChampsExiste("journal",$ChampPortClient,$this->MainDataBase)){
+			$MyDB->AlterTable("journal",$ChampPortClient,"INT(11)","ADD","0",$this->MainDataBase) ;
+		}
+		$sqljo="INSERT INTO ".$this->MasterDataBase.".journal (".$ChampDate.", ".$ChampHeure.", IdUtilisateur, IP, ".$ChampPortClient.", ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
 		$reqJ=$this->ReadWrite($sqljo,true,'journal',false) ;
 		if (!$reqJ)
 			{
@@ -662,8 +779,7 @@ Class xNAbySyGS
 	}
 	
 	public function ReadConfig($Id=0){
-		//var_dump($_REQUEST);
-		if (isset($_REQUEST['Token'])){
+		if (isset($_REQUEST['Token']) && !$this->DesableTokenCheckingOnLoad){
 			$Token=$_REQUEST['Token'] ;
 			$Auth=new xAuth($this);
 			$UserToken=$Auth->DecodeToken($Token) ;
@@ -960,6 +1076,16 @@ Class xNAbySyGS
 		}
 		//On ajoute les modules de l'application hôte
 		$dossierMod = self::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
+		if(!is_dir($dossierMod)){
+			try {
+				mkdir($dossierMod,0777,true);
+			} catch (\Throwable $th) {
+				$nabysy=self::getInstance();
+				if($nabysy->ActiveDebug){
+					throw $th;
+				}
+			}
+		}
 		$liste=scandir($dossierMod) ;
 		foreach ($liste as $dossier){
 			if ($dossier!="." && $dossier!=".." && $dossier!="Thumbs.db"){
@@ -1633,7 +1759,8 @@ Class xNAbySyGS
 		}
 
 		$Conn = $StartInfo->Connexion ;
-		$nabysy = new xNAbySyGS($Conn->Serveur,$Conn->DBUser,$Conn->DBPwd,$StartInfo->InfoClientMCP,$Conn->DB,$Conn->MasterDB)  ;
+		
+		$nabysy = new xNAbySyGS($Conn->Serveur,$Conn->DBUser,$Conn->DBPwd,$StartInfo->InfoClientMCP,$Conn->DB,$Conn->MasterDB, $Conn->Port, self::$BASEDIR, $StartInfo->DesableTokenAuth)  ;
 		if ($nabysy == false){
 			$Err=new xErreur();
 			$Err->OK=0;
@@ -1651,6 +1778,7 @@ Class xNAbySyGS
 			ini_set('display_startup_errors', $StartInfo->DisplayStartUpErrors);
 			error_reporting($StartInfo->ErrorReporting);
 		}
+		$nabysy->ChargeInfos();
 		$nabysy->AutorisationCORS();
 		return $nabysy ;
 	}
@@ -1673,7 +1801,7 @@ Class xNAbySyGS
 	public static function Init(string $AppName="NAbySyGS-PAM Internal Service API", string $NomClient="Paul & Aïcha Machinerie SARL",
 		string $AdresseClient="Dakar Zack Mbao", string $TelClt="+221 33 836 14 77", string $Database="nabysygs", 
 		string $MasterDataBase="nabysygs", string $Server="127.0.0.1", string $DBUser="root", string $DBPwd="", int $DBPort=3306,
-		?string $baseDir = null):xNAbySyGS{
+		?string $baseDir = null, ?bool $DesableTokenAuth=true):xNAbySyGS{
 		$InfoClientMCP = new ModuleMCP();
 		$InfoClientMCP->Nom = $AppName ;
 		$InfoClientMCP->MCP_CLIENT = $NomClient;
@@ -1690,6 +1818,7 @@ Class xNAbySyGS
 		self::$BASEDIR = $baseDir ;
 
 		$StartInfo = new xStartUpInfo($InfoClientMCP, $Connexion);
+		$StartInfo->DesableTokenAuth = $DesableTokenAuth ;
 		return self::Start($StartInfo);
 		
 	}
@@ -1745,9 +1874,32 @@ Class xNAbySyGS
 		if ($HostAppFolder){
 			$Rep = $_SERVER['DOCUMENT_ROOT'] ;
 			if(isset(self::$BASEDIR) && self::$BASEDIR !==''){
+				$PrecRep = $Rep ;
 				$Rep .= DIRECTORY_SEPARATOR.self::$BASEDIR ;
 				if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+					echo "Creation du dossier ".$Rep." dans ". $PrecRep ." !</br>";
+					try {
+						mkdir($Rep,0777,true);
+					} catch (\Throwable $th) {
+							throw $th;
+					}
+				}
+				if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
 					throw new Exception("Basedir ".$Rep." introuvable !", 1);
+				}
+				if(self::$GSSubDirectory !== ""){
+					$Rep .= DIRECTORY_SEPARATOR.self::$GSSubDirectory ;
+					if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+						echo "Creation du sous-dossier ".self::$GSSubDirectory." dans ". $PrecRep ." !</br>";
+						try {
+							mkdir($Rep,0777,true);
+						} catch (\Throwable $th) {
+								throw $th;
+						}
+					}
+					if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+						throw new Exception("GS Sub Directory ".self::$GSSubDirectory." introuvable dans ". $PrecRep ." !", 1);
+					}
 				}
 			}
 			$Rep=str_replace('/',DIRECTORY_SEPARATOR,$Rep)  ;
@@ -1788,8 +1940,14 @@ Class xNAbySyGS
 	 * Retourne l'Objet principal NAbySyGS
 	 * @return xNAbySyGS 
 	 */
-	public static function getInstance(){
-		return self::$Main;
+	public static function getInstance(?xBoutique $Boutique=null):xNAbySyGS{
+		$nab=self::$Main;
+		if(isset($Boutique)){
+			if($Boutique->Id>0){
+				$nab->SelectBoutique($Boutique->Id);
+			}
+		}
+		return $nab;
 	}
 
 	/**

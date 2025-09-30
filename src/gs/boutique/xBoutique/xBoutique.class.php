@@ -306,7 +306,7 @@ Class xBoutique extends xORMHelper  {
 		
 	}
 
-	public function GetDepot($Id=null){
+	public function GetDepot($Id=null):null|xBoutique{
 		$TxI="" ;
 		if (isset($Id)){
 			if ($Id>0){
