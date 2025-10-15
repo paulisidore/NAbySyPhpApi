@@ -109,6 +109,14 @@ if (!class_exists('N')) {
         }
     }
 
+    //On s'assure qu'aucun module de routage est abilité à traiter la requette
+    $Rep=N::$UrlRouter::resolveUrlRoute(true);
+    if($Rep->OK>0){
+        //La requette a été traitée par un Routeur:
+        N::$Log->Write("Requette traitée par un Router: ".json_encode($Rep));
+        exit;
+    }
+
 /** Traitement des Actions interne à NAbySyGS" */
     //Si nous somme ici alors on pursuivre sur les autres action de l'API
     $rep=N::ModuleGSFolder().DIRECTORY_SEPARATOR ;

@@ -365,6 +365,124 @@ use xNAbySyCustomListOf;
       return false;
    }
 
+   /**
+    * Créer un nouveau controlleur de route basé sur l'URL
+    * @param string $ClassName 
+    * @param string $DossierCategorie 
+    * @return bool|xNotification 
+    * @throws Throwable 
+    * @throws Exception 
+    */
+   public static function GenerateUrlRouteController(string $ClassName, string $DossierCategorie):bool|xNotification{
+      $Rep=new xNotification();
+      $Rep->OK = 0;
+      $DossierFinal=null ;
+      $vRouterName=self::$Main::toCamelCase($ClassName);
+      $ClassName = $vRouterName ;
+
+      try {
+         $lstDosMod=explode(DIRECTORY_SEPARATOR, $DossierCategorie);
+         if(count($lstDosMod) < 2){
+            $DossierCategorie = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR.$DossierCategorie ;
+         }
+         
+         if(!is_dir($DossierCategorie)){
+            mkdir($DossierCategorie, 0777, true) ;
+         }
+         if(substr($ClassName,0,1) !== 'r' && substr($ClassName,0,1) !== 'R'){
+            $ClassName = 'r'.$ClassName ;
+         }
+         if(substr($ClassName,0,1) == 'R'){
+            $ClassName = 'r'. substr($ClassName,1) ;
+         }
+
+         $DossMod = $DossierCategorie.DIRECTORY_SEPARATOR ;
+         $DossMod = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$DossMod);
+         //$DossMod = ''; // $DossMod.$ClassName.DIRECTORY_SEPARATOR ;
+         if(!is_dir($DossMod)){
+            mkdir($DossMod, 0777, true) ;
+         }
+         $DossierFinal = $DossMod ;
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      if(!isset($DossierFinal)){
+         throw new \Exception("Impossible de créer le router ".$ClassName." dans la catégorie ".$DossierFinal) ;
+         return false;
+      }
+
+      $fichier_module=$DossierFinal.$ClassName.".route.php" ;
+      if(file_exists($fichier_module)){
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("Attention le fichier ".$fichier_module." existe déjà.");
+         }
+         $Rep->OK=1;
+         return $Rep;
+         throw new \Exception("Erreur impossible de créer le module. Le fichier ".$fichier_module." existe déjà", 0);
+      }
+
+      $templatePath =self::$Main::CurrentFolder() . 'templates/'.N_TYPE_URL_ROUTE.'/'.N_TYPE_URL_ROUTE.'Template.route.php';
+      $outputDir = $DossierFinal ;
+      $newClassName = $ClassName;
+
+      // Lire le contenu du template
+      $template = file_get_contents($templatePath);
+
+      // Remplacer dynamiquement des morceaux
+      $baseDir="";
+      if(self::$Main::$BASEDIR){
+         if(trim(self::$Main::$BASEDIR)!==''){
+            $baseDir=self::$Main::$BASEDIR;
+         }
+      }
+      if($baseDir !== ""){
+         $baseDir .= '/'; //DIRECTORY_SEPARATOR ;
+      }
+      $updated = str_replace([
+         'ModelTemplate',
+         '{DATE}',
+         '{NABYSYROOT}',
+         '{routename}',
+         '{ROUTENAME}',
+         '{BASEDIR}',
+      ], [
+         'r'.$vRouterName,
+         date('d/M/Y H:i:s'),
+         self::$Main->ModuleGSHostFolder().DIRECTORY_SEPARATOR,
+         strtolower($vRouterName),
+         strtoupper($vRouterName),
+         $baseDir,
+      ], $template);
+
+      // Créer le dossier si nécessaire
+      if (!is_dir($outputDir)) {
+         mkdir($outputDir, 0777, true);
+      }
+
+      try {
+         // Écrire dans un nouveau fichier
+         file_put_contents($fichier_module, $updated);
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("NAbySyGS Url Router ".$ClassName." générée dans le dossier ".$fichier_module) ;
+         }
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      $Rep->Source = $fichier_module ;
+      $Rep->OK = 1;
+      try {
+         chmod($fichier_module, 0774);
+         return $Rep;
+      } catch (\Throwable $th) {
+         $Rep->TxErreur='Attention: Impossible de modifier les droits sur le fichier '.$fichier_module.". Exception: ". $th->getMessage() ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_module, $th->getMessage()) ;
+         }
+         return $Rep ;
+      }
+      return false;
+   }
+
    public function __debugInfo() {
       $liste = array (self::$Categories ) ;
       return $liste ;

@@ -81,7 +81,7 @@ if(!file_exists($htaccess_file)){
 			$updated = str_replace([
 				'{NABYSYROOT}',
 			], [
-				N::CurrentFolder(),
+				N::CurrentFolder(true),
 			], $template);
 
 			//copy($templatePath, $htaccess_file);
