@@ -20,6 +20,11 @@ Class xAuth
     public static string $lastToken = '';
 
     public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null){
+        $token = self::extractFromHeader();
+        if (!isset($_REQUEST['Token']) && is_string($token) && $token !=="" ){
+            $_REQUEST['Token'] = $token ;
+        }
+
         $this->Main=$nabysy ;
         $this->Key = $nabysy->MasterDataBase;
         $dateexp=time();
@@ -145,6 +150,28 @@ Class xAuth
         }
 
         return $decoded ;
+    }
+
+    /**
+     * Extrait le token du header Authorization
+     * 
+     * @return string|null Token ou null si absent
+     */
+    public static function extractFromHeader(): ?string {
+        $headers = getallheaders();
+
+        if (!isset($headers['Authorization'])) {
+            return null;
+        }
+        
+        $auth = $headers['Authorization'];
+        
+        // Format attendu : "Bearer TOKEN"
+        if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
+            return $matches[1];
+        }
+        
+        return null;
     }
 
     public function EnteteAPI(){

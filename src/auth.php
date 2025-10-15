@@ -31,6 +31,7 @@ use NAbySy\xUser;
     $Auth=new xAuth($nabysy, N::$AUTH_DUREE_SESSION) ;
     $UserToken=null ;
     $Err=new xErreur;
+
     
     if (isset($_REQUEST['Token'])){
         $Token=$_REQUEST['Token'] ;

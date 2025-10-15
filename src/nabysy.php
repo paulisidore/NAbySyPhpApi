@@ -50,6 +50,8 @@ include_once 'lib/xCurlHelper/xCurlHelper.i.php';
 include_once 'lib/ModulePaieManager/ModulePaieManager.i.php';
 
 include_once 'GsModuleManager.class.php' ;
+include_once 'GSUrlRouterManager.class.php';
+include_once 'xNAbySyApiProxy.class.php';
 
 include_once 'startupinfo.php' ;
 
@@ -67,6 +69,8 @@ use NAbySy\Lib\ModulePaie\PaiementModuleLoader;
 use NAbySy\Lib\Sms\xSMSEngine;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\ModuleMCP;
+use NAbySy\Router\Url\xGSUrlRouterManager;
+use NAbySy\Router\Url\xGSUrlRouterResponse;
 use NAbySy\xErreur;
 use ReflectionObject;
 use xNAbySyCustomListOf;
@@ -75,16 +79,22 @@ Class xNAbySyGS
 {
 	public ModuleMCP $MODULE ;
 	public static mysqli $db_link ;
-	public $dbase ="" ;
-	public $DataBase="" ;
-	public $MainDataBase="" ;
-	public $db_user ="";
-	public $db_pass="" ;
-	public $db_serveur="" ;
+	public string $dbase ="" ;
+	public string $DataBase="" ;
+	public string $MainDataBase="" ;
+	public string $db_user ="";
+	public string $db_pass="" ;
+	public string $db_serveur="" ;
 	public int $db_port = 3306 ;
 	public $BoutiqueID = 0 ;
-	public $BoutiqueNOM ="" ;
-	public $Boutiques=array();
+	public string $BoutiqueNOM ="" ;
+
+	/**
+	 * Retourne la liste des boutiques
+	 * @var xBoutique[]
+	 */
+	public array $Boutiques=[];
+
 	public $Erreur;
 	public bool $ISCONNECTED = false ;	
 	public $MCP_SEPARATEUR ="" ;
@@ -188,6 +198,8 @@ Class xNAbySyGS
 	public bool $DesableTokenCheckingOnLoad = true ;
 
 	public static ?xNAbySyGS $ParentNAbySy = null ;
+
+	public static xGSUrlRouterManager $UrlRouter ;
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true)
@@ -363,9 +375,36 @@ Class xNAbySyGS
 			$this->ReadConfig() ;
 
 			self::$Main = $this ;
+
+			self::$UrlRouter = new xGSUrlRouterManager($this);
 		}
 
 	}
+
+	/**
+	 * Convertit un texte en carmel case
+	 * @param string $text 
+	 * @return string 
+	 */
+	public static function toCamelCase(string $text): string {
+		// 1. Remplacer les tirets (-) et les espaces ( ) par un espace standard (pour ucwords).
+		$text = str_replace(['-', ' '], ' ', $text);
+		
+		// 2. Mettre en majuscule la première lettre de chaque mot.
+		// NOTE : ucwords() est sensible à la locale et peut nécessiter mb_convert_case(MB_CASE_TITLE) 
+		// si vous travaillez avec des caractères spéciaux, mais la version simple suffit ici.
+		$text = ucwords($text);
+		
+		// 3. Supprimer tous les espaces restants.
+		$text = str_replace(' ', '', $text);
+
+		// 4. Mettre la première lettre de la chaîne résultante en minuscule (si vous voulez du 'lowerCamelCase').
+		// Si vous voulez garder la première lettre en majuscule (UpperCamelCase/PascalCase), vous pouvez sauter cette étape.
+		// $text = lcfirst($text); 
+		
+		return $text;
+	}
+
 	public function ChargeInfos(xBoutique $StartBoutique=null){
 		$postData=$this->ConvertBodyPostToArray();
 		$PARAM=$_REQUEST;
@@ -1713,14 +1752,10 @@ Class xNAbySyGS
 	}		
 
 	public function __debugInfo() {
-		$conn = array(
-			'Serveur' => $this->db_serveur,
-			'DBUser' => $this->db_user,
-			'DBPwd' => '******',
-			'DB' =>  $this->DataBase,
-			'MasterDB' => $this->MainDataBase,
-			'Port' => $this->db_port,
-		);
+		$NbRoute=0;
+		if(isset(self::$UrlRouter)){
+			$NbRoute=self::$UrlRouter->count();
+		}
         return array(
 			'Serveur' => $this->db_serveur,
 			'DBUser' => $this->db_user,
@@ -1728,7 +1763,8 @@ Class xNAbySyGS
 			'DB' =>  $this->DataBase,
 			'MasterDB' => $this->MainDataBase,
 			'Port' => $this->db_port,
-            'InfoClient' => $this->MODULE
+            'InfoClient' => $this->MODULE,
+			'URLRoute' => $NbRoute,
         );
     }
 
@@ -2050,6 +2086,16 @@ Class xNAbySyGS
 		
 	}
 
+	/**
+	 * Retourne tous les paramètres passée depuis un appel d'url
+	 * @return array 
+	 */
+	public static function GetHttpRequestParam():array{
+		if(isset($GLOBALS['PARAM'])){
+			return $GLOBALS['PARAM'] ;
+		}
+		return [];
+	}
 
 	/**
 	 * Traite les demandes d'authentifications
@@ -2060,17 +2106,6 @@ Class xNAbySyGS
 		$User=null ;
 		require 'auth.php';
 		return;
-
-		// Fichier PHP ciblé
-		// Obtenir la route et la méthode
-		$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-		$method = $_SERVER['REQUEST_METHOD'];
-
-		// Nettoyer et protéger
-		$path = trim($uri, '/');
-		$path = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $path);
-
-		$routeFile = self::CurrentFolder(true) . "/routes/" . ($path ?: "index") . ".php";
 	}
 
 	/**
@@ -2082,6 +2117,15 @@ Class xNAbySyGS
 			self::$Main->ChargeInfos();
 		}
 		require 'gs_api.php';
+	}
+
+	/**
+	 * Permet de passer les routeurs basée sur l'url
+	 * @return void 
+	 */
+	public static function ReadUrlRouterRequest():?xGSUrlRouterResponse{
+		if(self::$UrlRouter->count()==0){return null;}
+		return self::$UrlRouter::resolveUrlRoute();
 	}
 }
 
