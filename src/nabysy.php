@@ -36,6 +36,7 @@ include_once 'log.class.php' ;
 include_once 'orm.i.php' ;
 include_once 'orm.class.php' ;
 include_once 'user.class.php' ;
+include_once 'technoweb.i.php';
 
 include_once 'photo.class.php';
 include_once 'fileuploader.class.php';
@@ -64,11 +65,13 @@ use NAbySy\Lib\BonAchat\IBonAchatManager;
 use NAbySy\Lib\BonAchat\xBonAchatManager;
 use NAbySy\Lib\Http\xCurlHelper;
 use NAbySy\Lib\ModuleExterne\IModuleExterne;
+use NAbySy\Lib\ModuleExterne\TechnoWEB\ITechnoWEB;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\PaiementModuleLoader;
 use NAbySy\Lib\Sms\xSMSEngine;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\ModuleMCP;
+use NAbySy\ORM\xORMHelper;
 use NAbySy\Router\Url\xGSUrlRouterManager;
 use NAbySy\Router\Url\xGSUrlRouterResponse;
 use NAbySy\xErreur;
@@ -201,6 +204,36 @@ Class xNAbySyGS
 
 	public static xGSUrlRouterManager $UrlRouter ;
 
+	/**
+	 * Si oui, le Routage par URL sera actif même si on n'appel pas la méthode
+	 * N::ReadUrlRouterRequest();
+	 * @var bool
+	 */
+	public static bool $ActiveUrlRouter = true ;
+
+	/**
+	 * Par défaut, si aucune route par URL trouvé, Les routes par paramètre (Méthode NAbySy NAtif) seront vérifiées
+	 * @var bool
+	 */
+	public static bool $ByPasseNoUrlRoute = true;
+
+	/** Paramétrage de l'etablissement */
+	public ?xORMHelper $Parametre ;
+
+	public static ITechnoWEB |null $TechnoWEBMgr ;
+
+	/**
+	 * Dossier de Travail de la base de donnée en cour
+	 * @var string
+	 */
+	public string $RepWork = '' ;
+
+	/**
+	 * Liste des Client PAM / Boutiques chargée dans le cache
+	 * @var array
+	 */
+	public static $ListeBoutique=[];
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true)
 	{ 
@@ -319,9 +352,12 @@ Class xNAbySyGS
 					}
 				}
 			}
+
 			self::LoadModuleLib();
 						
 			self::LoadModuleGS();
+
+			$this->ChargeInfos() ;
 
 			self::LoadExternalModuleLib();
 
@@ -333,7 +369,7 @@ Class xNAbySyGS
 
 			//$this->AddToJournal("SYSTEME",0,"DEBUG","Prêt pour les opérations !") ;
 			
-			$this->ChargeInfos() ;
+			
 			
 			if($this->MaBoutique->DataBase !== $this->DataBase){
 				var_dump("Choix de la base de donnée de la boutique en cours : ".$this->MaBoutique->DataBase);
@@ -381,6 +417,14 @@ Class xNAbySyGS
 
 	}
 
+	public static function initializeTechnoWEB(ITechnoWEB $manager): void {
+        self::$TechnoWEBMgr = $manager;
+		if(isset(self::$TechnoWEBMgr)){
+			self::getInstance()->LoadDataBaseFromTechnoWEBClient();
+			//var_dump("Base de donnée du Client: ".self::getInstance()->MaBoutique->DataBase);exit;
+		}
+    }
+
 	/**
 	 * Convertit un texte en carmel case
 	 * @param string $text 
@@ -420,6 +464,7 @@ Class xNAbySyGS
 			if (isset($Depot)){
 				if ($Depot->Id>0){
 					$this->MaBoutique=$Depot;
+					self::$ListeBoutique[]=$Depot ;
 				}
 			}
 		}
@@ -437,6 +482,17 @@ Class xNAbySyGS
 			$this->MaBoutique->Enregistrer();
 		}
 		
+		$LstB=$this->MaBoutique->ChargeListe("ID <> ".$Depot->Id,null,"ID");
+		if($LstB->num_rows){
+			while($rw = $LstB->fetch_assoc()){
+				$Bout = new xBoutique($this,(int)$rw['ID'],false);
+				if($Bout->Id){
+					$this->Boutiques[] = $Bout ;
+					self::$ListeBoutique[] = $Bout ;
+				}
+			}
+		}
+
 		if (isset($_REQUEST['TOKEN'])){
 			$_REQUEST['Token']=$_REQUEST['TOKEN'] ;
 		}
@@ -498,7 +554,9 @@ Class xNAbySyGS
 			$this->User=new xUser($this,$IdUser) ;
 			$Auth=new xAuth($this) ;
 			$this->UserToken=$Auth->GetToken($this->User);
-		}		
+		}
+		
+		$this->Parametre = new xORMHelper($this,1,true,'parametre');
 	}		
 	
 
@@ -1300,15 +1358,21 @@ Class xNAbySyGS
 				//var_dump($FichierInterface);
 				if (file_exists($FichierInterface)){
 					include_once $FichierInterface ;
-					$pre= "\NAbySy\Lib\ModuleExterne\\".$Librairie[0];
-					$ModClass=new $pre(self::$Main) ;
-					if ($ModClass instanceof IModuleExterne){
-						//self::$Log->Write("Module externe ".$Librairie[0]." chargé.");
-						self::$ListeModuleExterne[]=$Librairie;
-						//var_dump("Module externe ".$Librairie[0]." chargé.");
-					}else{
-						self::$Log->Write("La librairie ".$Librairie[0]." n'est pas un module compatible avec NAbySyGS");
-					}					
+					try {
+						$pre= "NAbySy\Lib\ModuleExterne\\".$Librairie[0];
+						$ModClass=new $pre(self::$Main) ;
+						if ($ModClass instanceof IModuleExterne){
+							//self::$Log->Write("Module externe ".$Librairie[0]." chargé.");
+							self::$ListeModuleExterne[]=$Librairie;
+							//var_dump("Module externe ".$Librairie[0]." chargé.");
+						}else{
+							self::$Log->Write("La librairie ".$Librairie[0]." n'est pas un module compatible avec NAbySyGS");
+						}
+					} catch (\Throwable $th) {
+						//C'est une Librairie Non Module Externe, par exemple TechnoWeb
+					}
+					
+										
 				}else{
 					//var_dump($FichierInterface." introuvable");
 					$Tache="CHARGEMENT DES LIBRAIRIES";
@@ -1448,7 +1512,7 @@ Class xNAbySyGS
 			
 			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
 				// may also be using PUT, PATCH, HEAD etc
-				header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+				header("Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE");
 			
 			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
 				header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
@@ -2085,6 +2149,182 @@ Class xNAbySyGS
 		return true;
 		
 	}
+
+	public function LoadDataBaseFromTechnoWEBClient():xNotification{
+		$BoutiqueCible=null;
+		$Notif = new xNotification();
+		$Notif->OK=0;
+		if(isset($_REQUEST['IDTECHNOWEB'])){
+			//Si IdTechnOWeb fournit, on recherche la bonne base de donnée.
+			$IdTechnoWeb = trim($_REQUEST['IDTECHNOWEB']);
+			
+			if($IdTechnoWeb !==''){
+				$CltTechnoWeb = self::$TechnoWEBMgr::GetClientTechnoWeb($IdTechnoWeb);
+				if ($CltTechnoWeb){
+					$CltTechnoWeb->Refresh();
+					if($CltTechnoWeb->Id){
+						$CltDataBase=trim($CltTechnoWeb->ServiceDB) ;
+						if ($CltDataBase !==''){
+							if($CltTechnoWeb->DBExiste($CltDataBase)){
+								$BoutiqueCible = self::GetBoutique(-1,$CltTechnoWeb->RaisonSocial, $CltDataBase) ;
+								if(!isset($BoutiqueCible)){
+									self::$Log->Write(__FILE__." LIGNE: ".__LINE__ . ": Client ".$CltTechnoWeb->RaisonSocial." introuvable !");
+									$IdB=null;
+									self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Création de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
+
+									$Bout = new xORMHelper($this,$IdB,self::GLOBAL_AUTO_CREATE_DBTABLE,"boutique",$this->MainDataBase);
+									$Bout->DBName = $CltDataBase ;
+									$Bout->Nom = $CltTechnoWeb->RaisonSocial ;
+									$Bout->DBase = $CltDataBase ;
+									$Bout->Serveur = $this->MaBoutique->Serveur ;
+									$Bout->DBUser = "pharmcp";
+									$Bout->DBPassword = "microcp";
+									
+									if($Bout->Enregistrer()){
+										$this->Boutiques[]=$Bout ;
+										$BoutiqueCible =  new xBoutique($this, $Bout->Id,false); ;
+										self::$ListeBoutique[]=$BoutiqueCible ;
+									}
+
+								}else{
+									if($BoutiqueCible->DBName !== $CltDataBase){
+										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Mise a jour de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
+										$BoutiqueCible->DBName = $CltDataBase ;
+										$BoutiqueCible->DBase = $CltDataBase ;
+										$BoutiqueCible->Enregistrer() ;
+									}
+								}
+
+								if($BoutiqueCible){
+									//self::$Log->Write("Boutique précédente: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
+									//echo __FILE__." Ligne ".__LINE__." Avant DataBase= ". $BoutiqueCible->DataBase."</br>" ;
+									if($BoutiqueCible->DBname ==''){
+										//var_dump(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
+										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
+										$BoutiqueCible->DBname = $CltDataBase ;
+									}
+
+									$BoutiqueCible->DataBase = $BoutiqueCible->DBName ;
+									$BoutiqueCible->DBName = $BoutiqueCible->DataBase ;
+									$this->MaBoutique = $BoutiqueCible;
+
+									$this->SelectDB($BoutiqueCible->DBName);
+									$this->DataBase = $BoutiqueCible->DBName;
+									$this->RepWork = $CltDataBase;
+									$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
+									self::$Log->Write("Ma boutique est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
+									if(!is_dir($this->RepWork)){
+										try {
+											//echo "Création du dossier ".$this->RepWork;
+											mkdir($this->RepWork,0777,true);
+										} catch (\Throwable $th) {
+											self::$Log->Write("Impossible création du dossier ".$this->RepWork . " [ERR] ".$th->getMessage());
+											$this->AddToJournal(null,null,"ERREUR",__FILE__. " L".__LINE__." : Erreur: ".$th->getMessage());
+											//throw $th;
+										}
+									//}
+									}
+									$Dt=date('mY') ;
+									self::$Log=new xLog($this,"NAbySyGS_Log-".$Dt.".csv") ;
+									//echo __FILE__." Ligne ".__LINE__." Après DataBase= ". $BoutiqueCible->DataBase."</br>" ;
+								}
+							}else{
+								$Err=new xErreur();
+								$Err->TxErreur="Base de donnée ".$CltTechnoWeb->ServiceDB." introuvable sur le serveur !";
+								$Err->SendAsJSON();
+								return $Err ;
+							}
+							
+						}
+					}
+				}else{
+					$this->AutorisationCORS();
+					$Err=new xErreur();
+					$Err->TxErreur="ID-TechnoWeb introuvable !";
+					$Err->SendAsJSON();
+					return $Err ;
+				}
+			}
+		}
+		if($BoutiqueCible){
+			$this->RefreshParametre($BoutiqueCible->DataBase);
+			$Notif->Contenue=$BoutiqueCible ;
+			$Notif->OK=1 ;
+		}else{
+			$Notif->OK = 0 ;
+			$Notif->TxErreur='Impossible de determiner votre compte TechnoWEB.';
+		}
+		return $Notif ;
+	}
+
+	public static function GetBoutique(?int $IdBout=-1, string $RaisonSocial="", string $CltDataBase=""):xBoutique|null{
+		foreach (self::$ListeBoutique as $Bout) {
+			if($IdBout == $Bout->Id){
+				return $Bout ;
+			}
+			if(trim($CltDataBase) !==""){
+				if(strtolower($Bout->DBName) ==strtolower($CltDataBase) ){
+					return $Bout ;
+				}
+			}
+			if(trim($RaisonSocial) !==""){
+				if(strtolower($Bout->Nom) ==strtolower($RaisonSocial) ){
+					return $Bout ;
+				}
+			}
+		}
+		//Si on est ici on va rechercher directement dans la BD
+		self::$Log->Write(__FILE__." LIGNE: ".__LINE__ . ": Si on est ici on va rechercher directement dans la BD" );
+		$BoutDefaut = self::getInstance()->MaBoutique;
+		if ($BoutDefaut){
+			$Lst = $BoutDefaut->ChargeListe(" (Nom like '".$RaisonSocial."' OR DBName like '".$CltDataBase."' ) ",null,"ID");
+			if($Lst->num_rows){
+				$rw=$Lst->fetch_assoc();
+				$Bout = new xBoutique($BoutDefaut->MODULE, $rw['ID'],false);
+				self::$ListeBoutique[]=$Bout ;
+				return $Bout ;
+			}else{
+				self::$Log->Write(__FILE__." LIGNE: ".__LINE__ . ": Client ".$RaisonSocial." est aussi introuvable dans la boutique principale ".$BoutDefaut->DataBase." !");
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Rafraichit les paramètres ou recharge de nouveaux paramètres basés sur une base donnée cliente.
+	 * @param string $CltDataBase : Base de donnée.
+	 * @return bool 
+	 */
+	public function RefreshParametre(string $CltDataBase =''):bool{
+		if(trim($CltDataBase) !==''){
+			$this->Parametre=new xORMHelper($this,1,true,"parametre",$CltDataBase);
+		}
+
+		if ($this->Parametre->Id==0){
+			$Lst=$this->Parametre->ChargeListe();
+			if ($Lst->num_rows){
+				$rw=$Lst->fetch_assoc();
+				$this->Parametre=new xORMHelper($this,$rw['ID'],true,"parametre",$CltDataBase);
+			}else{
+				//Il n'y a aucun parametre on le crée
+				$this->Parametre->Monnaie = "F CFA";
+				$this->Parametre->MonnaieLong = "FRANCS CFA";
+				$Date=date('Y-10-01');
+				$Dte=new DateTime($Date);
+				$this->Parametre->DatePremiereScolarite = $Dte->format('Y-m-d');
+				$this->Parametre->Enregistrer();
+			}
+
+		}
+		if ($this->Parametre->DatePremiereScolarite == ''){
+			$Date=date('Y-10-01');
+			$Dte=new DateTime($Date);
+			$this->Parametre->DatePremiereScolarite = $Dte->format('Y-m-d');
+			$this->Parametre->Enregistrer();
+		}
+		return $this->Parametre->Refresh();
+	}
+
 
 	/**
 	 * Retourne tous les paramètres passée depuis un appel d'url

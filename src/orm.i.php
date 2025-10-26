@@ -46,6 +46,13 @@ use NAbySy\xNAbySyGS;
          * Convertir l'objet en cour au format JSON
          */
         public function ToJSON():string ;
+
+        /**
+         * Retourne le nombre de ligne dans la base de donnée.
+         * @return int 
+         */
+        public static function TotalLines():int ;
+        
     }
 
     class xChampDB {

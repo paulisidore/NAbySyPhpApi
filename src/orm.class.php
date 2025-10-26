@@ -14,14 +14,30 @@ use NAbySy\xErreur;
 
 //#[\AllowDynamicProperties] on verra ca une autre fois
 class xORMHelper implements IORM , JsonSerializable{
-    public $Table ;
+    /**
+     * Nom de la table ratachée à cet ORM
+     * @var string
+     */
+    public string $Table ;
+
+    /**
+     * Identifiant unique dans la base de donnée
+     * @var int
+     */
     public int $Id=0 ;
     private array $RS ;
     public xNAbySyGS $Main ;
     public static xNAbySyGS $xMain;
 
     private array $ListeChampDB ;
-    public $DataBase ;
+
+    /**
+     * Nom de la base de donnée liée à cet ORM
+     * @var string
+     */
+    public string $DataBase ;
+
+
     public xDB $MySQL ;
     public bool $AutoCreate ;
     public bool $DebugMode ;
@@ -33,6 +49,18 @@ class xORMHelper implements IORM , JsonSerializable{
      * La class d'objet sur la quelle les évenements vont être transféré.
      */
     public $RaiseEventTaget=null;
+
+    /**
+     * Nom de la table où est stocké les données de cette classe ORM
+     * @var string
+     */
+    public static string $dataTableName = '' ;
+
+    /**
+     * Nom de la base de donnée ou est enregistré touts les enregistrements liée à cet ORM
+     * @var string
+     */
+    public static string $dataBaseName ='';
 
     /**
      * @param xNAbySyGS $NAbySy Objet central.
@@ -69,6 +97,9 @@ class xORMHelper implements IORM , JsonSerializable{
         if ($this->DataBase==''){
             $this->DataBase=$this->Main->MainDataBase ;
         }
+
+        self::$dataBaseName = $this->DataBase;
+        self::$dataTableName = $this->Table;
 
         //$this->DebugMode=false;  
         $this->LoadTypeChampInDB() ;
@@ -227,6 +258,42 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function jsonSerialize(): mixed{
             return $this->ToObject();
+        }
+
+        public static function TotalLines(string $TableName='', string $DBName=''):int{
+            if(trim($TableName=='')) {
+                $TableName = self::$dataTableName;
+            }
+            if(trim($DBName=='')) {
+                $DBName = self::$dataBaseName;
+            }
+            if(trim($DBName) =='' || trim($TableName)==''){
+                return 0;
+            }
+            if (!isset(self::$xMain->MaBoutique->MySQL)){
+                return 0 ;
+            }
+            if (!self::$xMain->MaBoutique->MySQL->TableExiste($TableName,$DBName)){
+                return 0 ;
+            }
+            $resultat =null;
+            $Tabl=$DBName.".".$TableName ;
+            $TxSQL ="select COUNT(ID) as 'NB' from ".$Tabl ;
+            try{
+                $resultat = self::$xMain->ReadWrite($TxSQL) ;
+                if (!isset($resultat)){
+                    return 0;
+                }
+                if ($resultat->num_rows>0){
+                    $rw=$resultat->fetch_assoc();
+                    return (int)$rw['NB'];
+                }
+                
+            }catch(Exception $ex){
+                $Note=__CLASS__.':'.$TableName.'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
+                self::$xMain::$Log->Write($Note) ;
+            }
+            return 0;
         }
     #endregion
 

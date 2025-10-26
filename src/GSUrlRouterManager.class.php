@@ -174,7 +174,7 @@ class xGSUrlRouterManager{
             }
             //var_dump($router->getRegisteredRoute());
         }
-        if ($route === null) {
+        if ($route === null && !self::$Main::$ByPasseNoUrlRoute) {
             $Rep->TxErreur='Aucune route trouvée';
             $Rep->Path = $requestUri ;
             $Rep->Methode = $requestMethod ;
