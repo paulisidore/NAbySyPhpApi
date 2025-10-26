@@ -2,8 +2,95 @@
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
+use NAbySy\xDB;
+use NAbySy\xErreur;
+use NAbySy\xNotification;
 
 switch ($action){
+        case 'ETS_GETINFOS': //Retourne les information personnelle de l'entreprise cliente
+            $IdBout=N::getInstance()->MaBoutique->Id;
+            if (isset($PARAM['ID'])){
+                $IdBout=(int)$PARAM['ID'] ;
+            }
+            if (isset($PARAM['IDBOUTIQUE'])){
+                $IdBout=(int)$PARAM['IDBOUTIQUE'] ;
+            }
+            if(isset($PARAM['IDTECHNOWEB'])){
+                if(trim($PARAM['IDTECHNOWEB']) !==''){
+                    if(isset(N::$TechnoWEBMgr)){
+                        $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
+                        if($ClientTechnoWeb){
+                            $IdBout = $ClientTechnoWeb->Id ;
+                            $Critere=" DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
+                            foreach (N::getInstance()->Boutiques as $BoutX) {
+                                if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
+                                    $IdBout = $BoutX->Id;
+                                    break;
+                                }
+                            } 
+                        }
+                    }
+                }
+            }
+            $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
+            if($Bout->Id==0){
+                $Err=new xErreur();
+                $Err->Autres = $IdBout ;
+                $Err->TxErreur="Information du client PAM introuvable !";
+                $Err->SendAsJSON();
+            }
+            
+            $Reponse = new xNotification ;
+            $Reponse->OK=1;
+            $rw = $Bout->ToArrayAssoc();
+            $rw['DBASE'] = $Bout->DBname;
+                    
+            $rw['URL_ENTETE'] = $Bout->GetLogoEntete(true);
+            $rw['ENTETE_TICKET'] =  $rw['URL_ENTETE'] ;
+            $rw['ENTETE_A4'] = $Bout->GetEnteteA4(true);
+            unset($rw['Serveur']);
+            unset($rw['DBName']);
+            unset($rw['PdtTable']);
+            unset($rw['TablePrefix']);
+            unset($rw['DBUser']);
+            unset($rw['DBPassword']);
+            unset($rw['ConnexionString']);
+            unset($rw['ACTIF']);
+            unset($rw['DBase']);
+            unset($rw['MasterDataBase']);
+            unset($rw['ListePanier']);
+            //unset($rw['LOGO_TICKET']);
+            if(trim($rw['LOGO_TICKET']) == ""){
+                $lien_logo = $Bout->GetLogoTicket(true);
+                $rw['LOGO_TICKET'] = $lien_logo ;
+            }
+
+            $Param=$nabysy->Parametre;
+            if(isset($Param) && $Param->Id){
+                if(!$Param->ChampsExisteInTable("PIED_A4")){
+                    $PrecAutoCreate=$Param->AutoCreate;;
+                    $Param->AutoCreate=true;
+                    $Param->PIED_A4="";
+                    $Param->PIED_TICKET="";
+                    $Param->Enregistrer();
+                    $Param->AutoCreate=$PrecAutoCreate;
+                }
+            }
+            if(isset($Param) && $Param->Id){
+                $rw['PIED_TICKET'] = $Param->PIED_TICKET ;
+                $rw['PIED_A4'] = $Param->PIED_A4 ;
+                $rw['DATE_DEBUT_SCOLARITE'] = $Param->DatePremiereScolarite ;
+                $rw['MONNAIE'] = $Param->Monnaie ;
+                $rw['MONNAIE_LONGUE'] = $Param->MonnaieLong ;
+                $rw['PAYS'] = $Param->MonPays ;
+                $rw['REGION'] = $Param->MaRegion ;
+            }
+
+            $Reponse->Contenue = $rw ;
+            echo json_encode($Reponse);
+            exit;
+            break;
+
 		case "LISTE_BOUTIQUE":
 			//Retourne la Liste des Boutiques
 			$TxM=false ;

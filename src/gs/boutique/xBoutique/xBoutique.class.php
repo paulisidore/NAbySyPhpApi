@@ -9,6 +9,7 @@ use NAbySy\GS\Panier\xCartProForma;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xNAbySyGS;
+use NAbySy\xPhoto;
 
 Class xBoutique extends xORMHelper  {
 	public mysqli $Conn ;
@@ -534,6 +535,279 @@ Class xBoutique extends xORMHelper  {
 
 		return $Lien;
 	}
+
+	/**
+	 * Sauvegarde le logo de l'etablissement
+	 */
+	public function SaveLogoEntete($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
+        $NomFichier=$this->Id."logo.png" ;
+		$DossierPhoto='entete-logo_'.$this->Id;
+		$Photo=new xPhoto($this->Main,$DossierPhoto);
+		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
+		return $Repo ;
+	}
+
+    /**
+     * Retourne l'Entete de l'école
+     * @param bool $NoSendToClient 
+     * @param string|null $baseUrlPhoto 
+     * @return true|string 
+     */
+    public function GetLogoEntete($NoSendToClient=false,string $baseUrlPhoto=null){
+        $DossierPhoto='logos/entete-logo_'.$this->Id;
+		$Photo=new xPhoto($this->Main, $DossierPhoto);
+		$FileName=$this->Id.'logo.png' ;
+		$vFileName=$this->Id.'logo.png' ;
+		$DossierPhotos=$Photo->GetDossierPhoto() ;
+		$FileName=$DossierPhotos.$this->Id.'logo.png' ;
+		$Debugger=new xORMHelper($this->Main,null,false,'journal');
+		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
+		$Debugger->AddToLog($Tx);
+		if (file_exists($FileName)){
+			$Debugger->AddToLog("Fichier ".$FileName." existe.");
+			$this->AddToJournal("INFOS","Fichier ".$FileName." présent.");
+		}else{
+			$Debugger->AddToLog("Fichier ".$FileName." absent.");
+			$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
+		}
+		if (!isset($baseUrlPhoto)){
+			$FichierConf="parametreBoutique.json";
+			$MyParam=$this->Main->LoadConfigFile($FichierConf);
+			if ($MyParam != false){
+				if (isset($MyParam['PHOTO_BASEURL'])){
+					$baseUrlPhoto=$MyParam['PHOTO_BASEURL'];
+				}
+			}
+		}
+
+		//On copie dans un dossier temporaire pour la sécurité
+		$httpX='http://' ;
+		if (isset($_SERVER['HTTPS'])){
+			$httpX='https://';
+		}
+		//print_r($_SERVER);
+		$DosTmp=$_SERVER['DOCUMENT_ROOT'].'/tmp' ;		
+
+		if (!is_dir($DosTmp)){
+			mkdir($DosTmp) ;
+		}
+
+		if (!$NoSendToClient){
+			$Photo->SendFile($FileName) ;
+			return true ;
+		}
+
+		$File=$DosTmp.'/'.$vFileName ;
+		$Site=$httpX.$_SERVER['HTTP_HOST'].'/tmp/'.$vFileName ;
+
+		if(isset($baseUrlPhoto)){
+			$Site = $baseUrlPhoto . '/' . $vFileName;
+			//return $Site;
+		}
+
+		//On supprime eventuellement l'ancien fichier
+		if (file_exists($File)){
+			//$Debugger->AddToLog("Suppression éventuelle de la précédente photo ".$File." dans le dossier tmp ...");
+			if (unlink($File)){
+				//$Debugger->AddToLog("Suppression terminée du fichier ".$File);
+			}
+		}
+
+		//echo $DosTmp ;
+		$FichierComplet=''.$FileName;
+		if (file_exists($FichierComplet)){
+			$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
+			if (copy($FichierComplet,$File)){
+				$Debugger->AddToLog($File." Copié correctement.");
+			}
+			//return $Site;
+		}else{
+			$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
+		}
+		if (file_exists($File)){
+			//$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
+			return $Site ;
+		}
+		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';
+	}
+
+	/**
+	 * Retourne l'ntete des A4 de l'école
+	 * @param bool $NoSendToClient 
+	 * @param string|null $baseUrlPhoto 
+	 * @return true|string 
+	 */
+	public function GetEnteteA4($NoSendToClient=false,string $baseUrlPhoto=null){
+        $DossierPhoto='logos/enteteA4_'.$this->Id;
+		$Photo=new xPhoto($this->Main, $DossierPhoto);
+		$FileName=$this->Id.'-enteteA4.png' ;
+		$vFileName=$this->Id.'-enteteA4.png' ;
+		$DossierPhotos=$Photo->GetDossierPhoto() ;
+		$FileName=$DossierPhotos.$this->Id.'-enteteA4.png' ;
+		$Debugger=new xORMHelper($this->Main,null,false,'journal');
+		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
+		$Debugger->AddToLog($Tx);
+		if (file_exists($FileName)){
+			$Debugger->AddToLog("Fichier ".$FileName." existe.");
+			$this->AddToJournal("INFOS","Fichier ".$FileName." présent.");
+		}else{
+			$Debugger->AddToLog("Fichier ".$FileName." absent.");
+			$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
+		}
+		if (!isset($baseUrlPhoto)){
+			$FichierConf="parametreBoutique.json";
+			$MyParam=$this->Main->LoadConfigFile($FichierConf);
+			if ($MyParam != false){
+				if (isset($MyParam['PHOTO_BASEURL'])){
+					$baseUrlPhoto=$MyParam['PHOTO_BASEURL'];
+				}
+			}
+		}
+
+		//On copie dans un dossier temporaire pour la sécurité
+		$httpX='http://' ;
+		if (isset($_SERVER['HTTPS'])){
+			$httpX='https://';
+		}
+		//print_r($_SERVER);
+		$DosTmp=$_SERVER['DOCUMENT_ROOT'].'/tmp' ;		
+
+		if (!is_dir($DosTmp)){
+			mkdir($DosTmp) ;
+		}
+
+		if (!$NoSendToClient){
+			$Photo->SendFile($FileName) ;
+			return true ;
+		}
+
+		$File=$DosTmp.'/'.$vFileName ;
+		$Site=$httpX.$_SERVER['HTTP_HOST'].'/tmp/'.$vFileName ;
+
+		if(isset($baseUrlPhoto)){
+			$Site = $baseUrlPhoto . '/' . $vFileName;
+			//return $Site;
+		}
+
+		//On supprime eventuellement l'ancien fichier
+		if (file_exists($File)){
+			//$Debugger->AddToLog("Suppression éventuelle de la précédente photo ".$File." dans le dossier tmp ...");
+			if (unlink($File)){
+				//$Debugger->AddToLog("Suppression terminée du fichier ".$File);
+			}
+		}
+
+		//echo $DosTmp ;
+		$FichierComplet=''.$FileName;
+		if (file_exists($FichierComplet)){
+			$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
+			if (copy($FichierComplet,$File)){
+				$Debugger->AddToLog($File." Copié correctement.");
+			}
+			//return $Site;
+		}else{
+			$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
+		}
+		if (file_exists($File)){
+			//$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
+			return $Site ;
+		}
+		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';
+	}
+
+	/**
+	 * Sauvegarde le logo Ticket de caisse de l'etablissement
+	 */
+	public function SaveLogoTicket($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
+        $NomFichier=$this->Id."logoticket.png" ;
+		$DossierPhoto='entete-logo_'.$this->Id;
+		$Photo=new xPhoto($this->Main,$DossierPhoto);
+		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
+		return $Repo ;
+	}
+	
+	/**
+	 * Retourne le Logo (Entete Ticket de caisse)
+	 * @param bool $NoSendToClient 
+	 * @param string|null $baseUrlPhoto 
+	 * @return true|string 
+	 */
+	public function GetLogoTicket($NoSendToClient=false,string $baseUrlPhoto=null){
+        $DossierPhoto='logos/entete-logo_'.$this->Id;
+		$Photo=new xPhoto($this->Main, $DossierPhoto);
+		$FileName=$this->Id.'logoticket.png' ;
+		$vFileName=$this->Id.'logoticket.png' ;
+		$DossierPhotos=$Photo->GetDossierPhoto() ;
+		$FileName=$DossierPhotos.$this->Id.'logoticket.png' ;
+		$Debugger=new xORMHelper($this->Main,null,false,'journal');
+		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
+		$Debugger->AddToLog($Tx);
+		if (file_exists($FileName)){
+			$Debugger->AddToLog("Fichier ".$FileName." existe.");
+		}else{
+			$Debugger->AddToLog("Fichier ".$FileName." absent.");
+		}
+		if (!isset($baseUrlPhoto)){
+			$FichierConf="parametreBoutique.json";
+			$MyParam=$this->Main->LoadConfigFile($FichierConf);
+			if ($MyParam != false){
+				if (isset($MyParam['PHOTO_BASEURL'])){
+					$baseUrlPhoto=$MyParam['PHOTO_BASEURL'];
+				}
+			}
+		}		
+
+		//On copie dans un dossier temporaire pour la sécurité
+		$httpX='http://' ;
+		if (isset($_SERVER['HTTPS'])){
+			$httpX='https://';
+		}
+		//print_r($_SERVER);
+		$DosTmp=$_SERVER['DOCUMENT_ROOT'].'/tmp' ;		
+
+		if (!is_dir($DosTmp)){
+			mkdir($DosTmp) ;
+		}
+
+		if (!$NoSendToClient){
+			$Photo->SendFile($FileName) ;
+			return true ;
+		}
+
+		$File=$DosTmp.'/'.$vFileName ;
+		$Site=$httpX.$_SERVER['HTTP_HOST'].'/tmp/'.$vFileName ;
+
+		if(isset($baseUrlPhoto)){
+			$Site = $baseUrlPhoto . '/' . $vFileName;
+			//return $Site;
+		}
+
+		//On supprime eventuellement l'ancien fichier
+		if (file_exists($File)){
+			//$Debugger->AddToLog("Suppression éventuelle de la précédente photo ".$File." dans le dossier tmp ...");
+			if (unlink($File)){
+				//$Debugger->AddToLog("Suppression terminée du fichier ".$File);
+			}
+		}
+
+		//echo $DosTmp ;
+		$FichierComplet=''.$FileName;
+		if (file_exists($FichierComplet)){
+			$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
+			if (copy($FichierComplet,$File)){
+				$Debugger->AddToLog($File." Copié correctement.");
+			}
+			//return $Site;
+		}else{
+			$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
+		}
+		if (file_exists($File)){
+			$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
+			return $Site ;
+		}
+		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';		
+	}
+
 	
 }
 

@@ -2,7 +2,7 @@ Options +FollowSymlinks
 RewriteEngine On
 
 # Définir le chemin de base
-RewriteBase {NABYSYROOT} #Exemple: /API/shop/
+#RewriteBase {NABYSYROOT} #Exemple: /API/shop/
 
 # Fichiers physiques
 RewriteCond %{REQUEST_FILENAME} -f [OR]

@@ -19,14 +19,14 @@ Class xAuth
 
     public static string $lastToken = '';
 
-    public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null){
+    public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null, string $key="nabysygscloud"){
         $token = self::extractFromHeader();
         if (!isset($_REQUEST['Token']) && is_string($token) && $token !=="" ){
             $_REQUEST['Token'] = $token ;
         }
 
         $this->Main=$nabysy ;
-        $this->Key = $nabysy->MasterDataBase;
+        $this->Key = $key;
         $dateexp=time();
         $this->DureeVieSecode=$duree_exp_seconde ;
         $this->Payload = array(
@@ -95,7 +95,8 @@ Class xAuth
             "iat" => $dateexp,
             "nbf" => $dateexp,
             "exp" => $dateexp+$this->DureeVieSecode ,
-            "Author" => $this->Main->MODULE->MCP_CLIENT
+            "Author" => $this->Main->MODULE->MCP_CLIENT,
+            "Special" => $this->Key
         );
         
         $jwt=JWT::encode($this->Payload,$this->Key,$Algo) ;
@@ -106,11 +107,14 @@ Class xAuth
         $decoded=null;
         if (isset($JWT_TOKEN)){
             try{
+                //echo $JWT_TOKEN ;exit;
+                //echo $this->Key ;
                 $decoded = JWT::decode($JWT_TOKEN, $this->Key, array($Algo));
                 //var_dump($decoded);
                 if (!isset($decoded->user_data)){
                     $decoded->user_data=json_decode($decoded->user_data);
                 }else{
+                    //var_dump($decoded);
                     //var_dump($decoded->user_data);
                 }
             }

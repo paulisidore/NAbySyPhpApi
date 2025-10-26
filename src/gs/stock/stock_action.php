@@ -199,6 +199,7 @@ use NAbySy\xNotification;
             exit;
             
         case "GET_PRODUIT":
+            //var_dump($PARAM);
             $Pdt=new xProduit($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,'produits',$Boutique) ;
             $NbTrouv=0 ;
             $IdPdt=0 ;

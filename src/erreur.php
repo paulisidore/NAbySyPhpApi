@@ -6,12 +6,13 @@
  */
 namespace NAbySy ;
 
+use N;
 use Throwable;
 
 Class xErreur
 {
-	public $OK;
-	public $TxErreur;
+	public int $OK = 0;
+	public string|null $TxErreur;
 	public $Source;
 	public $Extra ;
     public $Autres ;
@@ -55,6 +56,35 @@ Class xErreur
         }
 
         return  PHP_EOL;
+    }
+
+    /**
+     * Renvoie la reponse directement au client connecté.
+     * @param bool $SendAndExit : Si Oui, l'opération arrête le traitement du script complet après l'envoie de la réponse
+     * @return bool 
+     * @throws Throwable 
+     */
+    public function SendAsJSON(bool $SendAndExit = true):bool{
+        try {
+            echo json_encode($this);
+            if($SendAndExit){
+                exit;
+            }
+           return true;
+        } catch (\Throwable $th) {
+            N::$Log->Write(__FILE__." Ligne ".__LINE__.": Impossible d'envoyer la réponse json. Erreur: ".$th->getMessage());
+            if(N::$ActiveDebug){
+                throw $th;
+            }else{
+                $Erreur=new xErreur();
+                $Erreur->TxErreur="ERREUR SYSTEME. Contactez le support technique svp.";
+                echo json_encode($Erreur);
+            }
+            if($SendAndExit){
+                exit;
+            }
+            return false;
+        }
     }
         
 }

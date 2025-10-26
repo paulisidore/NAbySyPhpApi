@@ -35,7 +35,7 @@ use NAbySy\xUser;
     
     if (isset($_REQUEST['Token'])){
         $Token=$_REQUEST['Token'] ;
-        //echo "Token a recherche = ".$Token ;
+        //echo "Token a recherche = ".$Token ; exit;
         $UserToken=$Auth->DecodeToken($Token) ;
         //var_dump($UserToken)."</br>" ;
         //var_dump($User) ;
@@ -60,8 +60,9 @@ use NAbySy\xUser;
         //exit;
         //echo "Reponse=: ".$UserToken->user_login ; // Marche bien et retourne la bonne infos
         if ($User->BLOQUE=='OUI' || ($User->Etat !=='Actif' && $User->Etat !=='A') ){
-            $Err->TxErreur="Compte bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
+            $Err->TxErreur="Compte utilisateur ".$User->Login." bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
             $Err->OK=0;
+            $Err->Source=$User->DataBase ;
             echo json_encode($Err) ;
             http_response_code(419);            
             exit ;
