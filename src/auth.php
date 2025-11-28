@@ -12,7 +12,11 @@ use NAbySy\xUser;
     $ConnectByToken=false ;
 
     $nabysy=N::getInstance();
-   
+    //echo __FILE__." Je lance l'authentification dans auth.php ... </br>" ;
+    if(isset($nabysy->User)){
+        //var_dump("Utilisateur déjà connecté: ".$nabysy->User->Login);
+    }
+
     if(isset(N::$AUTH_BOUTIQUE_ID)){
         if(N::$AUTH_BOUTIQUE_ID >0 ){
             $BoutiqueAuth = N::GetBoutiqueByID(N::$AUTH_BOUTIQUE_ID);
@@ -35,10 +39,11 @@ use NAbySy\xUser;
     
     if (isset($_REQUEST['Token'])){
         $Token=$_REQUEST['Token'] ;
-        //echo "Token a recherche = ".$Token ; exit;
+        //var_dump( __FILE__." Je lis le Token dans auth.php ... </br>" );
+        //echo "Token a recherche = ".$Token ; //exit;
         $UserToken=$Auth->DecodeToken($Token) ;
         //var_dump($UserToken)."</br>" ;
-        //var_dump($User) ;
+        //var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec UserId = ".$UserToken->user_id);
         if (!isset($UserToken)){            
             $Err->TxErreur="La session a expirée." ;
             $Err->OK=0;
@@ -55,6 +60,7 @@ use NAbySy\xUser;
         }
         
         $User=new xUser($nabysy,$UserToken->user_id) ;
+        //var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec User = ".$User->Login) ;
 
         //print_r($UserToken) ;
         //exit;
@@ -75,6 +81,7 @@ use NAbySy\xUser;
         $Notif->OK=1 ;
         $nabysy->User=$User ;
         $ConnectByToken=true ;
+        //echo "Utilisateur connecté par Token  ".$nabysy->User->Login."</br>" ;
         
         //Si le token est fournit et valable on ne retourne pas de confirmation sauf si demandé
          /* if(isset($_REQUEST['AUTH']) && ((int)$_REQUEST['AUTH']>0) ){
@@ -85,30 +92,40 @@ use NAbySy\xUser;
         exit; */
     }
 
-    if (isset($_REQUEST['Login'])){
-        $Login=$_REQUEST['Login'] ;
-    }elseif (isset($_REQUEST['LOGIN'])){
-        $Login=$_REQUEST['LOGIN'] ;
-    }elseif (isset($_REQUEST['User'])){
-        $Login=$_REQUEST['User'] ;
-    }
-    if (isset($_REQUEST['Password'])){
-        $Password=$_REQUEST['Password'] ;
-    } if (isset($_REQUEST['PASSWORD'])){
-        $Password=$_REQUEST['PASSWORD'] ;
+    //s'il ne s'agit pas d'une requette vers l'API des Utilisateurs on cherche les parametres Login et Password
+    //echo __FILE__." SubStr: ".strtoupper(substr($_REQUEST['Action'],0,strlen("USERAPI_") )) ;exit;
+
+    if(!isset($_REQUEST['Action']) || (isset($_REQUEST['Action']) && strtoupper(substr($_REQUEST['Action'],0,strlen("USERAPI_") )) !='USERAPI_') ){
+        //var_dump("Je ne dois pas aller dans userapi") ;
+        if (isset($_REQUEST['Login'])){
+            $Login=$_REQUEST['Login'] ;
+        }elseif (isset($_REQUEST['LOGIN'])){
+            $Login=$_REQUEST['LOGIN'] ;
+        }elseif (isset($_REQUEST['User'])){
+            $Login=$_REQUEST['User'] ;
+        }
+        if (isset($_REQUEST['Password'])){
+            $Password=$_REQUEST['Password'] ;
+        } if (isset($_REQUEST['PASSWORD'])){
+            $Password=$_REQUEST['PASSWORD'] ;
+        }
     }
 
+    //var_dump( __FILE__." On verifie que User est bien ici dans auth.php: ".$nabysy->User->Login." </br>") ;
+
     //$Auth=new xAuth($nabysy,3600) ; //Version Prod Token valable 1 heure
-    $Auth=new xAuth($nabysy,N::$Main::$AUTH_DUREE_SESSION) ; //Version Dev Token Valable 24 heures
+    if(!isset($Auth)){
+        $Auth=new xAuth($nabysy,N::$Main::$AUTH_DUREE_SESSION) ; //Version Dev Token Valable 24 heures
+    }
     //$nabysy->SelectDB($nabysy->DataBase);
     if(isset($Login)){
         $Login=trim($Login) ;
-        //var_dump($nabysy->MaBoutique->DBName);
-        //var_dump($nabysy->db_serveur);
         $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null,$Login) ;
     }elseif($ConnectByToken){
         $User=$nabysy->User ;
-    }else{
+    }elseif(!isset($User)){
+        //echo "Initi User par défaut !!!";
+        echo __FILE__." je suis ici NAbySyYser: ".$nabysy->User->Login."</br>" ;exit;
         $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE) ;
     }
     $Err=new xErreur;
@@ -162,6 +179,7 @@ use NAbySy\xUser;
         }
         
     }else{
+        //var_dump(__FILE__. " "." L".__LINE__." Token = ". $Token);
         $Err->TxErreur="Vous etes pas authorisé." ;
         $Err->OK=0;
         //$nabysy->User=null ;

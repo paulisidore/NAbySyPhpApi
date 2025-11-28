@@ -1,5 +1,7 @@
 <?php
 namespace NAbySy\Lib\ModulePaie ;
+
+use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\xNAbySyGS;
 
 /**
@@ -8,6 +10,10 @@ use NAbySy\xNAbySyGS;
 
  class PaiementModuleLoader{
 
+    /**
+     * Liste des Modules de Paiements
+     * @var IModulePaieManager[]
+     */
     public static $ListeModule=[] ;
     public static xNAbySyGS $Main ;
     public static string $DossierModulePaie ;
@@ -54,6 +60,38 @@ use NAbySy\xNAbySyGS;
             $Mod=new $ModName(self::$Main);
             self::$ListeModule[]=$Mod ;
             self::$Main::$ListeModulePaiement=self::$ListeModule ;
+
+            if($Mod instanceof IModulePaieManager){
+                //Si l'alias du Module n'existe pas dans la liste des Méthode de PAiement on le rajoute
+                if(!xMethodePaie::MethodeExiste($Mod->UIName())){
+                    self::$Main::$Log->Write("Ajout du module de paiement ".$Mod->UIName()." Comme méthode de paiement.");
+                    $nMeth = xMethodePaie::CreateMethode($Mod->UIName(), $Mod->Description(), $Mod->HandleModuleName());
+                    if($nMeth->Logo == '' && trim($Mod->LogoURL()) !== ''){
+                        //On va mettre à jour le logo
+                        $nMeth->Logo = $Mod->LogoURL();
+                    }
+                    if($nMeth->API_DISPONIBLE !== $Mod->Api_Disponible()){
+                        $nMeth->API_DISPONIBLE = $Mod->Api_Disponible();
+                    }
+                    $nMeth->Enregistrer();
+                }else{
+                    //La méthode existe pour le module, on va essayer de faire certaines mise a jour
+                    $nMeth = xMethodePaie::GetMethodeByName($Mod->UIName());
+                }
+                if($nMeth){
+                    if($nMeth->Logo == '' && trim($Mod->LogoURL()) !== ''){
+                        //On va mettre à jour le logo
+                        $nMeth->Logo = $Mod->LogoURL();
+                    }
+                    if($nMeth->API_DISPONIBLE !== $Mod->Api_Disponible()){
+                        $nMeth->API_DISPONIBLE = $Mod->Api_Disponible();
+                    }
+                    if($nMeth->API_ENDPOINT !== $Mod->Api_EndPoint()){
+                        $nMeth->API_ENDPOINT = $Mod->Api_EndPoint();
+                    }
+                    $nMeth->Enregistrer();
+                }
+            }
         }
         //self::$Main::$Log->Write( count(self::$ListeModule) . " module(s) de paiement inscrit(s) sur la plate-forme.");
 

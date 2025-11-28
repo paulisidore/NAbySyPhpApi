@@ -3,8 +3,9 @@
 
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Client\xClient;
-use NAbySy\GS\Stock\xProduitNC;
+use NAbySy\ORM\xORMHelper;
 use NAbySy\xNAbySyGS;
+use NAbySy\xProduitNC;
 
 /**
 *  FICHIER : cart.class.php
@@ -20,7 +21,7 @@ include_once 'xPanier.class.php';
 
 class xCart{
   public xNAbySyGS $Main;
-  public $MaBoutique ;
+  public xBoutique $MaBoutique ;
   public $IdFacture ;
   public $Fermee;
   public $Existe;	//=Yes si le panier de la session existe déja
@@ -48,6 +49,15 @@ class xCart{
   public string $NomPoste ;
 
   public string $NomBeneficiaireRemise ;
+
+  public string $TextNote ;
+
+  public ?xORMHelper $MetaDonnee ;
+
+  public const META_DONNEE_ARTICLE_SUPPRIME = "ARTICLE_SUPPRIME";
+  public const META_DONNEE_ARTICLE_QTE_EN_MOINS = "QTE_EN_MOINS";
+  public const META_DONNEE_SAISIE_ANNULEE = "ANNULATION_DE_LA_SAISIE";
+  
   
   
   /**
@@ -273,7 +283,7 @@ class xCart{
 	//echo $TotalFacture ."-". (int)$this->TotalRemise ."-". (int)$this->TotalReduction ;
 	$Total=$TotalFacture - (int)$this->TotalRemise - (int)$this->TotalReduction ;
 	//echo " = ".$Total;
-	return $Total ;
+	return (int)$Total ;
   }
   
   /**
@@ -324,7 +334,7 @@ class xCart{
 	  
     }
     return $LigneTableau;
-  }  
+  }
   
   public function GetArticle($vId){	  
 	$panier = !empty( $_SESSION[$this->PanierId] ) ? $_SESSION[$this->PanierId] : NULL;
@@ -591,4 +601,56 @@ class xCart{
 
   }
   
+  /**
+	 * Permet d'ajouter ou de retourner une reference de tout type au panier
+	 * @param mixed $Ref
+	 * @return mixed
+	 */
+	public function Reference($Ref=null){
+		$InfoC=$this->PanierId."CLIENT" ;
+		if (isset($Ref)){
+			$_SESSION[$InfoC]['REFERENCE']=$Ref ;		
+		}
+		if (isset($_SESSION[$InfoC]['REFERENCE'])){
+			return $_SESSION[$InfoC]['REFERENCE'] ;
+		}
+		return false ;
+	}
+  
+	/**
+	 * Permet de modifier le lieu de déstockage pour un produit du panier
+	 * @param mixed $id_produit
+	 * @param int $ventegros
+	 * @param int $IdDepot
+	 * @return bool
+	 */
+	public function UpdateProductIdDepot(string $vId,int $IdDepot=0): bool{
+		if($IdDepot==0){
+			$IdDepot=$this->MaBoutique->Id;
+		}
+	  if(isset($_SESSION[$this->PanierId][$vId])){
+		$_SESSION[$this->PanierId][$vId]['IdDepot'] = $IdDepot;
+	  }
+	  return true;
+	}
+
+	/**
+	 * Modifie le Lieu de déstockage pour tous les articles du panier
+	 * @param int $IdDepot
+	 * @return bool
+	 */
+	public function UpDatePanierIdDepot(int $IdDepot =0):bool{
+		if($IdDepot==0){
+			$IdDepot=$this->MaBoutique->Id;
+		}
+		$panier = !empty( $_SESSION[$this->PanierId] ) ? $_SESSION[$this->PanierId] : null;
+		if(!isset($panier)){return false;}
+		foreach($panier as $P){
+			$this->UpdateProductIdDepot($P['vId'],$IdDepot);
+		}
+		//echo __FILE__.' Ligne '.__LINE__.' => ' ;
+		//echo $this->Dump() ;
+		return true;
+	}
+
 }

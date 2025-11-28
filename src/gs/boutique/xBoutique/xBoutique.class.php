@@ -808,6 +808,44 @@ Class xBoutique extends xORMHelper  {
 		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';		
 	}
 
+
+	public function AjouterStockBoutique($IdCompteClient,$IdPdt=0,$Qte=0){
+		//permet d'ajouter un stock pour un article dans une boutique 
+		if (!$IdCompteClient){
+			$this->AddToJournal($_SESSION['user'],0,"AjouterStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			return false;
+		}
+		
+		foreach ($this->Boutiques as $Bout){
+		   if ($Bout->IdCompteClient == $IdCompteClient){
+			   //On met a jour le stock de la boutique
+			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite+".$Qte." " ;
+			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
+			   $isok=$this->Main->ReadWrite($sql,null,true) ;
+			   $this->AddToJournal($_SESSION['user'],0,"AjouterStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+		   }
+		}
+	}
+	
+	public function RetirerStockBoutique($IdCompteClient,$IdPdt=0,$Qte=0){
+		//permet d'ajouter un stock pour un article dans une boutique 
+		if (!$IdCompteClient){
+			$this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			return false;
+		}
+		
+		foreach ($this->Boutiques as $Bout){
+		   if ($Bout->IdCompteClient == $IdCompteClient){
+			   $this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			   //On met a jour le stock de la boutique
+			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite-".$Qte." " ;
+			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
+			   $isok=$this->Main->ReadWrite($sql,null,true) ;
+			   break ;
+		   }
+		}
+		return true ;
+	}
 	
 }
 

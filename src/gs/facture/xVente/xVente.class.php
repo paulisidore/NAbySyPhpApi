@@ -45,18 +45,21 @@ Class xVente extends xORMHelper
 	 * @param int $IdDetail : Id de la ligne de facture
 	 * @return array : Tableau assossiatif des données
 	 */
-	public function GetVente($Id,$IdDetail=0):array{
+	public function GetVente($Id=0,$IdDetail=0):array{
+		if($Id==0){
+			$Id = $this->Id;
+		}
 		//Permet de lire une vente par son Id ou IdDetail
 		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detailfacture',$this->MaBoutique,$Id);
 		return $LDetailVente->ListeProduits;
 	}
 
-	public function GetListeVente($DateDu=null,$DateAu=null,$IdCaissier=null,$AutreCritere=null){
+	public function GetListeVente($DateDu=null,$DateAu=null,$IdCaissier=null,$AutreCritere=null, string $LimiteSansMotLimit=null){
 		//Permet de lire une vente par son Id ou IdDetail
 		$OK=false;
 		$NbLigne=0;
 		$sql  ="SELECT v.*, c.Nom as 'NomClt',c.Prenom as 'PrenomClt', U.Login as 'Caissier' from ".$this->Table." v 
-				left outer join ".$this->Client->TEntete." c on c.id=v.IdClient
+				left outer join ".$this->Client->Table." c on c.id=v.IdClient
 				left outer join utilisateur U on U.id=v.IdCaissier
 				WHERE v.id > 0 ";
 		$crit="" ;
@@ -73,7 +76,11 @@ Class xVente extends xORMHelper
 			$crit=$crit." ".$AutreCritere ;
 		}
 		$ordre=" ORDER BY v.ID desc ";
-		$sql=$sql.$crit.$ordre ;
+		$limit="";
+		if($LimiteSansMotLimit){
+			$limit = " LIMIT ".$LimiteSansMotLimit;
+		}
+		$sql=$sql.$crit.$ordre.$limit ;
 		//print($sql."</br>") ;
 
 		$reponse=$this->Main->ReadWrite($sql) ;
@@ -170,8 +177,8 @@ Class xVente extends xORMHelper
 				
 				if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
 					//Montant inferieur a la facture
-					echo "xVente Total V: ".$Panier->MontantVerse."</br>";
-					echo "xVente Total Total: ".$Panier->getTotalNetAPayer()."</br>";
+					//echo "xVente Total V: ".$Panier->MontantVerse."</br>";
+					//echo "xVente Total Total: ".$Panier->getTotalNetAPayer()."</br>";
 					$Err->TxErreur="Montant versé incomplet pour solder la facture !" ;
 					return $Err ;			
 				}
@@ -181,7 +188,8 @@ Class xVente extends xORMHelper
 				if ((int)$Panier->MontantVerse == 0){
 					$Panier->MontantVerse=$Panier->getTotalNetAPayer() ;
 				}
-				
+				//echo "Total Versé: ".$Panier->MontantVerse." et TotalNet: ".$Panier->getTotalNetAPayer();exit;
+
 				if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
 					//Montant inferieur a la facture
 					$Err->TxErreur="Montant versé incomplet pour solder la facture !!!" ;
@@ -387,7 +395,8 @@ Class xVente extends xORMHelper
 			values ";
 
 			//Mise a jour des stocks avant enregistrement
-			foreach($Panier->getList() as $P){ 
+			//echo json_encode($Panier->getList());exit;
+			foreach($Panier->getList() as $P){
 				$NbLigne++;
 				$vId=$P['vId'];
 				$Article=$Panier->GetArticle($vId);
@@ -417,15 +426,15 @@ Class xVente extends xORMHelper
 					$IsOK=$Article->Pdt->RetirerStock($vQte,true) ;
 					if ($IsOK){						
 						if ($Bout){
-									//Si boutique client alors on corrige le stock client
-									$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
-									$TacheBout="Mise a jour de stock boutique" ;
-									$NoteBout="Suite à la nouvelle facture numero ".$Panier->IdFacture." 
-									depuis ".$this->MaBoutique->Nom.", le stock de ".$PdtBoutique->Designation."a été modifié";
-									$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
-									$PdtBoutique->AjouterStock($vQte,true);
-									$Bout->AddToJournal($_SESSION['user'],0,$TacheBout,$NoteBout) ;
-								}								
+							//Si boutique client alors on corrige le stock client
+							$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
+							$TacheBout="Mise a jour de stock boutique" ;
+							$NoteBout="Suite à la nouvelle facture numero ".$Panier->IdFacture." 
+							depuis ".$this->MaBoutique->Nom.", le stock de ".$PdtBoutique->Designation."a été modifié";
+							$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
+							$PdtBoutique->AjouterStock($vQte,true);
+							$Bout->AddToJournal($_SESSION['user'],0,$TacheBout,$NoteBout) ;
+						}
 						
 						//Mise a jour de la base de donnée en meme temps
 						$StockSuiv=(int)$NewStock ;
@@ -851,8 +860,8 @@ Class xVente extends xORMHelper
 								$StockPrec=$Article->Pdt->Stock ;
 								//$this->Main->AddToJournal($_SESSION['user'],'0',$Tache,"Suppression du stock de ".$Article->Pdt->Designation." Qte supprimee: ".$Article->Qte." , Stock Précédent=".$StockPrec) ;
 								$Bout->AddToJournal($_SESSION['user'],'0',$Tache,"update_list_vente:Suppression du stock de ".$Article->Pdt->Designation." Qte supprimee: ".$Article->Qte." , Stock Précédent=".$StockPrec) ;
-								$this->Main->RetirerStockBoutique($Bout->IdCompteClient,$Article->IdProduit,$Article->Qte) ;
-							}							
+								$Bout->RetirerStockBoutique($Bout->IdCompteClient,$Article->IdProduit,$Article->Qte) ;
+							}
 							break ;	//Il doit y avoir seulement un client qui a ce compte client
 						}
 					}

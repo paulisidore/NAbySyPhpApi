@@ -164,7 +164,10 @@ Class xNAbySyGS
 	/** Nom du Poste de Saisie utilisé par l'utilisateur */
 	public string $NomPosteClient = "POS_PLATEFORME" ;
 
-	/** Liste des Modules de Paiement Présent */
+	/**
+	 * Liste des Modules de Paiement Présent
+	 * @var IModulePaieManager[]
+	 */
 	public static $ListeModulePaiement =[] ;
 
 	public static xNAbySyGS $Main ;
@@ -421,7 +424,11 @@ Class xNAbySyGS
         self::$TechnoWEBMgr = $manager;
 		if(isset(self::$TechnoWEBMgr)){
 			self::getInstance()->LoadDataBaseFromTechnoWEBClient();
-			//var_dump("Base de donnée du Client: ".self::getInstance()->MaBoutique->DataBase);exit;
+			//echo("Base de donnée du Client: ".self::getInstance()->MaBoutique->DataBase)."</br>";//exit;
+			self::LoadModuleLib();
+			self::LoadModuleGS();
+			self::$Main->ChargeInfos() ;
+
 		}
     }
 
@@ -454,7 +461,7 @@ Class xNAbySyGS
 		$PARAM=$_REQUEST;
 		//On charge la boutique par défaut qui est le Depot
 		//self::$Log->Write("Chargement des Données du Dépot...");
-		
+		//var_dump($PARAM);//exit;
 		if(isset($StartBoutique)){
 			$this->MaBoutique=$StartBoutique ;
 		}else{
@@ -464,7 +471,18 @@ Class xNAbySyGS
 			if (isset($Depot)){
 				if ($Depot->Id>0){
 					$this->MaBoutique=$Depot;
-					self::$ListeBoutique[]=$Depot ;
+					$CanAdd=true;
+					if(count(self::$ListeBoutique)){
+						foreach (self::$ListeBoutique as $Bout) {
+							if($Bout->Id == $Depot->Id){
+								$CanAdd=false;
+								break;
+							}
+						}
+					}
+					if($CanAdd){
+						self::$ListeBoutique[]=$Depot ;
+					}
 				}
 			}
 		}
@@ -483,12 +501,26 @@ Class xNAbySyGS
 		}
 		
 		$LstB=$this->MaBoutique->ChargeListe("ID <> ".$Depot->Id,null,"ID");
+		
 		if($LstB->num_rows){
 			while($rw = $LstB->fetch_assoc()){
-				$Bout = new xBoutique($this,(int)$rw['ID'],false);
-				if($Bout->Id){
+				//$Bout = new xBoutique($this,(int)$rw['ID'],false);
+				if((int)$rw['ID']){
+					$Bout = new xBoutique($this,(int)$rw['ID'],false);
 					$this->Boutiques[] = $Bout ;
-					self::$ListeBoutique[] = $Bout ;
+					$CanAdd=true;
+					if(count(self::$ListeBoutique)){
+						foreach (self::$ListeBoutique as $BoutP) {
+							if($Bout->Id == $BoutP->Id){
+								$CanAdd=false;
+								break;
+							}
+						}
+					}
+					if($CanAdd){
+						//var_dump("Ajout de ".$Bout->Nom);
+						self::$ListeBoutique[] = $Bout ;
+					}
 				}
 			}
 		}
@@ -1573,9 +1605,25 @@ Class xNAbySyGS
 	 */
 	public function ValideUser($SendReponse=true):bool{
 		$Err=new xErreur;
-		if (!isset($this->User)){		
-			if ($SendReponse==true)     {
+		if (!isset($this->User) || $this->User->Id==0){
+			self::$Log->Write("Laissez moi vérifier a nouveau l'utilisateur en cour ...");
+			self::ReadHttpAuthRequest();
+		}
+		if (!isset($this->User)){
+			self::ReadHttpAuthRequest();
+			if ($SendReponse==true){
 				$Err->TxErreur='Vous n\'etes pas authentifié !' ;
+				$Err->Source= __FUNCTION__ ;
+				$reponse=json_encode($Err) ;
+				echo $reponse ;				
+			}
+			return false ;	
+		}
+		if ($this->User->Id==0){
+			//echo "Variable Actuelle: ".$_REQUEST['Token']."</br>" ;
+			self::ReadHttpAuthRequest();
+			if ($SendReponse==true){
+				$Err->TxErreur='Id User introuvable. Vous n\'etes pas authentifié !' ;
 				$Err->Source= __FUNCTION__ ;
 				$reponse=json_encode($Err) ;
 				echo $reponse ;				
@@ -1584,6 +1632,13 @@ Class xNAbySyGS
 		}
 		if ($this->User->Id==0){		
 			if ($SendReponse==true){
+				$traces = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2);
+				foreach ($traces as $trace) {
+					//echo json_encode($trace);
+					self::$Log->Write('Erreur Authentification: Fichier: '.$trace['file'].' Ligne: '.$trace['line'].' Fonction: '.$trace['function']) ;
+					//echo '<br>Fichier: '.$trace['file'].' Ligne: '.$trace['line'].' Fonction: '.$trace['function'].'</br>' ;
+				}
+				//var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,3));
 				$Err->TxErreur='Vous n\'etes pas authentifié !' ;
 				$Err->Source= __FUNCTION__ ;
 				$reponse=json_encode($Err) ;
@@ -2181,9 +2236,32 @@ Class xNAbySyGS
 									$Bout->DBPassword = "microcp";
 									
 									if($Bout->Enregistrer()){
-										$this->Boutiques[]=$Bout ;
-										$BoutiqueCible =  new xBoutique($this, $Bout->Id,false); ;
-										self::$ListeBoutique[]=$BoutiqueCible ;
+										$BoutiqueCible =  new xBoutique($this, $Bout->Id,false);
+										$CanAdd=true;
+										if(count($this->Boutiques)){
+											foreach ($this->Boutiques as $BoutX) {
+												if($Bout->Id == $BoutX->Id){
+													$CanAdd=false;
+													break;
+												}
+											}
+										}
+										if($CanAdd){
+											$this->Boutiques[]=$BoutiqueCible ;
+										}
+										
+										$CanAdd=true;
+										if(count(self::$ListeBoutique)){
+											foreach (self::$ListeBoutique as $BoutX) {
+												if($Bout->Id == $BoutX->Id){
+													$CanAdd=false;
+													break;
+												}
+											}
+										}
+										if($CanAdd){
+											self::$ListeBoutique[]=$BoutiqueCible ;
+										}
 									}
 
 								}else{
@@ -2344,7 +2422,9 @@ Class xNAbySyGS
 	public static function ReadHttpAuthRequest(){
 		
 		$User=null ;
+		//echo __FILE__." L".__LINE__.": Je lance ma lecture ici</br>";
 		require 'auth.php';
+		//var_dump(self::$Main->User->Login);exit;
 		return;
 	}
 

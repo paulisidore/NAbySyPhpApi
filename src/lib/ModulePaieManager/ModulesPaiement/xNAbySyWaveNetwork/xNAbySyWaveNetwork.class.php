@@ -77,8 +77,8 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
     private function setupVariable(){
         $this->API_DISPONIBLE = 1;
         $this->API_TOKEN = self::$myModuleHandleName;
-        $this->API_ENDPOINT ="https:/mon_site_auth.com/paiement_api_action.php";
-        $this->API_AUTH ="https://mon_site_auth.com/auth.php";
+        $this->API_ENDPOINT =$this->BaseURL()."/checkout.php";
+        $this->API_AUTH = $this->BaseURL()."/auth.php";
         $this->API_AUTH_USER ="";
         $this->API_AUTH_PWD ="";
         $this->WAIT_API_RESPONSE = 0;
@@ -211,6 +211,21 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
     {
         return $this->MyLastError;
     }
+
+    /**
+     * Retourne l'URL de la racine du Site
+     * @return string 
+     */
+    public function BaseURL(): string {   
+        $Url ="";
+        $httpX='http://' ;
+		if (isset($_SERVER['HTTPS'])){
+			$httpX='https://';
+		}
+		$sitePrefix=$httpX.$_SERVER['HTTP_HOST'] ;
+        return $sitePrefix ;
+    }
+
 
     /** FONCTIONS /METHODE API */
 

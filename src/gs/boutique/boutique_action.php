@@ -15,19 +15,31 @@ switch ($action){
             if (isset($PARAM['IDBOUTIQUE'])){
                 $IdBout=(int)$PARAM['IDBOUTIQUE'] ;
             }
+            //echo(N::getInstance()->MaBoutique->Nom);exit;
+
             if(isset($PARAM['IDTECHNOWEB'])){
                 if(trim($PARAM['IDTECHNOWEB']) !==''){
                     if(isset(N::$TechnoWEBMgr)){
                         $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
                         if($ClientTechnoWeb){
-                            $IdBout = $ClientTechnoWeb->Id ;
-                            $Critere=" DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
-                            foreach (N::getInstance()->Boutiques as $BoutX) {
-                                if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
-                                    $IdBout = $BoutX->Id;
-                                    break;
+                            $IdBTrouve=null;
+                            if($ClientTechnoWeb->ServiceDB == N::getInstance()->MaBoutique->DBName ){
+                                $IdBout=N::getInstance()->MaBoutique->Id;
+                                $IdBTrouve = $IdBout ;
+                            }else{
+                                $IdBout = $ClientTechnoWeb->Id ;
+                                $Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
+                            
+                                //echo "DB Recherché = ".$Critere . "</p>";
+                                foreach (N::getInstance()::$ListeBoutique as $BoutX) {
+                                    //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
+                                    if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
+                                        $IdBout = $BoutX->Id;
+                                        $IdBTrouve = $IdBout ;
+                                        break;
+                                    }
                                 }
-                            } 
+                            }
                         }
                     }
                 }

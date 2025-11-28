@@ -11,6 +11,8 @@ use NAbySy\GS\Stock\xProduit;
 use NAbySy\GS\Stock\xProduitNC;
 use NAbySy\Lib\BonAchat\IBonAchatManager;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
+use NAbySy\xErreur;
+use NAbySy\xNotification;
 
     //include_once './nabysy_action.php';
     $IdPanier=null ;
@@ -123,11 +125,12 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 		
 		case "SAVE_PANIER":
 			$Contenu=null;
+			$ListeArticle=[];
 			$IdClient=null;
 			$TotalReduction=0;
 			$TotalRemise=null;
 			$Err->TxErreur="";
-
+			//var_dump($_REQUEST);exit;
 			if (isset($_REQUEST['IdClient'])){				
 				if ($_REQUEST['IdClient']>0){
 					$IdClient=$_REQUEST['IdClient'] ;					
@@ -135,18 +138,41 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 					$Panier->Client=$Client ;
 					$Panier->IdClient=$IdClient;
 					//var_dump($Panier->Client->Id);
-				}				
+				}
 			}
 
 			if (isset($_REQUEST['Contenue'])){
 				$Contenu=json_decode($_REQUEST['Contenue']) ;
-                //var_dump($Contenu);
+                //echo json_encode($Contenu);exit;
 				if (isset($Contenu)){
 					$ListeArticle=$Contenu->ListeArticle ;
 				}
-                //var_dump($ListeArticle);
+				if(isset($Contenu->IdClient)){
+					if((int)$Contenu->IdClient>0){
+						$IdClient= (int)$Contenu->IdClient ;					
+						$Client=new xClient(N::getInstance(),$IdClient) ;
+						if($Client->Id>0){
+							$Panier->Client=$Client ;
+							$Panier->IdClient=$IdClient;
+						}
+					}
+				}
+				//echo 'IDCLIENT='.$Panier->IdClient ; exit;
+                //echo json_encode($ListeArticle);exit;
 				//exit;
 			}
+
+			if(isset($Contenu->MontantVerse)){
+				if((float)$Contenu->MontantVerse>0){
+					$PARAM['MontantVerse'] = (float)$Contenu->MontantVerse;
+				}
+			}
+			if(isset($Contenu->MontantRendu)){
+				if((float)$Contenu->MontantRendu>0){
+					$PARAM['MontantRendu'] = (float)$Contenu->MontantRendu;
+				}
+			}
+
 			$Grossiste=false;
 			if (isset($PARAM['Grossiste'])){				
 				if ($PARAM['Grossiste']=='true'){
@@ -162,41 +188,57 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 				}
 			}
 			if (isset($PARAM['MontantRendu'])){				
-				if ((int)$PARAM['MontantRendu'] !== 0){
-					$Panier->MontantRendu=(int)$PARAM['MontantRendu'] ;
+				if ((float)$PARAM['MontantRendu'] !== 0){
+					$Panier->MontantRendu=(float)$PARAM['MontantRendu'] ;
 				}
 			}
 			$Panier->TotalReduction=0;
 			//var_dump($Panier->TotalReduction );
-			foreach ($Contenu->ListeArticle as $Art){
-				if ($Art->Id == -1 && $Art->IsPdtClown>0){
-					$Pdt=new xProduitNC($nabysy,null,N::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$Art->CodeBar);
-				}else{
-					$Pdt=new xProduit($nabysy,$Art->Id,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null, $nabysy->MaBoutique) ;
-				}				
-                //var_dump(get_class($Pdt));
+			//echo json_encode($ListeArticle);exit;
+			foreach ($ListeArticle as $xArt){
+				$VenteDet=0;
 				$TypeVenteParDefaut=1 ;
-				if ($Art->VENTEDETAILLEE =='false' || $Art->VENTEDETAILLEE =='False' || $Art->VENTEDETAILLEE =='0'){
+				if($xArt->VENTEDETAILLEE == 'False' || $xArt->VENTEDETAILLEE== 'FALSE' || $xArt->VENTEDETAILLEE== '0' || $xArt->VENTEDETAILLEE== 0){
+					$xArt->VENTEDETAILLEE = false;
+				}elseif($xArt->VENTEDETAILLEE == 'True' || $xArt->VENTEDETAILLEE== 'TRUE' || $xArt->VENTEDETAILLEE== '1' || $xArt->VENTEDETAILLEE== 1){
+					$xArt->VENTEDETAILLEE = true;
+				}
+				//echo  "xArt Ligne: ".__LINE__." => ". $xArt->VENTEDETAILLEE ." ";
+				if($xArt->VENTEDETAILLEE == true ){
+					$VenteDet = 1;
+					//echo  "Type de Vente Avant Ligne: ".__LINE__." => ".json_encode($TypeVenteParDefaut);
 					$TypeVenteParDefaut=0 ;
 				}
-				$NewArticle=new xArticlePanier($nabysy,$Pdt->Id,$Art->Qte,$TypeVenteParDefaut,$nabysy->MaBoutique,$Art->CodeBar) ;
-				//var_dump($NewArticle);
+				//echo  "Type de Vente après Ligne: ".__LINE__." => ".json_encode($TypeVenteParDefaut); exit;
+
+				$Article = new xArticlePanier(N::getInstance(),$xArt->Id,$xArt->Qte, $VenteDet);
+				$Art = $Article->Pdt ;
+				//echo json_encode($xArt);exit;
+				if ($Article->IdProduit == -1 && $Article->IsPdtClown>0){
+					$Pdt=new xProduitNC($nabysy,null,N::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$Art->CodeBar);
+				}else{
+					$Pdt=$Article->Pdt; // new xProduit($nabysy,$Art->Id,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null, $nabysy->MaBoutique) ;
+				}				
+                //var_dump(get_class($Pdt));
+				//echo  "Type de Vente: ".json_encode($TypeVenteParDefaut); exit;
+				$NewArticle=new xArticlePanier($nabysy,$Pdt->Id,$xArt->Qte,$TypeVenteParDefaut,N::getInstance()->MaBoutique,$Art->CodeBar) ;
+				//var_dump($NewArticle);exit;
 				if ($NewArticle){	
 					$Modif=false ;					
-					if ($Art->Id >0 && !$Art->IsPdtClown ){
+					if ($Art->Id >0 && !$Art->IsClown ){
 						if ($Panier->PdtExiste($Pdt->Id,$TypeVenteParDefaut)){
 							//'On modifie la quantité'
 							$Modif=false ;
 						}
 					}											
 					
-					if (!$Art->IsPdtClown){
+					if (!$Art->IsClown){
 						/*Si Boutique avec Prix Calculé et non Grossiste */
-						if ($nabysy->MaBoutique->AutoCalculPV>0){
+						if (N::getInstance()->MaBoutique->AutoCalculPV>0){
 							if (!$Grossiste){
 								//echo ' </br>Je calcul le Prix de Vente: ' ;
-								$EnPlus=$NewArticle->PrixU * round(($nabysy->MaBoutique->TauxPV /100),0) ;
-								$vEnPlus=($NewArticle->PrixU*($nabysy->MaBoutique->TauxPV /100)) ;
+								$EnPlus=$NewArticle->PrixU * round((N::getInstance()->MaBoutique->TauxPV /100),0) ;
+								$vEnPlus=($NewArticle->PrixU*(N::getInstance()->MaBoutique->TauxPV /100)) ;
 								$EnPlus=(int)round($vEnPlus,0,PHP_ROUND_HALF_UP) ;
 								//echo ' </br>Le Surplus de '.$nabysy->MaBoutique->TauxPV.'% ='.$EnPlus.' </br>' ;
 								$NewArticle->PrixU +=$EnPlus ;
@@ -204,7 +246,7 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 						}	
 					}
 					
-					//var_dump($NewArticle);
+					//echo json_encode($NewArticle);exit;
 					//echo ' </br>Article Prix de Vente: '. $NewArticle->PrixU." Pour le TypeVente=".$TypeVenteParDefaut." Vente Grossiste=".$Grossiste ;
 					/* 	---------------------------------------------------- */
 					$Rep=$Panier->addProduct($NewArticle->IdProduit,$NewArticle->Nom,$NewArticle->Qte,$NewArticle->PrixU,$NewArticle->TypeVente,$Panier->IdClient,$Modif,false,$NewArticle->CodeBar) ;
@@ -212,12 +254,11 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 						$TxErreur=$Rep ;
 						echo $TxErreur ;
 						exit ;
-					}					
-													
+					}
 				}
 
-			}			
-
+			}
+			//echo json_encode($Panier->getList());exit;
 						
             //On vérifie les Modules de Reduction			
             if (isset($PARAM['REMISE'])){
@@ -267,7 +308,7 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 							//var_dump($BonAchat);
 							if (isset($BonAchat['MODULE'])){
 								$NomClass=$BonAchat['MODULE'];
-								if (!$nabysy->PresenceBonAchatModule($NomClass)){
+								if (!N::getInstance()->PresenceBonAchatModule($NomClass)){
 									$Err->TxErreur="Le module de Bon d'Achat ".$NomClass. " n'est pas diponible en ce moment. Contactez votre administrateur svp." ;
 									$Rep=json_encode($Err);
 									echo $Rep;
@@ -275,7 +316,7 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 								}
 								try {
 									//var_dump($BonAchat);
-									foreach ($nabysy::$ListeModuleBonAchat as $ModBonAchat){
+									foreach (N::$ListeModuleBonAchat as $ModBonAchat){
 										//var_dump($ModBonAchat);
 										if ($ModBonAchat instanceof IBonAchatManager){
 											//var_dump($BonAchat['MontantBon']);
@@ -360,33 +401,45 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 				//On valide la vente 
 				//var_dump($Panier->getTotalPriceCart());
 				//exit ;
-				$Vente=new xVente($nabysy) ;
+				$Vente=new xVente(N::getInstance()) ;
 				//var_dump($Panier->TotalReduction);
-				if ((int)$Panier->MontantVerse ==0){
-					$Panier->MontantVerse = $Panier->getTotalPriceCart() - (int)$Panier->TotalRemise - (int)$Panier->TotalReduction ;
+				if ((float)$Panier->MontantVerse ==0){
+					$Panier->MontantVerse = $Panier->getTotalPriceCart() - (float)$Panier->TotalRemise - (float)$Panier->TotalReduction ;
 				}
 				//var_dump($Panier->MontantVerse);
 				//var_dump($Panier->getTotalPriceCart());
 				//var_dump($Panier->getTotalNetAPayer());
-
+				//echo json_encode($Panier->getList());exit;
+				
 				$IdFacture=0;
 				$ReponseID=$Vente->Valider($Panier) ;
-				//var_dump($ReponseID);
-				if (is_object($ReponseID)){
-					if (get_class($ReponseID) !== "xErreur"){
-						$IdFacture=$ReponseID;
-					}else{
-						//Erreur
-						if ($ReponseID->OK>0){
-							$IdFacture=$ReponseID->Extra;
-						}else{
-							echo json_encode($ReponseID);
-							exit;
-						}						
-					}
-				}else{
-					$IdFacture=$ReponseID;
+				//echo json_encode($ReponseID);
+				if ($ReponseID instanceof xNotification){
+					echo "Je suis bien ici... Ligne ".__LINE__." ";
+					$IdFacture=(int)$ReponseID->Extra;
+					$ReponseID->SendAsJSON();
+				}elseif ($ReponseID instanceof xErreur){
+					echo json_encode($ReponseID);
+					exit;
+				}elseif( is_numeric($ReponseID) ){
+					$IdFacture = $ReponseID;
 				}
+				//var_dump($IdFacture); exit;
+				// if (is_object($ReponseID)){
+				// 	if ($ReponseID instanceof xNotification){
+				// 		$IdFacture=$ReponseID->Extra;
+				// 	}else{
+				// 		//Erreur
+				// 		if ($ReponseID->OK>0){
+				// 			$IdFacture=$ReponseID->Extra;
+				// 		}else{
+				// 			echo json_encode($ReponseID);
+				// 			exit;
+				// 		}						
+				// 	}
+				// }else{
+				// 	$IdFacture=(int)$ReponseID;
+				// }
 
 				if ($IdFacture>0){
                     if (isset($ListeModCallBack)){
@@ -438,17 +491,18 @@ use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 						}
 					}
 
-					$Reponse=new xErreur;
+					$Reponse=new xNotification();
 					$Reponse->OK=1;
 					$Reponse->Extra=$IdFacture ;
-					$Reponse->Source="panier_action.php" ;
+					$Reponse->Source=$action ;
 					if (isset($Err->TxErreur)){
 						if ($Err->TxErreur !== ""){
 							$Reponse->TxErreur=$Err->TxErreur;
 						}
 					}
-					$retour=json_encode($Reponse) ;
-					echo $retour ;
+					$Reponse->SendAsJSON();
+					//$retour=json_encode($Reponse) ;
+					//echo $retour ;
 					$Panier->Vider() ;
 					exit ;
 				}

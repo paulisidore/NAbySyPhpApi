@@ -427,6 +427,36 @@ Class xProduit extends xORMHelper
 		return self::$xMain->MaBoutique->ExecSQL($TxSQL);
 	}
 
+	/**
+	 * Calcule la quantité Carton en fonction du conditionement initial
+	 * @param int $StockInitial 
+	 * @param float $QtePiece 
+	 * @return float 
+	 */
+	public static function CalculStockGros(int $StockInitial, float $QtePiece):float{
+		//Renvoie le stock en gros
+		if ($StockInitial==0){
+			$StockInitial=1 ;
+		}
+		$StockG=$QtePiece / $StockInitial ;
+		return (int)$StockG ;
+	}
+
+	/**
+	 * Qté restant au détail selon le conditionnment et la quantité
+	 * @param int $StockInitial 
+	 * @param float $Qte 
+	 * @return float 
+	 */
+	public static function CalculStockRestantDetail(int $StockInitial, float $Qte):float{
+		//Renvoie le stock en gros
+		if ($StockInitial==0){
+			$StockInitial=1 ;
+		}
+		$StockD=$Qte % $StockInitial ;
+		return $StockD ;
+	}
+
 }
 
 ?>

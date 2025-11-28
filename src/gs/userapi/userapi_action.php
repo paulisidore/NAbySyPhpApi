@@ -30,7 +30,6 @@ use NAbySy\xUser;
         echo $reponse ;
         exit;	
 	}
-
     if (!$nabysy->ValideUser()){
         exit;
     }
@@ -227,6 +226,28 @@ use NAbySy\xUser;
                 }             
             }
 
+            if (isset($PARAM['BLOQUE'])){
+                if ($PARAM['BLOQUE'] !== $eUser->BLOQUE ){
+                    if($eUser->Id == $nabysy->User->Id){
+                        $Err->TxErreur = "Vous ne pouvez pas vous bloquer vous même.";
+                        echo json_encode($Err) ;
+                        exit;
+                    }
+                    if($PARAM['BLOQUE'] == 'OUI' || $PARAM['BLOQUE']=='1' || $PARAM['BLOQUE']==1){
+                        $PARAM['BLOQUE']='OUI' ;
+                    }elseif($PARAM['BLOQUE'] !== 'OUI' && $PARAM['BLOQUE']  !=='1' && $PARAM['BLOQUE'] !==1){
+                        $PARAM['BLOQUE']='NON' ;
+                    }
+                    $eUser->BLOQUE = $PARAM['BLOQUE'];
+                    if($eUser->BLOQUE=='OUI'){
+                        $eUser->AddToJournal("UTILISATEUR","L'utilisateur ".$eUser->Login." a été bloqué par ".N::getInstance()->User->Login.".");
+                    }else{
+                        $eUser->AddToJournal("UTILISATEUR","L'utilisateur ".$eUser->Login." a été débloqué par ".N::getInstance()->User->Login.".");
+                    }
+                    $CanModif=true;
+                }             
+            }
+
             if ($CanModif){
                 if ($eUser->Enregistrer()){
                     $Tache="MODIFICATION UTILISATEUR";
@@ -267,6 +288,10 @@ use NAbySy\xUser;
                 exit;
             }
             $IdU=(int)$PARAM['IDUSER'] ;
+            if($IdU == $nabysy->User->Id){
+                $Err->TxErreur = "Vous ne pouvez pas vous supprimer vous même.";
+                $Err->SendAsJSON();
+            }
             $sUser=new  xUser($nabysy,$IdU);
             if ($sUser->Id>0){
                 $Login=$sUser->Login ;

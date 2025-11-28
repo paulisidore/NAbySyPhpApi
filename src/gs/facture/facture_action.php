@@ -1,5 +1,6 @@
 <?php
 use NAbySy\GS\Facture\Impression\xFactureA4;
+use NAbySy\xErreur;
 
     //include_once 'nabysy_action.php';
     //var_dump($nabysy);

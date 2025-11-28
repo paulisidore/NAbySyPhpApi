@@ -108,9 +108,9 @@ Class xAuth
         if (isset($JWT_TOKEN)){
             try{
                 //echo $JWT_TOKEN ;exit;
-                //echo $this->Key ;
+                //echo __FILE__." Key =". $this->Key ;exit;
                 $decoded = JWT::decode($JWT_TOKEN, $this->Key, array($Algo));
-                //var_dump($decoded);
+                //var_dump($decoded);//exit;
                 if (!isset($decoded->user_data)){
                     $decoded->user_data=json_decode($decoded->user_data);
                 }else{

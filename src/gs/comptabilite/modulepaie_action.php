@@ -8,6 +8,7 @@
 use NAbySy\GS\Comptabilite\xCompteBancaire;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
+use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\xErreur;
 use NAbySy\xNotification;
 
@@ -239,6 +240,173 @@ use NAbySy\xNotification;
             $DateDebut=date("Y-m-d");
             $DateFin=$DateDebut ;
             $NomMethode =null;
+
+            exit;            
+        case 'METHODE_GET': //Retourne la liste des Méthodes disponible
+            $IdMeth=null;
+            $NomMeth=null;
+            $MethodePaie = new xMethodePaie(N::getInstance());
+
+            $Crit="Id>0 ";
+            if(isset($_REQUEST['IDMETHODE'])){
+                if ((int)$_REQUEST['IDMETHODE']>0){
+                    $IdMeth = (int)$_REQUEST['IDMETHODE'];
+                    $Crit .=" and ID=".$IdMeth;
+                }
+            }
+            if(isset($_REQUEST['NOM'])){
+                if ($_REQUEST['NOM'] !== ""){
+                    $NomMeth = $_REQUEST['NOM'];
+                    $NoStrict="";
+                    if (isset($_REQUEST['NOT_STRICT'])){
+                        $NoStrict="%";
+                    }
+                    $Crit .=" and NOM  Like '".$NoStrict.$NomMeth.$NoStrict."'" ;
+                }
+            }
+
+            if(isset($_REQUEST['HANDLEMODULE'])){
+                if (trim($_REQUEST['HANDLEMODULE']) !== ""){
+                    if($MethodePaie->ChampsExisteInTable('ModulePaiementHandle')){
+                        $Crit .=" and ModulePaiementHandle like '".$_REQUEST['HANDLEMODULE']."' " ;
+                    }
+                }
+            }
+
+            if(isset($_REQUEST['CRITERE'])){
+                if ($_REQUEST['CRITERE'] !== ""){
+                    $Crit .=" and ".$_REQUEST['CRITERE'] ;
+                }
+            }
+            $Rep = new xNotification();
+            $Rep->OK=1;
+            $Rep->Contenue = [];
+            if ($MethodePaie->TableIsEmpty()){
+                $Rep->SendAsJSON();
+            }
+            $Lst=$MethodePaie->ChargeListe($Crit);
+            $Rep->Contenue = N::EncodeReponseSQL($Lst);
+            $Rep->SendAsJSON();
+            break;
+
+        case 'METHODE_ADD': //Ajoute une nouvelle méthode
+            $Nom=null;
+            if (isset($PARAM['NOM'])){
+                $Nom=$PARAM['NOM'];
+            }
+            if (isset($PARAM['Nom'])){
+                $Nom=$PARAM['Nom'];
+            }
+
+            if (!isset($Nom)){
+                $Err->TxErreur="Nom de la méthode absent. Impossible d'ajouter.";
+                echo json_encode($Err);
+                exit;
+            }
+            //On vérifie si le nom existe déja
+            $MethodePaie = new xMethodePaie(N::getInstance());
+            if ($MethodePaie->MethodeExiste($Nom)){
+                $Err->TxErreur=$Nom." existe déjà comme méthode de paiement. Impossible de continuer.";
+                echo json_encode($Err);
+                exit;
+            }
+
+            if(N::getInstance()->User->NiveauAcces<4){
+                $Err->TxErreur="Niveau d'accès insuffisant pour cette opération.";
+                $Err->SendAsJSON();
+            }
+
+            $MethodePaie->Nom=$Nom;
+            if ($MethodePaie->Enregistrer()){
+                $Notif=new xErreur;
+                $Notif->OK=1;
+                $Notif->Extra=$MethodePaie->Id;
+                echo json_encode($Notif);
+                exit;
+            }
+            $Err->TxErreur="Impossible d'enregistrer ".$Nom." comme méthode de paiement. Erreur systeme.";
+            echo json_encode($Err);
+            break;
+
+        case 'METHODE_SAVE': //Modifie une méthode
+            $Id=null;
+            if (isset($PARAM['ID'])){
+                $Id=(int)$PARAM['ID'];
+            }
+            if (isset($PARAM['Id'])){
+                $Id=(int)$PARAM['Id'];
+            }
+            if (!isset($Id)){
+                $Err->TxErreur="Id de la méthode non définit";
+                echo json_encode($Err);
+                exit;
+            }
+            $MethodePaie=new xMethodePaie($nabysy,$Id,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE);
+            if ($MethodePaie->Id==0){
+                $Err->TxErreur="Impossible de trouver la Méthode avec ID=".$Id;
+                echo json_encode($Err);
+                exit;
+            }
+
+            if (isset($PARAM['NOM'])){
+                if($PARAM['NOM'] !== '' ){
+                    if(N::getInstance()->User->NiveauAcces<4){
+                        $Err->TxErreur="Niveau d'accès insuffisant pour cette opération.";
+                        $Err->SendAsJSON();
+                    }
+                    if ($MethodePaie->Nom !== $PARAM['NOM']){
+                        if (!$MethodePaie->MethodeExiste($PARAM['NOM'])){
+                            $MethodePaie->Nom=$PARAM['NOM'];
+                            $MethodePaie->Enregistrer();
+                        }else{
+                            $Err->TxErreur=$PARAM['NOM']." existe déjà comme méthode de paiement. Impossible de modifier la méthode.";
+                            echo json_encode($Err);
+                            exit;
+                        }
+                    }
+                }
+            }
+
+            $Notif=new xErreur;
+            $Notif->OK=1;
+            $Notif->Extra=$MethodePaie->Id;
+            echo json_encode($Notif);
+            break;
+
+        case 'METHODE_SUPP': //Supprime une méthode
+            if(N::getInstance()->User->NiveauAcces<4){
+                $Err->TxErreur="Niveau d'accès insuffisant pour cette opération.";
+                $Err->SendAsJSON();
+            }
+            $Id=null;
+            if (isset($PARAM['ID'])){
+                $Id=(int)$PARAM['ID'];
+            }
+            if (isset($PARAM['Id'])){
+                $Id=(int)$PARAM['Id'];
+            }
+            if (!isset($Id)){
+                $Err->TxErreur="Id de la méthode non définit";
+                echo json_encode($Err);
+                exit;
+            }
+            $MethodePaie=new xMethodePaie($nabysy,$Id,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE);
+            if ($MethodePaie->Id==0){
+                $Err->TxErreur="Impossible de trouver la Méthode avec ID=".$Id;
+                echo json_encode($Err);
+                exit;
+            }
+
+            if ($MethodePaie->Supprimer()){
+                $Notif=new xErreur;
+                $Notif->OK=1;
+                $Notif->Extra=$MethodePaie->Nom. " a été supprimé de la base de donnée.";
+                echo json_encode($Notif);
+                exit;
+            }
+            $Err->TxErreur="Impossible de supprimer ".$MethodePaie->Nom." . Erreur systeme.";
+            echo json_encode($Err);
+            break;
 
         default:
             break;
