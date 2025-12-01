@@ -98,3 +98,42 @@ if(!file_exists($htaccess_file)){
 		N::$Log->AddToLog("Error on reading .htaccess template file: ".$th->getMessage());
 	}
 }
+
+try {
+	$tmpDir = N::CurrentFolder(true).'tmp/';
+	if(!scandir($tmpDir)){
+		mkdir($tmpDir, 0777, true);
+	}
+} catch (\Throwable $th) {
+	N::$Log->AddToLog("Error on creating tmp directory: ".$th->getMessage());
+}
+
+$htaccess_tmpfile = N::CurrentFolder(true).'tmp/.htaccess' ;
+if(!file_exists($htaccess_tmpfile)){
+	//Création du fichier htaccess afin de rediriger les chemin inconnus vers le gestionnaire des appels api
+	$templatePath = N::CurrentFolder().'templates/templateimagetmp_htaccess';
+	try {
+		$template = file_get_contents($templatePath);
+		if(strlen($template)>0){
+			//{NABYSYROOT}
+			// Remplacer dynamiquement des morceaux
+			$updated = str_replace([
+				'{NABYSYROOT}',
+			], [
+				N::CurrentFolder(true),
+			], $template);
+
+			//copy($templatePath, $htaccess_tmpfile);
+			try {
+				// Écrire dans un nouveau fichier
+				file_put_contents($htaccess_tmpfile, $updated);
+			} catch (\Throwable $th) {
+				N::$Log->AddToLog("Error on writing new .htaccess file: ".$th->getMessage());
+				throw $th;
+			}
+		}
+	} catch (\Throwable $th) {
+		//throw $th;
+		N::$Log->AddToLog("Error on reading ".$templatePath." file: ".$th->getMessage());
+	}
+}

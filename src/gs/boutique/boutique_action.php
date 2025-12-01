@@ -6,9 +6,11 @@ use NAbySy\xDB;
 use NAbySy\xErreur;
 use NAbySy\xNotification;
 
+$nabysy = N::getInstance() ;
 switch ($action){
         case 'ETS_GETINFOS': //Retourne les information personnelle de l'entreprise cliente
             $IdBout=N::getInstance()->MaBoutique->Id;
+            $nabysy->AutorisationCORS();
             if (isset($PARAM['ID'])){
                 $IdBout=(int)$PARAM['ID'] ;
             }
@@ -55,7 +57,7 @@ switch ($action){
             $Reponse = new xNotification ;
             $Reponse->OK=1;
             $rw = $Bout->ToArrayAssoc();
-            $rw['DBASE'] = $Bout->DBname;
+            //$rw['DBASE'] = $Bout->DBname;
                     
             $rw['URL_ENTETE'] = $Bout->GetLogoEntete(true);
             $rw['ENTETE_TICKET'] =  $rw['URL_ENTETE'] ;
@@ -89,9 +91,9 @@ switch ($action){
                 }
             }
             if(isset($Param) && $Param->Id){
+                $rw['Tel'] = $Param->Tel ;
                 $rw['PIED_TICKET'] = $Param->PIED_TICKET ;
                 $rw['PIED_A4'] = $Param->PIED_A4 ;
-                $rw['DATE_DEBUT_SCOLARITE'] = $Param->DatePremiereScolarite ;
                 $rw['MONNAIE'] = $Param->Monnaie ;
                 $rw['MONNAIE_LONGUE'] = $Param->MonnaieLong ;
                 $rw['PAYS'] = $Param->MonPays ;
@@ -99,6 +101,161 @@ switch ($action){
             }
 
             $Reponse->Contenue = $rw ;
+            echo json_encode($Reponse);
+            exit;
+            break;
+        
+        case 'ETS_CONFIG_SAVE': //Retourne une configuration
+            $IdConfig=1;
+            $NewConfig=false;
+            if(isset($_REQUEST['ID'])){
+                if ((int)($_REQUEST['ID'])){
+                    $IdConfig = (int)$_REQUEST['ID'];
+                }
+            }
+            if(isset($PARAM['IDTECHNOWEB'])){
+                if(trim($PARAM['IDTECHNOWEB']) !==''){
+                    if(isset(N::$TechnoWEBMgr)){
+                        $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
+                        if($ClientTechnoWeb){
+                            $IdBTrouve=null;
+                            if($ClientTechnoWeb->ServiceDB == N::getInstance()->MaBoutique->DBName ){
+                                $IdBout=N::getInstance()->MaBoutique->Id;
+                                $IdBTrouve = $IdBout ;
+                            }else{
+                                $IdBout = $ClientTechnoWeb->Id ;
+                                $Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
+                            
+                                //echo "DB Recherché = ".$Critere . "</p>";
+                                foreach (N::getInstance()::$ListeBoutique as $BoutX) {
+                                    //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
+                                    if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
+                                        $IdBout = $BoutX->Id;
+                                        $IdBTrouve = $IdBout ;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
+            if($Bout->Id==0){
+                $Err=new xErreur();
+                $Err->Autres = $IdBout ;
+                $Err->TxErreur="Information du client PAM introuvable !";
+                $Err->SendAsJSON();
+            }
+
+            $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre", $Bout->DataBase);
+            $Reponse=new xNotification;
+            if ($Param->Id==0){
+               $NewConfig=true;
+            }
+
+            if(!$Param->ChampsExisteInTable("Adresse")){
+                $PrecAutoCreate=$Param->AutoCreate;;
+                $Param->AutoCreate=true;
+                $Param->Adresse="";
+                $Param->Tel="";
+                $Param->Email="";
+                $Param->Enregistrer();
+                $Param->AutoCreate=$PrecAutoCreate;
+            }
+
+            $YouCanSave=false ;
+            $MySQL=new xDB($nabysy);
+            $MySQL->DebugMode=false;
+            $ListeChampIntrouvable=[];
+            $ListeVariable=$_REQUEST;
+            if(isset($ListeVariable['Config'])){
+                $ListeVariable = json_decode($ListeVariable['Config'],true);
+            }
+            //$Param->AddToLog(__FILE__.":".__LINE__.": Param.".json_encode($ListeVariable));
+
+            foreach($ListeVariable as $Champ => $Valeur){
+                
+                if (strtolower($Champ) !== 'id' and strtolower($Champ) !== 'token' 
+                    and strtolower($Champ) !== 'action' and strtolower($Champ) !== 'niveauacces' ){
+                    //echo 'Champ '.$Champ." = ".$Valeur." /br" ;
+                    if(strtoupper($Champ) == 'MONNAIE_LONGUE'){
+                        $Champ = 'MONNAIELONG' ;
+                    }
+                    if ($MySQL->ChampsExiste($Param->Table,$Champ,$Param->DataBase)){
+                        if ($Valeur !=='undefined'){
+                            if ($Param->IsTypeChampNumeric($Champ)){
+                                if ($Param->GetTypeChampInDB($Champ)==$Param::$Ctype::FLOAT ||
+                                    $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DOUBLE ||
+                                    $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DECIMAL ){
+
+                                    $Valeur=(float)$Valeur;
+                                }else{
+                                    $Valeur=(int)$Valeur;
+                                }
+                            }
+                            //$Param->AddToLog(__FILE__.":".__LINE__." Champ existant: ".$Champ."=".$Valeur);
+                            $Param->$Champ=$Valeur;
+                            $YouCanSave=true;
+                        }
+                    }else{
+                        $ListeChampIntrouvable[]=$Champ;
+                    }
+                }
+            }
+
+            if ($YouCanSave){
+                //var_dump($Param->ToJSON());
+                //exit;                
+                if ($Param->Enregistrer()){
+                    if ($NewConfig){
+                        $Param->AddToJournal("PARAMETRE","Enregistrement d'un nouveau paramètre. IdParam = ".$Param->Id) ;
+                    }
+                }
+            }
+
+            if($ListeChampIntrouvable && count($ListeChampIntrouvable)>0){
+                $ListeChampParamBoutique=[];
+                $Bout = $nabysy->MaBoutique ;
+                $CanSaveBout=false;
+                //$Bout->AddToLog(__FILE__.":".__LINE__.": Vérification dans les parametres de base de la Liste des champs introuvables: ".json_encode($ListeChampIntrouvable));
+                foreach ($ListeChampIntrouvable as $key => $Champ) {
+                    $Valeur = $ListeVariable[$Champ] ;
+                    if($Bout->ChampsExisteInTable($Champ)){
+                        $ListeChampParamBoutique[]=$Champ ;
+                        //$Bout->AddToLog(__FILE__.":".__LINE__.": Le champ ".$Champ." existe dans les paramètres de la boutique.");
+                        if ($Bout->IsTypeChampNumeric($Champ)){
+                            if ($Bout->GetTypeChampInDB($Champ)==xORMHelper::$Ctype::FLOAT ||
+                                $Bout->GetTypeChampInDB($Champ)==xORMHelper::$Ctype::DOUBLE ||
+                                $Bout->GetTypeChampInDB($Champ)==xORMHelper::$Ctype::DECIMAL ){
+                                $Valeur=(float)$Valeur;
+                            }else{
+                                $Valeur=(int)$Valeur;
+                            }
+                        }
+                        $Bout->$Champ=$Valeur;
+                        $CanSaveBout=true;
+                    }
+                }
+                if($CanSaveBout){
+                    if(!$Bout->Enregistrer()){
+                        $Bout->AddToJournal("DEBUG","Mise à jour des paramètres impossible pour la boutique. IdBoutique = ".$Bout->Id) ;
+                    }
+                }
+                foreach ($ListeChampParamBoutique as $key => $ChampSauve) {
+                    $index = array_search($ChampSauve, $ListeChampIntrouvable);
+                    if ($index !== false) {
+                        unset($ListeChampIntrouvable[$index]);
+                    }
+                }
+                if(count($ListeChampIntrouvable)>0){
+                    $Param->AddToLog(__FILE__.":".__LINE__.": Liste des champs introuvables après vérification dans les paramètres de la boutique: ".json_encode($ListeChampIntrouvable));
+                }
+            }
+
+            $Reponse->OK=1;
+            $Reponse->Extra=json_encode($_REQUEST);
+            $Reponse->Contenue=$Param->ToObject();
             echo json_encode($Reponse);
             exit;
             break;
@@ -223,99 +380,26 @@ switch ($action){
             echo $json ;
 
             break;
-        case 'BOUTIQUE_CONFIG_GET': //Retourne une configuration
-            $IdConfig=null;
-            if(isset($_REQUEST['IDCONFIG'])){
-                if ((int)($_REQUEST['IDCONFIG'])){
-                    $IdConfig = (int)$_REQUEST['IDCONFIG'];
-                }
+        case "ETS_SAVE_ENTETE_A4": //
+            $Rep=new xNotification() ;
+            $Rep->OK=0 ;
+            if(N::getInstance()->User->NiveauAcces < 4){
+                $Rep->TxErreur="Accès refusé. Niveau d'accès insuffisant pour effectuer cette opération." ;
+                $Rep->SendAsJSON();
+                exit ;
             }
-            $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre");
-            $Reponse=new xNotification;
-            if ($Param->Id==0){
-                $Lst=$Param->ChargeListe(null,null,"ID","ID Limit 1");
-                if ($Lst->num_rows){
-                    $rw=$Lst->fetch_assoc();
-                    $IdConfig = $rw['ID'];
-                    $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre");
-                }
+            $ChampFichier='fichier' ;
+            if (isset($PARAM['CHAMPFICHIER'])){
+                $ChampFichier=$PARAM['CHAMPFICHIER'] ;
             }
-            //var_dump($Param->ToJSON());
-            $Reponse->OK=1;
-            $Reponse->Contenue=$Param->ToObject();
-            echo json_encode($Reponse);
-            exit;
-            break;
-        
-        case 'BOUTIQUE_CONFIG_SET': //Retourne une configuration
-            $IdConfig=null;
-            $NewConfig=false;
-            if(isset($_REQUEST['ID'])){
-                if ((int)($_REQUEST['ID'])){
-                    $IdConfig = (int)$_REQUEST['ID'];
-                }
+            if(N::getInstance()->MaBoutique->Id>0){
+                $Rep=N::getInstance()->MaBoutique->SaveEnteteA4($ChampFichier) ;
+                N::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête A4:".json_encode($Rep) );
+            }else{
+                $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête A4." ;
             }
-            $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre");
-            $Reponse=new xNotification;
-            if ($Param->Id==0){
-               $NewConfig=true;
-            }
+            $Rep->SendAsJSON();
 
-            $YouCanSave=false ;
-            $MySQL=new xDB($nabysy);
-            $MySQL->DebugMode=false;
-            $ListeChampIntrouvable=[];
-            //$Param->AddToLog(__FILE__.":".__LINE__.": Param.".json_encode($_REQUEST));
-            
-            foreach($_REQUEST as $Champ => $Valeur){
-                
-                if (strtolower($Champ) !== 'id' and strtolower($Champ) !== 'token' 
-                    and strtolower($Champ) !== 'action' and strtolower($Champ) !== 'niveauacces' ){
-                    //echo 'Champ '.$Champ." = ".$Valeur." /br" ;
-                    if ($MySQL->ChampsExiste($Param->Table,$Champ,$Param->DataBase)){
-                        if ($Valeur !=='undefined'){
-                            if ($Param->IsTypeChampNumeric($Champ)){
-                                if ($Param->GetTypeChampInDB($Champ)==$Param::$Ctype::FLOAT ||
-                                    $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DOUBLE ||
-                                    $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DECIMAL ){
-
-                                    $Valeur=(float)$Valeur;
-                                }else{
-                                    $Valeur=(int)$Valeur;
-                                }
-                            }
-
-                            $Param->$Champ=$Valeur;
-                            //$Param->AddToLog(__FILE__.":".__LINE__.": Champ Param.".$Champ." = ".$Valeur);
-                            $YouCanSave=true;
-                        }
-                    }else{
-                        $ListeChampIntrouvable[]=$Champ;
-                        if ($nabysy->ActiveDebug){
-                            $Param->AddToLog(__FILE__.":".__LINE__.": Champ Param.".$Champ." introuvable.");
-                            $Param->AddToJournal("CHAMP DYNAMIQUE",__FILE__.":".__LINE__.": Champ Param.".$Champ." introuvable.");                            
-                        }
-                    }
-                }           
-            }
-
-            if ($YouCanSave){
-                //var_dump($Param->ToJSON());
-                //exit;                
-                if ($Param->Enregistrer()){
-                    if ($NewConfig){
-                        $Param->AddToJournal("PARAMETRE","Enregistrement d'un nouveau paramètre. IdParam = ".$Param->Id) ;
-                    }
-                }
-            }
-
-            $Reponse->OK=1;
-            $Reponse->Extra=json_encode($_REQUEST);
-            $Reponse->Contenue=$Param->ToObject();
-            echo json_encode($Reponse);
-            exit;
-            break;
-            
 		default:
 			//Retourne();	
 			break;

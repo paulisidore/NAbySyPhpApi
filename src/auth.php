@@ -125,7 +125,7 @@ use NAbySy\xUser;
         $User=$nabysy->User ;
     }elseif(!isset($User)){
         //echo "Initi User par défaut !!!";
-        echo __FILE__." je suis ici NAbySyYser: ".$nabysy->User->Login."</br>" ;exit;
+        //echo __FILE__." je suis ici NAbySyYser: ".$nabysy->User->Login."</br>" ;exit;
         $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE) ;
     }
     $Err=new xErreur;
@@ -180,6 +180,7 @@ use NAbySy\xUser;
         
     }else{
         //var_dump(__FILE__. " "." L".__LINE__." Token = ". $Token);
+         $Auth->EnteteAPI() ;
         $Err->TxErreur="Vous etes pas authorisé." ;
         $Err->OK=0;
         //$nabysy->User=null ;
@@ -190,6 +191,7 @@ use NAbySy\xUser;
             http_response_code(401);
             echo json_encode($Err) ;            
         }
+        $Err->SendAsJSON();
         exit;
     }
 

@@ -53,7 +53,7 @@ Class xPhoto{
      * @param bool $NoSendReponse : SI Vrai, n'envoie pas de notification au client en cas de succès
      * @return Object xErreur | xNotification
      */
-    public function SaveToFile($ChampPhoto='photo',$FichierDest='photo.png',$NoSendReponse=false){
+    public function SaveToFile($ChampPhoto='file',$FichierDest='photo.png',$NoSendReponse=false){
         $Err=new xErreur;
         $Err->OK=0 ;
         $Err->TxErreur='Impossible de traiter la demande pour le champ '.$ChampPhoto.' Fichier '.$FichierDest ;
@@ -62,10 +62,11 @@ Class xPhoto{
             return $Err ;
         }
         //print_r($_FILES) ;
+        self::$Main::$Log->Write(__FILE__." L".__LINE__." Début SaveToFile : ".json_encode($_FILES) );
         $tmpName='';
         $SendInBody=false;
 
-        if (!isset($_FILES['file'])){
+        if (!isset($_FILES[$ChampPhoto])){
             $Blob = file_get_contents('php://input');
             //var_dump($Blob) ;
             if ($Blob !== ''){
@@ -91,17 +92,17 @@ Class xPhoto{
             
         }else{
             
-            if (!isset($_FILES['file'])){
+            if (!isset($_FILES[$ChampPhoto])){
                 $Err=new xErreur;
                 $Err->OK=0 ;
                 $Err->TxErreur='Aucun fichier téléchargé dans le formulaire ' ;
                 //var_dump($_FILES) ;
                 return $Err ;
             }
-            $tmpName = $_FILES['file']['tmp_name'];
-            $name = $_FILES['file']['name'];
-            $size = $_FILES['file']['size'];
-            $error = $_FILES['file']['error'];
+            $tmpName = $_FILES[$ChampPhoto]['tmp_name'];
+            $name = $_FILES[$ChampPhoto]['name'];
+            $size = $_FILES[$ChampPhoto]['size'];
+            $error = $_FILES[$ChampPhoto]['error'];
     
             if ($error>0){
                 $Err=new xErreur;
@@ -141,24 +142,29 @@ Class xPhoto{
             } 
         }
 
-        $Notif=new xErreur ;
+        $Notif=new xNotification() ;
         $Notif->OK=1 ;
         $Notif->Extra=$vDest ;
-        $Notif->Source='xPhoto.class.php' ;
+        $Notif->Source=__CLASS__ ;
         if ($SendInBody){
             $Rep=rename($tmpName,$vDest);
         }else{
+            //self::$Main::$Log->Write(__FILE__." L".__LINE__." Copie du fichier ".$tmpName." vers ".$vDest );
             $Rep=move_uploaded_file($tmpName, $vDest);
-            if ($Rep =='false'){
+            //self::$Main::$Log->Write(__FILE__." L".__LINE__." Résultat de la copie : ".$Rep );
+            if ($Rep === 1 || $Rep === true || $Rep === "1"){
+                $Notif->OK=1 ;
+                $Notif->TxErreur="";
+            }else{
+                $Notif=new xErreur() ;
                 $Notif->OK=0 ;
-                $Notif->Extra='ERREUR SYSTEME: Impossible déplacement dans le dossier '.$vDest ;
+                $Notif->TxErreur='ERREUR SYSTEME: Impossible copie dans le dossier '.$vDest ;
             }
         }        
        
         if (!$NoSendReponse){
             return $Notif ;
         }
-        
         return true ;
         
         

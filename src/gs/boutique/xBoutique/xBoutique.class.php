@@ -8,7 +8,9 @@ use NAbySy\GS\Panier\xCart;
 use NAbySy\GS\Panier\xCartProForma;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
+use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
+use NAbySy\xNotification;
 use NAbySy\xPhoto;
 
 Class xBoutique extends xORMHelper  {
@@ -713,6 +715,14 @@ Class xBoutique extends xORMHelper  {
 			return $Site ;
 		}
 		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';
+	}
+
+	public function SaveEnteteA4($ChampFichier="fichier"):xNotification|xErreur{
+		$DossierPhoto='logos/enteteA4_'.$this->Id;
+		$NomFichier=$this->Id."-enteteA4.png" ;
+		$Photo=new xPhoto($this->Main, $DossierPhoto);
+		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
+		return $Repo ;
 	}
 
 	/**

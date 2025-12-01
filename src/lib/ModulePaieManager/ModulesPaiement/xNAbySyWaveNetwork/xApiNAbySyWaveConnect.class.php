@@ -29,7 +29,7 @@ class xApiNAbySyWaveConnect {
             }
         }
         if ($this->Config->Id == 0){
-            self::$Main::$Log->Write("Aucune configuration disponible pour ". __CLASS__);
+            //self::$Main::$Log->Write("Aucune configuration disponible pour ". __CLASS__);
             $this->IsReady=false;
             return ;
         }
