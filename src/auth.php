@@ -186,10 +186,10 @@ use NAbySy\xUser;
         //$nabysy->User=null ;
         if($User->Main::$SendAuthReponse){
             http_response_code(401);
-            echo json_encode($Err) ;
+            //echo json_encode($Err) ;
         }elseif(isset($_REQUEST['AUTH']) && ((int)$_REQUEST['AUTH']>0) ){
             http_response_code(401);
-            echo json_encode($Err) ;            
+           // echo json_encode($Err) ;            
         }
         $Err->SendAsJSON();
         exit;
