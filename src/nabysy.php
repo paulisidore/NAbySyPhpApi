@@ -1183,7 +1183,7 @@ Class xNAbySyGS
 			// $ListeR[]="client" ;
 			// $ListeR[]="fournisseur" ;
 			$ListeR[]="facture" ;
-			$ListeR[]="bl" ;
+			//$ListeR[]="bl" ;
 			$ListeR[]="comptabilite" ;
 			$ListeR[]="panier" ;
 			$ListeR[]="userapi" ;
@@ -1196,7 +1196,11 @@ Class xNAbySyGS
 			//var_dump(__NAMESPACE__ . '\\Editor\\') ;
 			$dos=$RepWork.'/'.$categorie ;
 			if (!is_dir($dos)){
-				mkdir($dos,0777,true);
+				$retour=mkdir($dos,0777,true);
+				if(!$retour){
+					$nabysy=self::getInstance();
+					self::$Log->AddToLog("Impossible de créer le répertoire de module de gestion: ".$dos);
+				}
 			}
 			$debg=1;
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
@@ -1207,7 +1211,11 @@ Class xNAbySyGS
 		$dossierMod = self::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR ;
 		if(!is_dir($dossierMod)){
 			try {
-				mkdir($dossierMod,0777,true);
+				$retour = mkdir($dossierMod,0777,true);
+				if(!$retour){
+					$nabysy=self::getInstance();
+					self::$Log->AddToLog("Impossible de créer le répertoire de module de gestion: ".$dossierMod);
+				}
 			} catch (\Throwable $th) {
 				$nabysy=self::getInstance();
 				if($nabysy->ActiveDebug){

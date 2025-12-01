@@ -108,6 +108,7 @@ switch ($action){
         case 'ETS_CONFIG_SAVE': //Retourne une configuration
             $IdConfig=1;
             $NewConfig=false;
+            $IdBout=N::getInstance()->MaBoutique->Id;
             if(isset($_REQUEST['ID'])){
                 if ((int)($_REQUEST['ID'])){
                     $IdConfig = (int)$_REQUEST['ID'];
