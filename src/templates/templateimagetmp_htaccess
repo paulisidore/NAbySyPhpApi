@@ -1,0 +1,12 @@
+# Assurez-vous que le module headers est activé (généralement le cas)
+<IfModule mod_headers.c>
+    # 1. Autoriser l'accès depuis n'importe quelle origine (*) pour les image du dossier /tmp,
+    #    ou spécifiez l'URL exacte de votre application Angular.
+    Header set Access-Control-Allow-Origin "*" 
+    
+    # 2. (Optionnel mais souvent utile) Définir la méthode
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    
+    # 3. (Optionnel mais parfois nécessaire pour les images)
+    Header set Access-Control-Allow-Headers "Content-Type"
+</IfModule>
