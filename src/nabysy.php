@@ -54,6 +54,8 @@ include_once 'GsModuleManager.class.php' ;
 include_once 'GSUrlRouterManager.class.php';
 include_once 'xNAbySyApiProxy.class.php';
 
+include_once 'xCacheFileMGR.class.php';
+
 include_once 'startupinfo.php' ;
 
 use DateTime;
@@ -237,6 +239,14 @@ Class xNAbySyGS
 	 */
 	public static $ListeBoutique=[];
 
+	/**
+	 * Si VRAI, Le module d'authentification ignorera l'authentification de l'Utilisateur.
+	 * Utile pour l'affichage des données d'une Boutique en Ligne. Activez cette optionuniquement si les utilisateurs
+	 * doivent être authentifiés.
+	 * @var bool
+	 */
+	public static bool $NO_AUTH = false;
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true)
 	{ 
@@ -375,7 +385,6 @@ Class xNAbySyGS
 			
 			
 			if($this->MaBoutique->DataBase !== $this->DataBase){
-				var_dump("Choix de la base de donnée de la boutique en cours : ".$this->MaBoutique->DataBase);
 				$Lst=$this->MaBoutique->ChargeListe("dbname like '".$this->DataBase."'") ;
 				if($Lst->num_rows>0){
 					$rw=$Lst->fetch_array() ;
@@ -500,7 +509,9 @@ Class xNAbySyGS
 			$this->MaBoutique->Enregistrer();
 		}
 		
-		$LstB=$this->MaBoutique->ChargeListe("ID <> ".$Depot->Id,null,"ID");
+		//$LstB=$this->MaBoutique->ChargeListe("ID <> ".$Depot->Id,null,"ID");
+		$TxSQL = "select ID from `".$this->MasterDataBase."`.boutique where ID<>0 ";
+		$LstB = $this->ReadWrite($TxSQL);
 		
 		if($LstB->num_rows){
 			while($rw = $LstB->fetch_assoc()){
@@ -1613,6 +1624,16 @@ Class xNAbySyGS
 	 */
 	public function ValideUser($SendReponse=true):bool{
 		$Err=new xErreur;
+		if(!self::$NO_AUTH){
+			if (!isset($this->User)){
+				//Definition d'un utilisateur par défaut en mode NO_AUTH
+				$this->User=new xUser($this,null,self::GLOBAL_AUTO_CREATE_DBTABLE) ;
+				$this->User->Login="NO_AUTH_USER" ;
+				$this->User->Password="" ;
+				$this->User->NiveauAcces=1 ;
+			}
+			return true ;
+		}
 		if (!isset($this->User) || $this->User->Id==0){
 			self::$Log->Write("Laissez moi vérifier a nouveau l'utilisateur en cour ...");
 			self::ReadHttpAuthRequest();

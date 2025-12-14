@@ -12,11 +12,13 @@
 namespace NAbySy\Router\Url;
 include_once "nabysyurlrouter.i.php";
 include_once "nabysyurlrouter.class.php";
+include_once "rAuth.class.php";
 
 use Exception;
 use NAbySy\xGSModuleCategory;
 use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
+use rAuth;
 
 class xGSUrlRouterManager{
     /**
@@ -43,6 +45,13 @@ class xGSUrlRouterManager{
     public function __construct(xNAbySyGS $NAbySy){
         //Chargement de la liste des dossier catégories
         self::$Main = $NAbySy;
+        self::$ListeRouter = [];
+
+        //On va ajouter la route vers le service d'authetification de NAbySyGS
+        $RouteAuth = new rAuth("NAbySyAuthRouter");
+        self::$ListeRouter[] = $RouteAuth ;
+
+
         $dossierGs= self::$Main::ModuleGSHostFolder().DIRECTORY_SEPARATOR ;
         //echo "Fichier ".__FILE__." L ".__LINE__.": Repertoir GS => ".$dossierGs."</br>" ;
         $this->HostFolder=$dossierGs;

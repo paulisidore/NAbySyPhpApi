@@ -25,10 +25,10 @@ Class xBoutique extends xORMHelper  {
 			$NomTable='boutique';
 		}
 		if (!isset($BoutiqueDBName)){
-			$BoutiqueDBName=$NAbySy->DataBase ;
+			$BoutiqueDBName=$NAbySy->MasterDataBase ;
 		}
 		if($BoutiqueDBName==""){
-			$BoutiqueDBName=$NAbySy->DataBase ;
+			$BoutiqueDBName=$NAbySy->MasterDataBase ;
 		}
 		parent::__construct($NAbySy,$IdBoutique,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
 
@@ -332,7 +332,7 @@ Class xBoutique extends xORMHelper  {
 			$this->Actif = 1;
 			$this->Enregistrer() ;
 		}
-		$TxSQL="select Id,Nom from ".$this->Main->MasterDataBase.".boutique where IdCompteClient='0' ".$TxI." " ;
+		$TxSQL="select Id,Nom from `".$this->Main->MasterDataBase."`.boutique where IdCompteClient='0' ".$TxI." " ;
 		$OK=false;
 		//var_dump($TxSQL);
 		$reponse=$this->Main->ReadWrite($TxSQL) ;

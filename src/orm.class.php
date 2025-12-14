@@ -1052,6 +1052,11 @@ class xORMHelper implements IORM , JsonSerializable{
                             if (strtoupper($Champ->Nom) == strtoupper($ChampSup)){
                                 $AddToReponse = false;
                             }
+                        }elseif( str_contains($ChampSup, "%") ){
+                            $ChampSup = str_replace("%","",$ChampSup) ;
+                            if(str_contains(strtoupper($Champ->Nom), strtoupper($ChampSup))){
+                                $AddToReponse = false;
+                            }
                         }
                     }
 

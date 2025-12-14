@@ -19,6 +19,12 @@ Class xAuth
 
     public static string $lastToken = '';
 
+    /**
+     * Liste des colonnes à ignorer avant l'envoie des données de l'utilisateur authentifié
+     * @var array
+     */
+    public static array $ColonneToIgnore = []; // ['password', 'CanUseMod_%', 'ACCES_BOUTIQUE_%', 'DebugSelect', 'derniere_connexion', 'connexion']; 
+
     public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null, string $key="nabysygscloud"){
         $token = self::extractFromHeader();
         if (!isset($_REQUEST['Token']) && is_string($token) && $token !=="" ){

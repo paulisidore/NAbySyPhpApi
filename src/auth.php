@@ -12,6 +12,24 @@ use NAbySy\xUser;
     $ConnectByToken=false ;
 
     $nabysy=N::getInstance();
+    $BoutId=null;
+    if(isset($_REQUEST['IDBOUTIQUE']) && (int)$_REQUEST['IDBOUTIQUE']>0 ){
+        $BoutId=(int)$_REQUEST['IDBOUTIQUE'];
+    }
+    if(isset($_REQUEST['IdBoutique']) && (int)$_REQUEST['IdBoutique']>0 ){
+        $BoutId=(int)$_REQUEST['IdBoutique'];
+    }
+    if(isset($_REQUEST['idboutique']) && (int)$_REQUEST['idboutique']>0 ){
+        $BoutId=(int)$_REQUEST['idboutique'];
+    }
+
+    if(isset($BoutId) && $BoutId !== $nabysy->MaBoutique->Id){
+        $BoutiqueCible=N::GetBoutique($BoutId);
+        if($BoutiqueCible && $BoutiqueCible->Id>0){
+            N::getInstance()->SelectBoutique($BoutiqueCible->Id);
+        }
+    }
+
     //echo __FILE__." Je lance l'authentification dans auth.php ... </br>" ;
     if(isset($nabysy->User)){
         //var_dump("Utilisateur déjà connecté: ".$nabysy->User->Login);
@@ -129,7 +147,7 @@ use NAbySy\xUser;
         $User=new xUser($nabysy,null,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE) ;
     }
     $Err=new xErreur;
-    $Err->Source='auth.php-'.$User->Id.':'.$Login;
+    $Err->Source='auth-'.$User->Id.':'.$Login;
     if ($User->Id>0 && !$ConnectByToken){
         if ($User->BLOQUE=='OUI'  ){
             $Err->TxErreur="Compte bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
@@ -163,8 +181,11 @@ use NAbySy\xUser;
         $Notif=new xErreur;
         $Notif->OK=1;
         $Notif->Extra=$Token ;
-        $Notif->Autres = $User->ToObject();
-        $Notif->Source='auth.php-'.$User->Id.':'.$Login;
+        $vUserStr =  $User->ToJSON(false, xAuth::$ColonneToIgnore);
+        $vUser = json_decode($vUserStr);
+        $Notif->Autres = $vUser ; //$User->ToObject();
+        
+        $Notif->Source='auth-'.$User->Id.':'.$Login;
         $nabysy->User=$User ;
          if($User->Main::$SendAuthReponse && !$ConnectByToken){
             http_response_code(200);
@@ -179,20 +200,24 @@ use NAbySy\xUser;
         }
         
     }else{
-        //var_dump(__FILE__. " "." L".__LINE__." Token = ". $Token);
-         $Auth->EnteteAPI() ;
-        $Err->TxErreur="Vous etes pas authorisé." ;
-        $Err->OK=0;
-        //$nabysy->User=null ;
-        if($User->Main::$SendAuthReponse){
-            http_response_code(401);
-            //echo json_encode($Err) ;
-        }elseif(isset($_REQUEST['AUTH']) && ((int)$_REQUEST['AUTH']>0) ){
-            http_response_code(401);
-           // echo json_encode($Err) ;            
+        if(!N::$NO_AUTH){
+            //Authentification a échouée
+            //var_dump(__FILE__. " "." L".__LINE__." Token = ". $Token);
+            $Auth->EnteteAPI() ;
+            $Err->TxErreur="L".__LINE__." Vous etes pas authorisé." ;
+            $Err->OK=0;
+            //$nabysy->User=null ;
+            if($User->Main::$SendAuthReponse){
+                http_response_code(401);
+                //echo json_encode($Err) ;
+            }elseif(isset($_REQUEST['AUTH']) && ((int)$_REQUEST['AUTH']>0) ){
+                http_response_code(401);
+            // echo json_encode($Err) ;            
+            }
+            $Err->SendAsJSON();
+            exit;
         }
-        $Err->SendAsJSON();
-        exit;
+        //Sinon on continue sans authentification
     }
 
 
