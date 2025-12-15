@@ -9,8 +9,8 @@ use NAbySy\xNotification;
  * @package 
  */
 class rBoutique extends xNAbySyUrlRouterHelper{
-    public function __construct(string $routerName, string $fileSource) {
-        parent:: __construct($routerName, $fileSource);
+    public function __construct(string $routerName, string $fileSource, string $FriendlyName='Gestion des Boutiques NAbySyGS', string $Description='Permet la gestion des Boutiques NAbySyGS') {
+        parent:: __construct($routerName, $fileSource, $FriendlyName, $Description);
         $this->setupRoute();
     }
 

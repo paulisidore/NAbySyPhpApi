@@ -17,8 +17,8 @@ use NAbySy\xNotification;
  */
 class ModelTemplate extends xNAbySyUrlRouterHelper {
     
-    public function __construct(string $routerName, string $fileSource) {
-        parent::__construct($routerName, $fileSource);
+    public function __construct(string $routerName, string $fileSource, string $FriendlyName='', string $Description='') {
+        parent::__construct($routerName, $fileSource, $FriendlyName, $Description);
         $this->setupRoute();
     }
 

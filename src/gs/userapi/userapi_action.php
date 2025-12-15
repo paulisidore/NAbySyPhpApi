@@ -3,6 +3,8 @@
      * END-POINT Gestion et Controle des UTILISATEURS
      * By Paul Isidore A. NIAMIE
      */
+
+use NAbySy\xAuth;
 use NAbySy\xErreur;
 use NAbySy\xNotification;
 use NAbySy\xUser;
@@ -30,6 +32,8 @@ use NAbySy\xUser;
         echo $reponse ;
         exit;	
 	}
+
+    $nabysy = N::getInstance();
     if (!$nabysy->ValideUser()){
         exit;
     }
@@ -316,6 +320,51 @@ use NAbySy\xUser;
                 exit;
             }
 
+        case 'USERAPI_DESCRIBE_URL_API_ROUTE': //Renvoie les route URL API enregistré dans NAbySyGS UrlRouter
+            if(isset($PARAM['Token'])){
+                $Token = $PARAM['Token'] ;
+                $Auth = new xAuth(N::getInstance());
+                $UserToken=$Auth->DecodeToken($Token) ;
+                //var_dump($UserToken)."</br>" ;
+                //var_dump($UserToken->IdBoutique);exit;
+                if (isset($UserToken) && get_class($UserToken) !=='xErreur' && get_class($UserToken) !== 'NAbySy\xErreur'){            
+                    $IdBoutique = $UserToken->IdBoutique ;
+                    N::SelectDefautBoutique($IdBoutique);
+                    $Bout = N::GetBoutiqueByID($IdBoutique);
+                    //$nabysy->MaBoutique = $Bout ;
+                    $User=new xUser($nabysy,$UserToken->user_id) ;
+                    $nabysy->User = $User ;
+                }
+            }
+            
+            if (isset($nabysy->User)){
+                if ((int)$nabysy->User->NiveauAcces < 4 && $nabysy->User->acces !== 'Administrateur'){
+                    $Err->TxErreur = "Niveau d'accès insuffisant pour cette opération.";
+                    $Err->Autres = $nabysy->User->ToObject() ;
+                    $reponse=json_encode($Err) ;
+                    echo $reponse ;
+                    exit;
+                }
+            }
+
+            $Liste = N::getInstance()::$UrlRouter->getRegistredRoute();
+            $Rep=new xNotification();
+            $Rep->OK=1;
+            $Rep->Contenue = $Liste ;
+            if(isset($PARAM['HTML']) && (int)$PARAM['HTML']>0){
+                //On va carrément retourner la page HTML
+                $txtHtml = N::getInstance()::$UrlRouter::generateRoutesDocumentationPage($Rep->ToJSON());
+                echo $txtHtml;
+                exit;
+            }
+            if (!isset($nabysy->User)){
+                $Err->TxErreur = "Authentification requise.";
+                $reponse=json_encode($Err) ;
+                echo $reponse ;
+                exit;
+            }
+            echo json_encode($Rep);
+            exit;
             break;
         default:
 

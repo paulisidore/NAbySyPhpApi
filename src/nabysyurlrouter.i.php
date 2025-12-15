@@ -16,6 +16,19 @@ use NAbySy\xErreur;
 use NAbySy\xNotification;
 
 interface INAbySyUrlRouter {
+
+    /**
+     * Nom affiché dans la documentation de la route
+     * @return string 
+     */
+    public function friendlyName(): string ;
+
+    /**
+     * Description affichée dans la documentation
+     * @return string 
+     */
+    public function description(): string ;
+
     /**
      * Nom unique de la route
      * @return string 

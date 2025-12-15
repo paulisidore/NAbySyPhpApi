@@ -4,6 +4,7 @@ require __DIR__.'/vendor/autoload.php';
 
 use NAbySy\xAuth;
 use NAbySy\xErreur;
+use NAbySy\xNotification;
 use NAbySy\xUser;
 
     $Login=null ;
@@ -175,7 +176,15 @@ use NAbySy\xUser;
     }
 
     $UserToken = $Token;
-   
+    if(isset($_REQUEST['fordocumentation']) && (int)$_REQUEST['fordocumentation']>0){
+        $Liste = N::getInstance()::$UrlRouter->getRegistredRoute();
+        $Rep=new xNotification();
+        $Rep->OK=1;
+        $Rep->Contenue = $Liste ;
+        echo N::getInstance()::$UrlRouter::generateRoutesDocumentationPage($Rep->ToJSON());
+        exit;
+    }
+
     if ($Token){
         $Auth->EnteteAPI() ;
         $Notif=new xErreur;

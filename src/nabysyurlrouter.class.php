@@ -20,6 +20,9 @@ class xNAbySyUrlRouterHelper implements INAbySyUrlRouter {
     private bool $_active = true;
     private string $_fileSrc = '';
 
+    private string $_friendlyName = "";
+    private string $_description = '';
+
     /**
      * @var array Routes enregistrées organisées par méthode HTTP
      */
@@ -55,13 +58,27 @@ class xNAbySyUrlRouterHelper implements INAbySyUrlRouter {
         'routes' => []
     ];
 
-    public function __construct(string $RouterName, string $FileSource){
+    public function __construct(string $RouterName, string $FileSource, string $FriendlyName="", string $Description=""){
         if(trim($RouterName)==''){
             throw new Exception("Router name is mandatory", 1);
         }
         $this->_name=$RouterName;
         $this->_fileSrc=$FileSource;
+        $this->_friendlyName = $FriendlyName;
+        if($this->_friendlyName == ''){
+            $this->_friendlyName = $RouterName ;
+        }
+        $this->_description = $Description;
     }
+
+    public function friendlyName(): string{
+        return $this->_friendlyName;
+    }
+
+    public function description(): string{
+        return $this->_description;
+    }
+
     public function routeName(): string {
         return $this->_name;
     }

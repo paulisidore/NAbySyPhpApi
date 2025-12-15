@@ -652,7 +652,7 @@ Class xNAbySyGS
 		if(isset(self::$ParentNAbySy)){
 			$nab = self::$ParentNAbySy ;
 		}
-		$Bout=$nab->MaBoutique->GetDepot($IdBoutique);
+		$Bout=$nab->GetBoutique($IdBoutique);
 		return $Bout ;
 	}
 
