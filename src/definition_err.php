@@ -1,5 +1,5 @@
 <?php
-    define('NABYSY_VERSION','1.0.0');
+    define('NABYSY_VERSION','1.0.8');
 
     define('ERR_UNCKNOW',-1);
     define('ERR_SYSTEM',0);
