@@ -136,15 +136,30 @@ class xGSUrlRouterManager{
             $detail = $route->getRegisteredRoute();
             $nom = $route->routeName();
             $item['routeName']=$nom;
+            $item['friendlyName']=$route->friendlyName();
+            $item['description']=$route->description();
+            $xdetail = [];
+
             foreach ($detail as $methode) {
                 if(is_array($methode)){
+                    $xmethode=[];
                     foreach ($methode as $vroute) {
                         unset($vroute['regex']);
                         unset($vroute['handler']);
+                        $xmethode[]=$vroute;
                     }
+                    //$methode = $xmethode ;
+                }elseif(is_object($methode)){
+                    foreach ($methode as $vroute) {
+                        unset($vroute->regex);
+                        unset($vroute->handler);
+                        $xmethode[]=$vroute;
+                    }
+                    //$methode = $xmethode ;
                 }
+                $xdetail[]=$xmethode ;
             }
-            $item['registeredRoute'] = $detail;
+            $item['registeredRoute'] = $xdetail;
             $Liste[]=$item ;
         }
         return $Liste;
@@ -341,7 +356,11 @@ class xGSUrlRouterManager{
             foreach ($router['registeredRoute'] as $methodIndex => $routesList) {
                 $count = count($routesList);
                 $totalRoutes += $count;
-                $method = $httpMethods[$methodIndex];
+                if(isset($httpMethods[$methodIndex])){
+                    $method = $httpMethods[$methodIndex];
+                }else{
+                    $method = $methodIndex ;
+                }
                 $methodCounts[$method] += $count;
             }
         }

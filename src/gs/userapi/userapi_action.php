@@ -336,16 +336,6 @@ use NAbySy\xUser;
                     $nabysy->User = $User ;
                 }
             }
-            
-            if (isset($nabysy->User)){
-                if ((int)$nabysy->User->NiveauAcces < 4 && $nabysy->User->acces !== 'Administrateur'){
-                    $Err->TxErreur = "Niveau d'accès insuffisant pour cette opération.";
-                    $Err->Autres = $nabysy->User->ToObject() ;
-                    $reponse=json_encode($Err) ;
-                    echo $reponse ;
-                    exit;
-                }
-            }
 
             $Liste = N::getInstance()::$UrlRouter->getRegistredRoute();
             $Rep=new xNotification();
@@ -362,6 +352,15 @@ use NAbySy\xUser;
                 $reponse=json_encode($Err) ;
                 echo $reponse ;
                 exit;
+            }
+            if (isset($nabysy->User)){
+                if ((int)$nabysy->User->NiveauAcces < 4 && $nabysy->User->acces !== 'Administrateur'){
+                    $Err->TxErreur = "Niveau d'accès insuffisant pour cette opération.";
+                    $Err->Autres = $nabysy->User->ToObject() ;
+                    $reponse=json_encode($Err) ;
+                    echo $reponse ;
+                    exit;
+                }
             }
             echo json_encode($Rep);
             exit;
