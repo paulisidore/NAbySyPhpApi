@@ -373,7 +373,7 @@ class xGSUrlRouterManager{
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Documentation des Routes API</title>
+                <title>Docs-'.self::$Main->MODULE->Nom.' API by NAbySyGS v'.self::$Main::VERSION().'</title>
                 <style>
                     * {
                         margin: 0;
@@ -788,7 +788,7 @@ class xGSUrlRouterManager{
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>📚 Documentation des Routes API</h1>
+                        <h1>📚 '.self::$Main->MODULE->Nom.' API by NAbySyGS v'.self::$Main::VERSION().'</h1>
                         <p>Cliquez sur les textes en jaune pour les modifier - Généré le ' . $currentDate . '</p>
                     </div>
                     
