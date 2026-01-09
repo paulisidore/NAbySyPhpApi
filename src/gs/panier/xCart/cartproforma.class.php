@@ -26,6 +26,12 @@ class xCartProForma{
   public $MontantRendu ;
   
   public $HeureFacture ;
+
+/**
+ * Référence du Bon de Commande lié au panier
+ * @var string
+ */
+  public string $RefCMD = '';
   
   
   /**

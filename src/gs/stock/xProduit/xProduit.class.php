@@ -361,6 +361,8 @@ Class xProduit extends xORMHelper
 	 * @return void 
 	 */
 	public static function UpdateEtatStock(string $dataTableName='produits'){
+		$PrecDebug=self::$xMain->MaBoutique->DebugMode;
+		self::$xMain->MaBoutique->DebugMode=false;
 		self::UpdateEtatNonPeremption();
 		$TxSQL="update `".$dataTableName."` SET ETAT='".self::ETAT_DISPONIBLE."' where ETAT not like 'H' and STOCK>SEUILCRITIQUE and STOCK>0 " ;
 		self::$xMain->MaBoutique->ExecUpdateSQL($TxSQL);
@@ -377,6 +379,7 @@ Class xProduit extends xORMHelper
 		$TxSQL="update `".$dataTableName."` SET ETAT='".self::ETAT_RUPTURE."' where ETAT not like 'H' and STOCK<=0 and STOCKDETAIL<=0 and VENTEDETAILLEE like 'OUI' " ;
 		self::$xMain->MaBoutique->ExecUpdateSQL($TxSQL);
 		self::UpdateEtatPeremption();
+		self::$xMain->MaBoutique->DebugMode=$PrecDebug;
 	}
 
 	/**
@@ -384,11 +387,14 @@ Class xProduit extends xORMHelper
 	 * @return void 
 	 */
 	private static function UpdateEtatPeremption(string $dataTableName='produits'){
+		$PrecDebug=self::$xMain->MaBoutique->DebugMode;
+		self::$xMain->MaBoutique->DebugMode=false;
 		$TxSQL="update `".$dataTableName."` SET ETAT='".self::ETAT_PERIME."' where ETAT not like 'H' and PERISSABLE like 'OUI' and DATEPEREMPTION <= NOW() and STOCK>0 and VENTEDETAILLEE not like 'OUI' " ;
 		self::$xMain->MaBoutique->ExecUpdateSQL($TxSQL);
 
 		$TxSQL="update `".$dataTableName."` SET ETAT='".self::ETAT_PERIME."' where ETAT not like 'H' and PERISSABLE like 'OUI' and DATEPEREMPTION <= NOW() and (STOCK>0 OR STOCKDETAIL>0) and VENTEDETAILLEE like 'OUI' " ;
 		self::$xMain->MaBoutique->ExecUpdateSQL($TxSQL);
+		self::$xMain->MaBoutique->DebugMode=$PrecDebug;
 	}
 
 	/**
@@ -396,11 +402,14 @@ Class xProduit extends xORMHelper
 	 * @return void 
 	 */
 	private static function UpdateEtatNonPeremption(string $dataTableName='produits'){
+		$PrecDebug = self::$xMain->MaBoutique->DebugMode;
+		self::$xMain->MaBoutique->DebugMode=false;
 		$TxSQL="update `".$dataTableName."` SET ETAT='".self::ETAT_DISPONIBLE."' where ETAT not like 'H' and Etat like 'P' and PERISSABLE like 'OUI' and DATEPEREMPTION > NOW() and STOCK>0 and VENTEDETAILLEE not like 'OUI' " ;
 		self::$xMain->MaBoutique->ExecUpdateSQL($TxSQL);
 
 		$TxSQL="update `".$dataTableName."` SET ETAT='".self::ETAT_DISPONIBLE."' where ETAT not like 'H' and Etat like 'P' and PERISSABLE like 'OUI' and DATEPEREMPTION > NOW() and (STOCK>0 OR STOCKDETAIL>0) and VENTEDETAILLEE like 'OUI' " ;
 		self::$xMain->MaBoutique->ExecUpdateSQL($TxSQL);
+		self::$xMain->MaBoutique->DebugMode=$PrecDebug;
 	}
 
 	public static function getIdPerimes(string $dataTableName='produits'){

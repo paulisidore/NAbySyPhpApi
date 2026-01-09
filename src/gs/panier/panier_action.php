@@ -129,6 +129,8 @@ use NAbySy\xNotification;
 			$IdClient=null;
 			$TotalReduction=0;
 			$TotalRemise=null;
+			$RefCmd=null;
+			
 			$Err->TxErreur="";
 			//var_dump($_REQUEST);exit;
 			if (isset($_REQUEST['IdClient'])){				
@@ -173,6 +175,19 @@ use NAbySy\xNotification;
 				}
 			}
 
+			if(isset($PARAM['REFCMD']) && trim($PARAM['REFCMD'])!==''){
+				$RefCmd=trim($PARAM['REFCMD']);
+				$Panier->RefCMD=$RefCmd ;
+			}
+
+			if(isset($Contenu->REFCMD)){
+				if(trim($Contenu->REFCMD) !==''){
+					$PARAM['REFCMD'] = trim($Contenu->REFCMD);
+					$RefCmd=trim(trim($PARAM['REFCMD']));
+					$Panier->RefCMD=$RefCmd ;
+				}
+			}
+
 			$Grossiste=false;
 			if (isset($PARAM['Grossiste'])){				
 				if ($PARAM['Grossiste']=='true'){
@@ -183,10 +198,11 @@ use NAbySy\xNotification;
 			}
 
 			if (isset($PARAM['MontantVerse'])){				
-				if ((int)$PARAM['MontantVerse'] !== 0){
-					$Panier->MontantVerse=(int)$PARAM['MontantVerse'] ;
+				if ((float)$PARAM['MontantVerse'] !== 0){
+					$Panier->MontantVerse=(float)$PARAM['MontantVerse'] ;
 				}
 			}
+
 			if (isset($PARAM['MontantRendu'])){				
 				if ((float)$PARAM['MontantRendu'] !== 0){
 					$Panier->MontantRendu=(float)$PARAM['MontantRendu'] ;
@@ -198,7 +214,7 @@ use NAbySy\xNotification;
 			foreach ($ListeArticle as $xArt){
 				$VenteDet=0;
 				$TypeVenteParDefaut=1 ;
-				if($xArt->VENTEDETAILLEE == 'False' || $xArt->VENTEDETAILLEE== 'FALSE' || $xArt->VENTEDETAILLEE== '0' || $xArt->VENTEDETAILLEE== 0){
+				if($xArt->VENTEDETAILLEE == 'false' || $xArt->VENTEDETAILLEE == 'False' || $xArt->VENTEDETAILLEE== 'FALSE' || $xArt->VENTEDETAILLEE== '0' || $xArt->VENTEDETAILLEE== 0 || $xArt->VENTEDETAILLEE == false){
 					$xArt->VENTEDETAILLEE = false;
 				}elseif($xArt->VENTEDETAILLEE == 'True' || $xArt->VENTEDETAILLEE== 'TRUE' || $xArt->VENTEDETAILLEE== '1' || $xArt->VENTEDETAILLEE== 1){
 					$xArt->VENTEDETAILLEE = true;
@@ -213,7 +229,7 @@ use NAbySy\xNotification;
 
 				$Article = new xArticlePanier(N::getInstance(),$xArt->Id,$xArt->Qte, $VenteDet);
 				$Art = $Article->Pdt ;
-				//echo json_encode($xArt);exit;
+				//echo __FILE__." LIGNE ".__LINE__." ". json_encode($xArt);exit;
 				if ($Article->IdProduit == -1 && $Article->IsPdtClown>0){
 					$Pdt=new xProduitNC($nabysy,null,N::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$Art->CodeBar);
 				}else{
@@ -415,7 +431,6 @@ use NAbySy\xNotification;
 				$ReponseID=$Vente->Valider($Panier) ;
 				//echo json_encode($ReponseID);
 				if ($ReponseID instanceof xNotification){
-					echo "Je suis bien ici... Ligne ".__LINE__." ";
 					$IdFacture=(int)$ReponseID->Extra;
 					$ReponseID->SendAsJSON();
 				}elseif ($ReponseID instanceof xErreur){
@@ -424,22 +439,6 @@ use NAbySy\xNotification;
 				}elseif( is_numeric($ReponseID) ){
 					$IdFacture = $ReponseID;
 				}
-				//var_dump($IdFacture); exit;
-				// if (is_object($ReponseID)){
-				// 	if ($ReponseID instanceof xNotification){
-				// 		$IdFacture=$ReponseID->Extra;
-				// 	}else{
-				// 		//Erreur
-				// 		if ($ReponseID->OK>0){
-				// 			$IdFacture=$ReponseID->Extra;
-				// 		}else{
-				// 			echo json_encode($ReponseID);
-				// 			exit;
-				// 		}						
-				// 	}
-				// }else{
-				// 	$IdFacture=(int)$ReponseID;
-				// }
 
 				if ($IdFacture>0){
                     if (isset($ListeModCallBack)){

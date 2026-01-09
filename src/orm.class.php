@@ -115,6 +115,10 @@ class xORMHelper implements IORM , JsonSerializable{
         
     }
 
+    public function FullTableName():string{
+        return "`".$this->DataBase."`.`".$this->Table."`";
+    }
+
     /**
      * Fonction à Implémentation Obigatoire
      */

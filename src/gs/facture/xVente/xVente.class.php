@@ -30,6 +30,10 @@ Class xVente extends xORMHelper
 		}
 		parent::__construct($NAbySyGS,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
 
+		if(!$this->ChampsExisteInTable('REFCMD')) {
+			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
+		}
+
 		$this->Client=new xClient($this->Main );
 		//$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,'detailfacture',$this->MaBoutique);
 		if ($this->Id>0){
@@ -185,14 +189,14 @@ Class xVente extends xORMHelper
 				$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
 			}
 		}else{
-				if ((int)$Panier->MontantVerse == 0){
+				if ((float)$Panier->MontantVerse == 0){
 					$Panier->MontantVerse=$Panier->getTotalNetAPayer() ;
 				}
 				//echo "Total Versé: ".$Panier->MontantVerse." et TotalNet: ".$Panier->getTotalNetAPayer();exit;
 
 				if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
 					//Montant inferieur a la facture
-					$Err->TxErreur="Montant versé incomplet pour solder la facture !!!" ;
+					$Err->TxErreur="Montant versé incomplet pour solder la facture !!! ".$Panier->MontantVerse." <> ".$Panier->getTotalNetAPayer() ;
 					return $Err ;		
 				}
 				$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
@@ -337,6 +341,18 @@ Class xVente extends xORMHelper
 				$TxSQL .=$TxF." ;" ;				
 				$this->Main->ReadWrite($TxSQL,true) ;
 
+			}
+
+			if($Panier->RefCMD !=='' && $this->REFCMD !== $Panier->RefCMD){
+				$this->REFCMD = $Panier->RefCMD ;
+				if(!$this->ChampsExisteInTable('REFCMD')) {
+					$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
+				}
+				if($this->ChampsExisteInTable('REFCMD')) {
+					$this->ExecUpdateSQL("update `".$this->DataBase."`.`".$this->Table."` SET REFCMD='".$this->Main::$db_link->escape_string($Panier->RefCMD)."' where ID=".$Panier->IdFacture ) ;
+				}else{
+					self::$xMain::$Log->AddToLog('Le champ REFCMD est introuvable dans la table '.$this->Table) ;
+				}
 			}
 
 			//$BonAchatMgr->UpDateFacture($Panier->IdFacture,$Panier);
@@ -622,7 +638,15 @@ Class xVente extends xORMHelper
 		$Id=0 ;
 		if ($this->Enregistrer()){
 			$Id=$this->Id;
-			$Panier->IdFacture=$this->Id;			
+			$Panier->IdFacture=$this->Id;
+			if($Panier->RefCMD !=='' && $this->REFCMD !== $Panier->RefCMD){
+				$this->REFCMD = $Panier->RefCMD ;
+				if($this->ChampsExisteInTable('REFCMD')) {
+					$this->ExecUpdateSQL("update `".$this->DataBase."`.`".$this->Table."` SET REFCMD='".$this->Main::$db_link->escape_string($Panier->RefCMD)."' where ID=".$Panier->IdFacture ) ;
+				}else{
+					self::$xMain::$Log->AddToLog('Le champ REFCMD est introuvable dans la table '.$this->Table) ;
+				}
+			}		
 		}
 		
 		$Panier->SaveInfosClient($Panier->NomClt,$Panier->PrenomClt,$Panier->IdClient,$Panier->IdFacture ) ;

@@ -19,6 +19,13 @@ use NAbySy\xNAbySyGS;
          */
         public function __construct(xNAbySyGS $NabySyGS,int $Id=null,$CreationChampAuto=true,$NomTable=null);
 
+         /**
+         * Retourne le nom complet de la Table
+         * sous le formet: `mabase`.`mabase`
+         * @return string 
+         */
+        public function FullTableName():string;
+
         public function __get($NomChamp);
         public function __set($NomChamp,$Valeur);
         public function Enregistrer():bool;

@@ -135,7 +135,7 @@ Class xBoutique extends xORMHelper  {
 			$sqli="delete from ". $Article->Table." where id=".$NewIdB." limit 1" ;
 			$miseajour=$this->Main->ReadWrite($sql,null,true) ;
 			
-			$sqli="update table ". $Article->Table." SET AUTO_INCREMENT=".$Article->Id ;
+			$sqli="update ". $Article->Table." SET AUTO_INCREMENT=".$Article->Id ;
 			$miseajour=$this->Main->ReadWrite($sql,null,true) ;
 			$Note="Auto Increment est passé à ".$Article->Id ;
 			$Tache="DEBUG_CreerArticle" ;
@@ -730,7 +730,7 @@ Class xBoutique extends xORMHelper  {
 	 */
 	public function SaveLogoTicket($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
         $NomFichier=$this->Id."logoticket.png" ;
-		$DossierPhoto='entete-logo_'.$this->Id;
+		$DossierPhoto='logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;

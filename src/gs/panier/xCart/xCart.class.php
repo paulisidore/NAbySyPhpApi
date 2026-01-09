@@ -52,6 +52,12 @@ class xCart{
 
   public string $TextNote ;
 
+  /**
+   * Référence du Bon de Commande lié au panier
+   * @var string
+   */
+  public string $RefCMD = '';
+
   public ?xORMHelper $MetaDonnee ;
 
   public const META_DONNEE_ARTICLE_SUPPRIME = "ARTICLE_SUPPRIME";
@@ -269,7 +275,17 @@ class xCart{
     $panier = !empty( $_SESSION[$this->PanierId] ) ? $_SESSION[$this->PanierId] : NULL;
     if(!empty($panier)){
       foreach($panier as $P){ 
-        $total += $P['prix_Total'];
+		//$this->MaBoutique->Main::$Log->AddToLog(json_encode($P));
+		$pt=(float)$P['prix_Total'];
+		if($this->MaBoutique->Parametre && $this->MaBoutique->Parametre->ChampsExisteInTable('NbArrondie')){
+			$pt=round($pt, (int)$this->MaBoutique->Parametre->NbArrondie, PHP_ROUND_HALF_DOWN);
+			if((int)$this->MaBoutique->Parametre->NbArrondie == 0){
+				$pt = (int)$pt ;
+			}
+		}
+        $total += $pt;
+		//$TxLog= "total=".$total."+".(float)$P['prix_total'];
+		//$this->MaBoutique->Main::$Log->AddToLog($TxLog);
       }
     }
     return $total;
@@ -280,10 +296,19 @@ class xCart{
    */
   public function getTotalNetAPayer():float{
 	$TotalFacture=$this->getTotalPriceCart();
-	//echo $TotalFacture ."-". (int)$this->TotalRemise ."-". (int)$this->TotalReduction ;
-	$Total=$TotalFacture - (int)$this->TotalRemise - (int)$this->TotalReduction ;
-	//echo " = ".$Total;
-	return (int)$Total ;
+	//$TxLog= "getTotalNetAPayer=".$TotalFacture ."-". (float)$this->TotalRemise ."-". (float)$this->TotalReduction ;
+	$Total=$TotalFacture - (float)$this->TotalRemise - (float)$this->TotalReduction ;
+	$pt=$Total;
+	if($this->MaBoutique->Parametre && $this->MaBoutique->Parametre->ChampsExisteInTable('NbArrondie')){
+		$pt=round($pt, (int)$this->MaBoutique->Parametre->NbArrondie, PHP_ROUND_HALF_DOWN);
+		$Total = $pt;
+		if((int)$this->MaBoutique->Parametre->NbArrondie == 0){
+			$Total = (int)$Total ;
+		}
+	}
+	//$TxLog  ." = ".$Total."</br>";
+	//$this->MaBoutique->Main::$Log->AddToLog($TxLog);
+	return (float)$Total ;
   }
   
   /**

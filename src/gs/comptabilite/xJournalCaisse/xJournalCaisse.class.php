@@ -105,7 +105,7 @@ class xJournalCaisse extends xORMHelper {
             if (defined($period::INCLUDE_END_DATE)){
                 $opt=DatePeriod::INCLUDE_END_DATE;
             }else{
-                $this->AddToLog(__FILE__."L".__LINE__.": La constante DatePeriod::INCLUDE_END_DATE n'est pas définit!.");
+                //$this->AddToLog(__FILE__."L".__LINE__.": La constante DatePeriod::INCLUDE_END_DATE n'est pas définit!.");
             }
             foreach ($period as $dt) {
                 $dateFinale=$dt->format("Y-m-d");
@@ -124,7 +124,7 @@ class xJournalCaisse extends xORMHelper {
             if (defined($period::INCLUDE_END_DATE)){
                 $opt=DatePeriod::INCLUDE_END_DATE;
             }else{
-                $this->AddToLog(__FILE__."L".__LINE__.": La constante DatePeriod::INCLUDE_END_DATE n'est pas définit!.");
+                //$this->AddToLog(__FILE__."L".__LINE__.": La constante DatePeriod::INCLUDE_END_DATE n'est pas définit!.");
             }            
             foreach ($period as $dt) {
                 $dateFinale=$dt->format("Y-m-d");

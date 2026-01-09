@@ -62,6 +62,7 @@ switch ($action){
             $rw['URL_ENTETE'] = $Bout->GetLogoEntete(true);
             $rw['ENTETE_TICKET'] =  $rw['URL_ENTETE'] ;
             $rw['ENTETE_A4'] = $Bout->GetEnteteA4(true);
+
             unset($rw['Serveur']);
             unset($rw['DBName']);
             unset($rw['PdtTable']);
@@ -73,10 +74,12 @@ switch ($action){
             unset($rw['DBase']);
             unset($rw['MasterDataBase']);
             unset($rw['ListePanier']);
+
+            $lien_logo = $Bout->GetLogoTicket(true);
+            $rw['LOGO_TICKET'] = $lien_logo ;
             //unset($rw['LOGO_TICKET']);
-            if(trim($rw['LOGO_TICKET']) == ""){
-                $lien_logo = $Bout->GetLogoTicket(true);
-                $rw['LOGO_TICKET'] = $lien_logo ;
+            if(trim($rw['LOGO_TICKET']) !== ""){
+               $rw['ENTETE_TICKET'] = $rw['LOGO_TICKET'];
             }
 
             $Param=$nabysy->Parametre;
@@ -398,6 +401,26 @@ switch ($action){
                 N::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête A4:".json_encode($Rep) );
             }else{
                 $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête A4." ;
+            }
+            $Rep->SendAsJSON();
+
+        case "ETS_SAVE_ENTETE_TICKET": //
+            $Rep=new xNotification() ;
+            $Rep->OK=0 ;
+            if(N::getInstance()->User->NiveauAcces < 4){
+                $Rep->TxErreur="Accès refusé. Niveau d'accès insuffisant pour effectuer cette opération." ;
+                $Rep->SendAsJSON();
+                exit ;
+            }
+            $ChampFichier='fichier' ;
+            if (isset($PARAM['CHAMPFICHIER'])){
+                $ChampFichier=$PARAM['CHAMPFICHIER'] ;
+            }
+            if(N::getInstance()->MaBoutique->Id>0){
+                $Rep=N::getInstance()->MaBoutique->SaveLogoTicket($ChampFichier) ;
+                N::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête Logo Ticket:".json_encode($Rep) );
+            }else{
+                $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête Logo Ticket." ;
             }
             $Rep->SendAsJSON();
 
