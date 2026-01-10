@@ -2306,9 +2306,9 @@ Class xNAbySyGS
 								}
 
 								if($BoutiqueCible){
-									self::$Log->Write("CltDataBase: ".$CltDataBase." BD=".$BoutiqueCible->DataBase);
-									self::$Log->Write("Boutique précédente: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
-									self::$Log->Write( "Future DataBase: ". $BoutiqueCible->DBName." dafinit dans ".$BoutiqueCible->FullTableName()) ;
+									//self::$Log->Write("CltDataBase: ".$CltDataBase." BD=".$BoutiqueCible->DataBase);
+									//self::$Log->Write("Boutique précédente: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
+									//self::$Log->Write( "Future DataBase: ". $BoutiqueCible->DBName." dafinit dans ".$BoutiqueCible->FullTableName()) ;
 									if($BoutiqueCible->DBname ==''){
 										//var_dump(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
 										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
@@ -2323,7 +2323,7 @@ Class xNAbySyGS
 									$this->DataBase = $BoutiqueCible->DBName;
 									$this->RepWork = $CltDataBase;
 									$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
-									self::$Log->Write("Ma boutique est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
+									self::$Log->AddToLog("La boutique en cour est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
 									if(!is_dir($this->RepWork)){
 										try {
 											//echo "Création du dossier ".$this->RepWork;
