@@ -47,6 +47,9 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (!$MySQL->ChampsExiste($this->TEntete,'IdEmploye',$this->DBase)){
             $MySQL->AlterTable($this->TEntete,'IdEmploye','INT(11)','ADD','0',$this->DBase) ;
         }
+        if (!$MySQL->ChampsExiste($this->TEntete,'CompteEmploye',$this->DBase)){
+            $MySQL->AlterTable($this->TEntete,'CompteEmploye','INT(11)','ADD','0',$this->DBase) ;
+        }
 
         $this->CompteEmploye=null;
 
