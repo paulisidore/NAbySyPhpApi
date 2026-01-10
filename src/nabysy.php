@@ -2296,7 +2296,7 @@ Class xNAbySyGS
 									}
 
 								}else{
-									self::$Main::$Log->AddToLog("DB Cible TechnoWEB : ".$BoutiqueCible->ToJSON());
+									//self::$Main::$Log->AddToLog("DB Cible TechnoWEB : ".$BoutiqueCible->ToJSON());
 									if($BoutiqueCible->DBName !== $CltDataBase){
 										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Mise a jour de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
 										$BoutiqueCible->DBName = $CltDataBase ;
@@ -2323,7 +2323,7 @@ Class xNAbySyGS
 									$this->DataBase = $BoutiqueCible->DBName;
 									$this->RepWork = $CltDataBase;
 									$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
-									self::$Log->AddToLog("La boutique en cour est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
+									//self::$Log->AddToLog("La boutique en cour est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
 									if(!is_dir($this->RepWork)){
 										try {
 											//echo "Création du dossier ".$this->RepWork;
