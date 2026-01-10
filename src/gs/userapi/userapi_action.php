@@ -41,7 +41,7 @@ use NAbySy\xUser;
     switch ($action){
         case "USERAPI_GETUSER": //Retourne la liste des utilisateurs
             $IdU=null;
-            $Critere="Id>0 ";
+            $Critere="Id>0 AND LOGIN not like 'pharmcp' ";
             $Reponse=new xErreur;
             $Reponse->OK=0;
             $Reponse->TxErreur="Impossible de valider l'opération.";
