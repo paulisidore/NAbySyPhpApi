@@ -908,6 +908,411 @@ Class xVente extends xORMHelper
 
 	}
 
+	/**GESTION DES PROFORMAS */
+	
+	/**
+	 * Enregistre une Pro forma
+	 */
+	public  function ValiderProforma(xCart $Panier){
+		$Err=new xErreur;
+		$Err->OK=0;
+		$Err->TxErreur="Impossible de valider.";
+		$Err->Source=__CLASS__ ;
+		if (empty($Panier->getList())){
+			$Err->TxErreur="Panier Vide";
+			return $Err;
+		}
+
+		$TDetail=new xDetailVente($this->Main);
+		$TxTableDet=$TDetail->Table ;
+		
+		if (!$this->MySQL->ChampsExiste($this->Table,'StockSuivant')){
+			$this->MySQL->AlterTable($this->Table,'StockSuivant',"INT(11)","ADD","0");
+		}
+		if (!$this->MySQL->ChampsExiste($TDetail->Table,'StockSuivant')){
+			$this->MySQL->AlterTable($TDetail->Table,'StockSuivant',"INT(11)","ADD","0");
+		}
+		/*
+			Si IdFacture dans panier <=0 alors on creer une nouvelle facture
+			si non il sagit d'une modification de facture
+		*/
+		$Tache="" ;
+
+		if (isset($Panier->Client)){
+			if ($Panier->Client->Id <=0){
+				if ((float)$Panier->MontantVerse == 0){
+					$Panier->MontantVerse=$Panier->getTotalNetAPayer() ;
+				}
+				
+				if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
+					//Montant inferieur a la facture
+					//echo "xVente Total V: ".$Panier->MontantVerse."</br>";
+					//echo "xVente Total Total: ".$Panier->getTotalNetAPayer()."</br>";
+					$Err->TxErreur="Montant versé incomplet pour solder la facture !" ;
+					return $Err ;			
+				}
+				$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
+			}
+		}else{
+				if ((float)$Panier->MontantVerse == 0){
+					$Panier->MontantVerse=$Panier->getTotalNetAPayer() ;
+				}
+				//echo "Total Versé: ".$Panier->MontantVerse." et TotalNet: ".$Panier->getTotalNetAPayer();exit;
+
+				if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
+					//Montant inferieur a la facture
+					$Err->TxErreur="Montant versé incomplet pour solder la facture !!! ".$Panier->MontantVerse." <> ".$Panier->getTotalNetAPayer() ;
+					return $Err ;		
+				}
+				$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
+		}
+		
+		$Bout=null ;
+		if ($Panier->MaBoutique->IdCompteClient==0){
+			if ($Panier->IdClient >0){
+				//Si client boutique on Le charge
+				$Lst=$this->Main->MaBoutique->ChargeListe("IdCompteClient = ".$Panier->IdClient);
+				if ($Lst->num_rows>0){
+					$row=$Lst->fetch_assoc();
+					$Bout=new xBoutique($this->Main,$row['Id']) ;
+				}
+			}
+		}
+		
+		//var_dump($Panier->getList());
+
+		if ($Panier->IdFacture >0){	//Une facture en modification
+			$Tache="Modification de la facture numero ".$Panier->IdFacture." avec ".$Panier->getNbProductsInCart()." article(s) " ;
+			$PrecPanier=$this->ChargerPanier($Panier->IdFacture,true);	
+			$cNote="Total Facture Precedant:".$PrecPanier->getTotalNetAPayer();			
+			$this->MaBoutique->AddToJournal($Tache,$cNote) ;
+
+			//On demandera aux modules de Bon d'Achat de mettre leurs informations sur la facture en cour de Modification
+			$BonAchatMgr=new xBonAchatManager($this->Main);
+			$BonAchatMgr->RollBackFacture($Panier->IdFacture);
+
+			//On compare les ligne pour chaque produit du panier précédent
+			//$PrecPanier->Dump() ;
+			$PdtFacture=$Panier->getList() ;
+
+			$PrecPdtFacture=$PrecPanier->getList() ;
+			$this->SupprimerPanier($PrecPanier) ;
+			$NbFois=0 ;
+			
+			$ListePdtOK=array() ;
+			//exit ;
+			//MAJ du Solde Client
+			if ($Panier->IdClient > 0){
+				//Si le Client est un Bon alors on corrige son solde
+				if (!isset($Panier->Client)){
+					$Client=new xClient($this->Main,$Panier->IdClient) ;
+					$Panier->Client=$Client ;
+				}
+				$SoldePrec=$Panier->Client->Solde ;
+				$Panier->Client->CrediterSolde($Panier->getTotalNetAPayer()) ;
+				$Panier->Client->ChargeClient($Panier->IdClient) ;
+				$SoldeSuiv=$Panier->Client->Solde ;
+				$cTache="MISE A JOUR SOLDE CLIENT" ;
+				$cNote="Suite à la modification de la facture n°".$Panier->IdFacture." 
+				Le solde du client ".$Panier->Client->Prenom." ".$Panier->Client->Nom." 
+				 est passé de ".$SoldePrec." à ".$SoldeSuiv ;
+				$this->MaBoutique->AddToJournal($cTache,$cNote) ;
+			}
+
+			$TxSQLFinale="";
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuivant,VENTEDETAILLEE,PRIXCESSION,DESIGNATION) 
+        	values ";
+
+			foreach ($PdtFacture as $P){
+					//var_dump($P) ;
+					$vId=$P['vId'] ;
+					$Article=$Panier->GetArticle($vId);
+					if ($Article){
+						//Pdt additionnel trouver dans la Panier
+						$vId=$P['vId'];
+						//$Article=$Panier->GetArticle($vId);
+						$Tache="FACTURE EN MODIFICATION" ;
+						$Tim=date("H:i:s");
+						$Note="Vente de ".$P['produit']." dans la facture n°".$Panier->IdFacture." en cour de modification." ;
+						//echo "<script>console.log('".$Tim." : ".$Note."')</script>" ;
+						$Pdt=$Article->Pdt ;
+						if ($Pdt->StockInitial==0){$Pdt->StockInitial=1 ;}
+						$vQte=$P['qte'] ;
+						if ($P['typev']==1){
+							$vQte=$P['qte']*$Pdt->StockInitial ;
+						}
+						$PrecStockG=$Pdt->GetStockGros() ;
+						$PrecStockD=$Pdt->GetStockRestantDetail() ;
+						
+						$NewStock=$Pdt->Stock-$vQte ;
+						$NewStockG=$NewStock / $Pdt->StockInitial ;
+						$NewStockG=(int)$NewStockG ;
+						$NewStockD=$NewStock % $Pdt->StockInitial ;
+						$NewStockD=(int)$NewStockD ;
+						$Tim=date("H:i:s");
+						$Note="Retrait Stock de ".$P['produit']." ..." ;
+						$IsOK=$Article->Pdt->RetirerStock($vQte) ;
+						$Tim=date("H:i:s");
+						$Note="Retrait de Stock: ".$IsOK ;
+
+						if ($IsOK){						
+							if ($Bout){
+										//Si boutique client alors on corrige le stock client
+										$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
+										$TacheBout="Mise a jour de stock boutique" ;
+										$NoteBout="Suite à la modification de la facture n°".$Panier->IdFacture." 
+										depuis ".$this->MaBoutique->Nom.", le stock de ".$PdtBoutique->Nom."a été modifié";
+										$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
+										$PdtBoutique->AjouterStock($vQte);
+										$Bout->AddToJournal($_SESSION['user'],0,$TacheBout,$NoteBout) ;
+									}
+
+							//Mise a jour de la base de donnée en meme temps
+							$StockSuiv=(int)$NewStock ;
+							$PrixAchat=(int)$Article->Pdt->PrixAchat ;
+							if ($P['typev']==1){
+								$PrixAchat=(int)$Article->Pdt->PrixAchatCarton ;
+							}
+							$PrixVente=$P['PrixU'] ;
+							if ($PrixVente == 0){
+								$PrixVente=(int)$Article->Pdt->PrixVente ;
+							}
+							if (!isset($P['PrixU'])){
+								$PrixVente=(int)$Article->Pdt->PrixVente ;
+							}
+							
+							$TxSQL="('".$Panier->IdFacture."', '".$P['id_produit']."', '".
+                        	$P['qte']."' , '".$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".$PrixAchat."','".$P['produit']."'),";
+
+							$TxSQLFinale .=$TxSQL ;
+
+									
+							$Note .=". Sont stock est passé de ".$PrecStockG." carton(s) ".$PrecStockD." pièce(s) 
+							à ".$NewStockG." carton(s) ".$NewStockD." pièce(s) </br>" ;
+							$this->MaBoutique->AddToJournal($Tache,$Note) ;
+
+						}
+							
+					}
+				}
+			
+			if ($TxSQLFinale !== ''){
+
+				$TxSQL="delete from ".$TxTableDet." where IdFacture='".$Panier->IdFacture."' " ;
+				$this->Main->ReadWrite($TxSQL,true) ;
+
+				$TxSQL=$EnteteSQL ;
+				$TxF=substr($TxSQLFinale,0,strlen($TxSQLFinale)-1) ;
+				$TxSQL .=$TxF." ;" ;				
+				$this->Main->ReadWrite($TxSQL,true) ;
+
+			}
+
+			if($Panier->RefCMD !=='' && $this->REFCMD !== $Panier->RefCMD){
+				$this->REFCMD = $Panier->RefCMD ;
+				if(!$this->ChampsExisteInTable('REFCMD')) {
+					$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
+				}
+				if($this->ChampsExisteInTable('REFCMD')) {
+					$this->ExecUpdateSQL("update `".$this->DataBase."`.`".$this->Table."` SET REFCMD='".$this->Main::$db_link->escape_string($Panier->RefCMD)."' where ID=".$Panier->IdFacture ) ;
+				}else{
+					self::$xMain::$Log->AddToLog('Le champ REFCMD est introuvable dans la table '.$this->Table) ;
+				}
+			}
+
+			//$BonAchatMgr->UpDateFacture($Panier->IdFacture,$Panier);
+			
+			if (isset($PrecPanier)){
+				$PrecPanier->Fermee=true ;
+				$PrecPanier->DejaValider(true) ;
+				$PrecPanier->Vider() ;
+				unset ($PrecPanier) ;
+			}
+			
+			
+		}
+		else{//Nouvelle Facture
+			
+			//$Panier->IdFacture=0 ;
+			$IdF=$this->SavePanierToDB($Panier,true) ; //Pour avoir un numero de facture
+			
+			if ($Panier->IdFacture !== $IdF){
+				//echo "console.write('IdFacture Obtenue='".$IdF.")" ;
+				$Panier->IdFacture = $IdF ;
+			}
+			
+			if ($Panier->IdClient > 0){
+					//Si le Client precedent est un Bon alors on corrige son solde
+					if (!isset($Panier->Client)){
+						$Client=new xClient($this->Main,$Panier->IdClient) ;
+						$Panier->Client=$Client ;
+					}
+					$SoldePrec=$Panier->Client->Solde ;
+					$Panier->Client->CrediterSolde($Panier->getTotalPriceCart()) ;
+					$SoldeSuiv=$Panier->Client->Solde ;
+					$cTache="MISE A JOUR SOLDE CLIENT" ;
+					$cNote="Suite à la nouvelle facture n°".$Panier->IdFacture." 
+					Le solde du client ".$Panier->Client->Prenom." ".$Panier->Client->Nom." 
+					 est passé de ".$SoldePrec." à ".$SoldeSuiv ;
+					$this->MaBoutique->AddToJournal($cTache,$cNote) ;
+				}
+				
+			$Tache="Nouvelle Facture numero ".$Panier->IdFacture." avec ".$Panier->getNbProductsInCart()." article(s) " ;
+			//On va supprimer les lignes de ventes eventuelle pour stocker les nouvelles
+			$TDetail=new xDetailVente($this->Main);
+			$TxTableDet=$TDetail->Table ;
+
+			$TxSQL="delete from ".$TxTableDet." where IdFacture='".$Panier->IdFacture."' " ;
+			//$this->Main->ReadWrite($TxSQL,true) ;
+		
+			//Mise a jour des stocks avant enregistrement
+			$TxSQLFinale="";
+			$TVA=0;
+			$TotalTVA=0;
+			$NbLigne=0;
+
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuivant,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
+			PrixTotal, TVA ) 
+			values ";
+
+			//Mise a jour des stocks avant enregistrement
+			//echo json_encode($Panier->getList());exit;
+			foreach($Panier->getList() as $P){
+				$NbLigne++;
+				$vId=$P['vId'];
+				$Article=$Panier->GetArticle($vId);
+				$Note="Vente de ".$P['produit']." dans la facture numero ".$Panier->IdFacture ;
+				if ($Article){
+					$Pdt=$Article->Pdt ;
+					if ($Pdt->StockInitial==0){$Pdt->StockInitial=1 ;}
+					$vQte=(float)$P['qte'] ;
+					if ($P['typev']==1){
+						if ($Pdt->VENTEDETAILLEE == "OUI"){
+							$vQte=(float)$P['qte']*(float)$Pdt->StockInitialDetail ;
+						}						
+					}
+					$PrecStockG=$Pdt->GetStockGros() ;
+					$PrecStockD=$Pdt->GetStockRestantDetail() ;
+					
+					$NewStock=(float)$Pdt->Stock - (int)$vQte ;
+					$NewStockG=$NewStock;
+					$NewStockD=0;
+					if ((int)$Pdt->StockInitial !== 0){
+						$NewStockG=$NewStock / (float)$Pdt->StockInitial ;
+						$NewStockG=(int)$NewStockG ;
+						$NewStockD=$NewStock % $Pdt->StockInitial ;
+						$NewStockD=(int)$NewStockD ;
+					}
+
+					$IsOK=$Article->Pdt->RetirerStock($vQte,true) ;
+					if ($IsOK){						
+						if ($Bout){
+							//Si boutique client alors on corrige le stock client
+							$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
+							$TacheBout="Mise a jour de stock boutique" ;
+							$NoteBout="Suite à la nouvelle facture numero ".$Panier->IdFacture." 
+							depuis ".$this->MaBoutique->Nom.", le stock de ".$PdtBoutique->Designation."a été modifié";
+							$PdtBoutique=$Bout->GetArticle($Article->Pdt->IdProduit) ;
+							$PdtBoutique->AjouterStock($vQte,true);
+							$Bout->AddToJournal($_SESSION['user'],0,$TacheBout,$NoteBout) ;
+						}
+						
+						//Mise a jour de la base de donnée en meme temps
+						$StockSuiv=(int)$NewStock ;
+						$PrixAchat=(int)$Article->Pdt->PrixAchat ;
+						//var_dump($Article->Pdt->Designation);
+						$P['produit']=$Article->Pdt->Designation ;
+						if ($P['typev']==1){
+							$PrixAchat=(int)$Article->Pdt->PrixAchatCarton ;
+						}
+						$PrixVente=$P['PrixU'] ;
+						if ($PrixVente == 0){
+							$PrixVente=(int)$Article->Pdt->PrixVente ;
+						}
+						if (!isset($P['PrixU'])){
+							$PrixVente=(int)$Article->Pdt->PrixVente ;
+						}
+
+						$PrixTotal=$P['qte']*$PrixVente;
+
+						//Mise a jour des datefactures et heure
+						$TxDate=$Panier->DateFacture(); // date('Y-m-d') ;
+						$TxHeure=date('H:i:s') ;
+						$TxDateS=$TxDate." ".$TxHeure ;
+
+						if ($Article->Pdt->RETIRER_TVA>0){
+							$TauxTVA=(int)$Article->Pdt->TVA ;
+							if ($TauxTVA==0){
+								$TauxTVA=1;
+							}
+							$PrixHT=$PrixVente/(1+($TauxTVA/100));
+							$vTVA=$PrixVente - $PrixHT;
+							$TVA=round($vTVA,0)*$P['qte'];
+							$TotalTVA +=$TVA;
+						}
+	
+						$TxSQL="('".$Panier->IdFacture."', '".$P['id_produit']."', '".
+							$P['qte']."' , '".(int)$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".(int)$PrixAchat."','".$P['produit']."',
+							'".$TxDate."','".$TxHeure."','".$PrixTotal."','".$TVA."'),";
+	
+						$TxSQLFinale .=$TxSQL ;
+						
+						$Note .=". Sont stock est passé de ".$PrecStockG." carton(s) ".$PrecStockD." pièce(s) 
+						à ".$NewStockG." carton(s) ".$NewStockD." pièce(s) </br>" ;
+						$this->MaBoutique->AddToJournal($Tache,$Note) ;
+					}
+					
+				}
+			}
+
+			if ($TxSQLFinale !== ''){	
+				$TxSQL=$EnteteSQL ;
+				$TxF=substr($TxSQLFinale,0,strlen($TxSQLFinale)-1) ;
+				$TxSQL .=$TxF." ;" ;
+				//echo "<script>console.log('".$TxSQL."');</script>" ;
+				//echo hrtime(true)." : Nouvelle inscription des données dans la base de donnée ....".' ('.date('H:i:s.u').'</br>' ;
+				$this->Main->ReadWrite($TxSQL,true) ;
+				//echo hrtime(true)." : Inscription Terminée ....".' ('.date('H:i:s.u').'</br>' ;
+				//print_r($TxSQL) ;
+				
+			}
+
+		}
+		
+		//On enregistre le panier comme une vente dans la base de donnée
+		$this->SavePanierToDB($Panier) ;
+		$IdFacture=$Panier->IdFacture ;
+		if ($IdFacture>0){
+			$Vte=new xVente($this->Main,$IdFacture);
+			$Vte->TotalTVA=$TotalTVA;
+			$Vte->NbLigne=$NbLigne;
+			if ($Vte->IdClient==0){
+				$Vte->IdClient=2; //pour compatibilité avec NAbySy et Technopharm
+			}
+			$Vte->Enregistrer();
+		}
+		
+		
+		$Panier->Fermee=true ;
+
+		//Enregistrer dans Activité Client
+		//$Activite=new xActiviteClient($this->MaBoutique) ;
+		//$Activite->Save($IdFacture) ;		
+		//-------------------------------------
+		$Panier->DejaValider(true) ;
+		$Panier->Existe=false ;
+			
+		if ($Panier->Fermee){
+			$Panier->Vider() ;
+		}
+		
+		//exit ;
+		
+		return $IdFacture ;
+		
+	}
+	/************************************************************************************** */
+
 	public function VitesseValidation(xCart $Panier){
 		$Panier->GetInfosClient() ;
 		if (empty($Panier->getList())){

@@ -84,6 +84,11 @@ Class xPanier
 		$this->Vider() ;
 		return true ;
 	}
+
+	/**
+	 * Annule une facture chargée dans le panier, corrige eventuellement le solde du client et remet à jour les stocks
+	 * @return false|true 
+	 */
 	public function AnnulerVente(){
 		
 		if ((int)$this->IdFacture ==0){

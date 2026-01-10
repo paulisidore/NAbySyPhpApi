@@ -21,7 +21,7 @@ use NAbySy\xNAbySyGS;
 
          /**
          * Retourne le nom complet de la Table
-         * sous le formet: `mabase`.`mabase`
+         * sous le format: `mabase`.`mabase` (Avec la présence des griffes)
          * @return string 
          */
         public function FullTableName():string;

@@ -17,6 +17,9 @@ use NAbySy\xNotification;
     //include_once './nabysy_action.php';
     $IdPanier=null ;
     $IsProforma=false;
+	$IdFacture=null;
+	$IdProforma=null;
+
     if (isset($PARAM['IsProforma'])){
         $IsProforma=true ;
     }
@@ -24,6 +27,22 @@ use NAbySy\xNotification;
     if (isset($PARAM['IdPanier'])){
 		$IdPanier=$PARAM['IdPanier'] ;
 	}
+	if (isset($PARAM['IDFACTURE']) && (int)$PARAM['IDFACTURE'] ){
+		$IdFacture=(int)$PARAM['IDFACTURE'] ;
+	}
+	if (isset($PARAM['IdFacture']) && (int)$PARAM['IdFacture'] ){
+		$IdFacture=(int)$PARAM['IdFacture'] ;
+	}
+	if (isset($PARAM['IDPROFORMA']) && (int)$PARAM['IDPROFORMA'] ){
+		$IdProforma=(int)$PARAM['IDPROFORMA'] ;
+		$IsProforma=true ;
+		 if (!isset($PARAM['IsProforma'])){
+			$PARAM['IsProforma']=1;
+		 }
+	}
+
+	$Err=new xErreur;
+	$Err->OK=0;
 	
     $Panier=new xCart($nabysy->MaBoutique,$IdPanier);
 	if ($IsProforma){
@@ -130,6 +149,12 @@ use NAbySy\xNotification;
 			$TotalReduction=0;
 			$TotalRemise=null;
 			$RefCmd=null;
+
+			if($IdProforma && $IdProforma>0){
+				$Panier->IdFacture=$IdProforma;
+			}elseif($IdFacture && $IdFacture>0){
+				$Panier->IdFacture=$IdFacture;
+			}
 			
 			$Err->TxErreur="";
 			//var_dump($_REQUEST);exit;
@@ -513,6 +538,303 @@ use NAbySy\xNotification;
 			$Panier->Vider() ;
 			exit ;
 	
+		case "PROFORMA_SAVE_PANIER": //Enregistre une nouvelle ou met à jour une Pro forma
+			$Contenu=null;
+			$ListeArticle=[];
+			$IdClient=null;
+			$TotalReduction=0;
+			$TotalRemise=null;
+			$RefCmd=null;
+
+			if($IdProforma && $IdProforma>0){
+				$Panier->IdFacture=$IdProforma;
+			}elseif($IdFacture && $IdFacture>0){
+				$Panier->IdFacture=$IdFacture;
+			}
+			
+			$Err->TxErreur="";
+			//var_dump($_REQUEST);exit;
+			if (isset($_REQUEST['IdClient'])){				
+				if ($_REQUEST['IdClient']>0){
+					$IdClient=$_REQUEST['IdClient'] ;
+					$Panier->IdClient=$IdClient;
+				}
+			}
+
+			if (isset($_REQUEST['Contenue'])){
+				$Contenu=json_decode($_REQUEST['Contenue']) ;
+                //echo json_encode($Contenu);exit;
+				if (isset($Contenu)){
+					$ListeArticle=$Contenu->ListeArticle ;
+				}
+				if(isset($Contenu->IdClient)){
+					if((int)$Contenu->IdClient>0){
+						$IdClient= (int)$Contenu->IdClient ;					
+						if($IdClient>0){
+							$Panier->IdClient=$IdClient;
+						}
+					}
+				}
+			}
+
+			if(isset($Contenu->MontantVerse)){
+				if((float)$Contenu->MontantVerse>0){
+					$PARAM['MontantVerse'] = (float)$Contenu->MontantVerse;
+				}
+			}
+			if(isset($Contenu->MontantRendu)){
+				if((float)$Contenu->MontantRendu>0){
+					$PARAM['MontantRendu'] = (float)$Contenu->MontantRendu;
+				}
+			}
+
+			if(isset($PARAM['REFCMD']) && trim($PARAM['REFCMD'])!==''){
+				$RefCmd=trim($PARAM['REFCMD']);
+				$Panier->RefCMD=$RefCmd ;
+			}
+
+			if(isset($Contenu->REFCMD)){
+				if(trim($Contenu->REFCMD) !==''){
+					$PARAM['REFCMD'] = trim($Contenu->REFCMD);
+					$RefCmd=trim(trim($PARAM['REFCMD']));
+					$Panier->RefCMD=$RefCmd ;
+				}
+			}
+
+			$Grossiste=false;
+			if (isset($PARAM['Grossiste'])){				
+				if ($PARAM['Grossiste']=='true'){
+					$Grossiste=true ;
+				}else{
+					$Grossiste=false ;
+				}				
+			}
+
+			if (isset($PARAM['MontantVerse'])){				
+				if ((float)$PARAM['MontantVerse'] !== 0){
+					$Panier->MontantVerse=(float)$PARAM['MontantVerse'] ;
+				}
+			}
+
+			if (isset($PARAM['MontantRendu'])){				
+				if ((float)$PARAM['MontantRendu'] !== 0){
+					$Panier->MontantRendu=(float)$PARAM['MontantRendu'] ;
+				}
+			}
+			$Panier->TotalReduction=0;
+			//var_dump($Panier->TotalReduction );
+			//echo json_encode($ListeArticle);exit;
+			foreach ($ListeArticle as $xArt){
+				$VenteDet=0;
+				$TypeVenteParDefaut=1 ;
+				if($xArt->VENTEDETAILLEE == 'false' || $xArt->VENTEDETAILLEE == 'False' || $xArt->VENTEDETAILLEE== 'FALSE' || $xArt->VENTEDETAILLEE== '0' || $xArt->VENTEDETAILLEE== 0 || $xArt->VENTEDETAILLEE == false){
+					$xArt->VENTEDETAILLEE = false;
+				}elseif($xArt->VENTEDETAILLEE == 'True' || $xArt->VENTEDETAILLEE== 'TRUE' || $xArt->VENTEDETAILLEE== '1' || $xArt->VENTEDETAILLEE== 1){
+					$xArt->VENTEDETAILLEE = true;
+				}
+				//echo  "xArt Ligne: ".__LINE__." => ". $xArt->VENTEDETAILLEE ." ";
+				if($xArt->VENTEDETAILLEE == true ){
+					$VenteDet = 1;
+					//echo  "Type de Vente Avant Ligne: ".__LINE__." => ".json_encode($TypeVenteParDefaut);
+					$TypeVenteParDefaut=0 ;
+				}
+				//echo  "Type de Vente après Ligne: ".__LINE__." => ".json_encode($TypeVenteParDefaut); exit;
+
+				$Article = new xArticlePanier(N::getInstance(),$xArt->Id,$xArt->Qte, $VenteDet);
+				$Art = $Article->Pdt ;
+				//echo __FILE__." LIGNE ".__LINE__." ". json_encode($xArt);exit;
+				if ($Article->IdProduit == -1 && $Article->IsPdtClown>0){
+					$Pdt=new xProduitNC($nabysy,null,N::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$Art->CodeBar);
+				}else{
+					$Pdt=$Article->Pdt; // new xProduit($nabysy,$Art->Id,$nabysy::GLOBAL_AUTO_CREATE_DBTABLE,null, $nabysy->MaBoutique) ;
+				}				
+                //var_dump(get_class($Pdt));
+				//echo  "Type de Vente: ".json_encode($TypeVenteParDefaut); exit;
+				$NewArticle=new xArticlePanier($nabysy,$Pdt->Id,$xArt->Qte,$TypeVenteParDefaut,N::getInstance()->MaBoutique,$Art->CodeBar) ;
+				//var_dump($NewArticle);exit;
+				if ($NewArticle){	
+					$Modif=false ;					
+					if ($Art->Id >0 && !$Art->IsClown ){
+						if ($Panier->PdtExiste($Pdt->Id,$TypeVenteParDefaut)){
+							//'On modifie la quantité'
+							$Modif=false ;
+						}
+					}											
+					
+					if (!$Art->IsClown){
+						/*Si Boutique avec Prix Calculé et non Grossiste */
+						if (N::getInstance()->MaBoutique->AutoCalculPV>0){
+							if (!$Grossiste){
+								//echo ' </br>Je calcul le Prix de Vente: ' ;
+								$EnPlus=$NewArticle->PrixU * round((N::getInstance()->MaBoutique->TauxPV /100),0) ;
+								$vEnPlus=($NewArticle->PrixU*(N::getInstance()->MaBoutique->TauxPV /100)) ;
+								$EnPlus=(int)round($vEnPlus,0,PHP_ROUND_HALF_UP) ;
+								//echo ' </br>Le Surplus de '.$nabysy->MaBoutique->TauxPV.'% ='.$EnPlus.' </br>' ;
+								$NewArticle->PrixU +=$EnPlus ;
+							}
+						}	
+					}
+					
+					//echo json_encode($NewArticle);exit;
+					//echo ' </br>Article Prix de Vente: '. $NewArticle->PrixU." Pour le TypeVente=".$TypeVenteParDefaut." Vente Grossiste=".$Grossiste ;
+					/* 	---------------------------------------------------- */
+					$Rep=$Panier->addProduct($NewArticle->IdProduit,$NewArticle->Nom,$NewArticle->Qte,$NewArticle->PrixU,$NewArticle->TypeVente,$Panier->IdClient,$Modif,false,$NewArticle->CodeBar) ;
+					if ($Rep != true ){
+						$TxErreur=$Rep ;
+						echo $TxErreur ;
+						exit ;
+					}
+				}
+
+			}
+			//echo json_encode($Panier->getList());exit;
+						
+            //On vérifie les Modules de Reduction			
+            if (isset($PARAM['REMISE'])){
+                //Il y a des remises
+                $ListeRemise=json_decode($PARAM['REMISE'],true);
+				
+                $TotalRemise=(int)$Panier->TotalRemise ;
+				//var_dump($TotalRemise);
+                foreach($ListeRemise as $Remise){
+					//var_dump($Remise);
+					//foreach ($Rem as $Remise){
+						
+						if (isset($Remise['MontantRemise'])){
+							$TotalRemise +=(int)$Remise['MontantRemise'];
+							$Panier->NomBeneficiaireRemise=$Remise['NOMBENEFICIAIRE'] ;
+						}else{
+							//var_dump($Remise);
+						}
+					//}
+					//var_dump($TotalRemise);
+					//exit;
+                }
+                $Panier->TotalRemise=$TotalRemise;
+            }
+
+            $ListeModCallBack=[]; //Cette liste de module sera executée une fois la facture validée
+			$ListeBonAchat=null; //Retient la liste des bons d'achat utilisé
+			$ListeMethodePaie=[] ; //Liste des Méthodes de Paiement Utilisée.
+			$ListeMobilePaieCheckOut=[]; //Liste des checkOut par module de paiement
+
+			//var_dump($ListeModCallBack);
+			$Liste=$Panier->GetList();
+			//var_dump($Liste);
+			//exit;
+
+			if ($Liste){
+				//On valide la pro forma
+				$Vente=new xProforma(N::getInstance()) ;
+				
+				$IdFacture=0;
+				$ReponseID=$Vente->Valider($Panier) ;
+				//echo json_encode($ReponseID);
+				if ($ReponseID instanceof xNotification){
+					$IdFacture=(int)$ReponseID->Extra;
+					$ReponseID->SendAsJSON();
+				}elseif ($ReponseID instanceof xErreur){
+					echo json_encode($ReponseID);
+					exit;
+				}elseif( is_numeric($ReponseID) ){
+					$IdFacture = $ReponseID;
+				}
+
+				if ($IdFacture>0){
+					$Reponse=new xNotification();
+					$Reponse->OK=1;
+					$Reponse->Extra=$IdFacture ;
+					$Reponse->Source=$action ;
+					if (isset($Err->TxErreur)){
+						if ($Err->TxErreur !== ""){
+							$Reponse->TxErreur=$Err->TxErreur;
+						}
+					}
+					$Reponse->SendAsJSON();
+					//$retour=json_encode($Reponse) ;
+					//echo $retour ;
+					$Panier->Vider() ;
+					exit ;
+				}
+			}
+
+			$json_liste=$Panier->GetListeJSON(null,true);
+			echo $json_liste ;
+			$Panier->Vider() ;
+			exit ;
+
+		case "PROFORMA_GET_FACTURE": //Retourne la liste des Proforma
+			$IdFacture=$IdProforma ;
+			$Err=new xErreur ;
+			if ($IdFacture){
+				$Vente=new xProforma($nabysy,$IdFacture) ;				
+				if ($Vente->Id>0){
+					//var_dump($Vente->ToJSON()) ;
+					$Reponse=$Vente->DetailToJSON();
+					echo $Reponse ;
+				}else{
+					$Err->OK=0;
+					$Err->TxErreur='Impossible de trouver la pro forma n°'.$IdFacture;
+					$Err->Source='panier_action.php' ;
+					$Reponse=json_encode($Err);
+					echo $Reponse ;
+				}
+				exit;
+			}
+			$DateDeb=null;
+			$DateFin=null;
+			$Critere="" ;
+			if (isset($_REQUEST['DATEDEBUT'])){
+				$DateDeb=$_REQUEST['DATEDEBUT'] ;
+				$DateD=new DateTime($DateDeb);
+				if (isset($_REQUEST['DATEFIN'])){
+					$DateFin=$_REQUEST['DATEFIN'] ;
+					$DateF=new DateTime($DateFin);
+				}
+				if ($DateD !== false && $DateF !== false){
+					$Critere .=" DATEFACTURE >='".$DateD->format('Y-m-d')."' and DATEFACTURE <='".$DateF->format('Y-m-d')."' ";
+				}elseif ($DateD !== false ){
+					$Critere .=" DATEFACTURE ='".$DateD->format('Y-m-d')."' ";
+				}
+			}
+			$Vente=new xProforma($nabysy) ;
+			$Lst=$Vente->ChargeListe($Critere);
+			$Reponse="";
+			if ($Lst){
+				$Rep=[];
+				while ($row=$Lst->fetch_assoc()){
+					$Rep[]=$row ;
+				}
+				$Reponse=json_encode($Rep);
+			}
+			$Rep=new xNotification();
+			$Rep->OK=1;
+			$Rep->Contenue = $Reponse ;
+			$Rep->SendAsJSON();
+			exit;
+
+		case "PROFORMA_DELETE_FACTURE": //Supprime une proforma
+			$IdFacture=$IdProforma ;
+			$Err->OK=0;
+			$Err->TxErreur="Impossible d'effectuer cette opération.";
+
+			if(N::getInstance()->User->NiveauAcces <3){
+				$Err->TxErreur="Votre profile ne permet pas cette opération.";
+				$Err->SendAsJSON();
+			}
+			$Proforma=new xProforma(N::getInstance(), $IdProforma);
+			if($Proforma->Id<=0){
+				$Err->TxErreur="Pro forma n°".$IdProforma." introuvable.";
+				$Err->SendAsJSON();
+			}
+			if($Proforma->Supprimer()){
+				$Rep=new xNotification();
+				$Rep->OK=1;
+				$Rep->Extra="Proforma N°".$IdProforma." supprimée correctement.";
+				$Rep->SendAsJSON();
+			}
+			$Err->SendAsJSON();
+			exit;
 		case "GET_NEWPANIER" :
 			/* Retourne le N° d'Un Nouveau Panier */
 			//$Panier=new xCartProForma($nabysy->MaBoutique,0);
@@ -741,7 +1063,7 @@ use NAbySy\xNotification;
 				$IdClient=$PARAM['IdClient'] ;
 			}
 			$Bout=new xBoutique($nabysy,$IdBoutique) ;
-			$Proforma=new xProforma($nabysy,$Bout) ;
+			$Proforma=new xProforma($nabysy,$IdProforma) ;
 			$PanierP=$Proforma->ChargerPanier($IdProforma,true) ;
 			if (isset($IdClient)){
 				$Client=new xClient($Bout->Main,$IdClient) ;

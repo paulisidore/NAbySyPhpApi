@@ -564,13 +564,13 @@ Class xBoutique extends xORMHelper  {
 		$FileName=$DossierPhotos.$this->Id.'logo.png' ;
 		$Debugger=new xORMHelper($this->Main,null,false,'journal');
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
-		$Debugger->AddToLog($Tx);
+		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){
-			$Debugger->AddToLog("Fichier ".$FileName." existe.");
-			$this->AddToJournal("INFOS","Fichier ".$FileName." présent.");
+			//$Debugger->AddToLog("Fichier ".$FileName." existe.");
+			//$this->AddToJournal("INFOS","Fichier ".$FileName." présent.");
 		}else{
-			$Debugger->AddToLog("Fichier ".$FileName." absent.");
-			$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
+			//$Debugger->AddToLog("Fichier ".$FileName." absent.");
+			//$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
 		}
 		if (!isset($baseUrlPhoto)){
 			$FichierConf="parametreBoutique.json";
@@ -618,13 +618,13 @@ Class xBoutique extends xORMHelper  {
 		//echo $DosTmp ;
 		$FichierComplet=''.$FileName;
 		if (file_exists($FichierComplet)){
-			$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
+			//$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
 			if (copy($FichierComplet,$File)){
-				$Debugger->AddToLog($File." Copié correctement.");
+				//$Debugger->AddToLog($File." Copié correctement.");
 			}
 			//return $Site;
 		}else{
-			$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
+			//$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
 		}
 		if (file_exists($File)){
 			//$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
@@ -648,12 +648,12 @@ Class xBoutique extends xORMHelper  {
 		$FileName=$DossierPhotos.$this->Id.'-enteteA4.png' ;
 		$Debugger=new xORMHelper($this->Main,null,false,'journal');
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
-		$Debugger->AddToLog($Tx);
+		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){
-			$Debugger->AddToLog("Fichier ".$FileName." existe.");
+			//$Debugger->AddToLog("Fichier ".$FileName." existe.");
 			$this->AddToJournal("INFOS","Fichier ".$FileName." présent.");
 		}else{
-			$Debugger->AddToLog("Fichier ".$FileName." absent.");
+			//$Debugger->AddToLog("Fichier ".$FileName." absent.");
 			$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
 		}
 		if (!isset($baseUrlPhoto)){
@@ -702,13 +702,13 @@ Class xBoutique extends xORMHelper  {
 		//echo $DosTmp ;
 		$FichierComplet=''.$FileName;
 		if (file_exists($FichierComplet)){
-			$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
+			//$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
 			if (copy($FichierComplet,$File)){
-				$Debugger->AddToLog($File." Copié correctement.");
+				//$Debugger->AddToLog($File." Copié correctement.");
 			}
 			//return $Site;
 		}else{
-			$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
+			//$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
 		}
 		if (file_exists($File)){
 			//$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
@@ -751,11 +751,11 @@ Class xBoutique extends xORMHelper  {
 		$FileName=$DossierPhotos.$this->Id.'logoticket.png' ;
 		$Debugger=new xORMHelper($this->Main,null,false,'journal');
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
-		$Debugger->AddToLog($Tx);
+		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){
-			$Debugger->AddToLog("Fichier ".$FileName." existe.");
+			//$Debugger->AddToLog("Fichier ".$FileName." existe.");
 		}else{
-			$Debugger->AddToLog("Fichier ".$FileName." absent.");
+			//$Debugger->AddToLog("Fichier ".$FileName." absent.");
 		}
 		if (!isset($baseUrlPhoto)){
 			$FichierConf="parametreBoutique.json";
@@ -803,16 +803,16 @@ Class xBoutique extends xORMHelper  {
 		//echo $DosTmp ;
 		$FichierComplet=''.$FileName;
 		if (file_exists($FichierComplet)){
-			$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
+			//$Debugger->AddToLog("Copie de la photo dans le dossier tmp :".$File);
 			if (copy($FichierComplet,$File)){
-				$Debugger->AddToLog($File." Copié correctement.");
+				//$Debugger->AddToLog($File." Copié correctement.");
 			}
 			//return $Site;
 		}else{
-			$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
+			//$Debugger->AddToLog("Fichier ".$FichierComplet." est inexistant.");
 		}
 		if (file_exists($File)){
-			$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
+			//$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
 			return $Site ;
 		}
 		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';		

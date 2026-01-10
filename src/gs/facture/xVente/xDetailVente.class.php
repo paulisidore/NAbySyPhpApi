@@ -154,5 +154,35 @@ Class xDetailVente extends xORMHelper{
         return $ReponseListeProduits;
     }
 
+    /**
+     * Retourne les infos d'une proforma détaillée par ligne de produit
+     * 
+     */
+    public function GetFullInfosProformaByLine($IdFacture=null):array{
+        if (!isset($IdFacture)){
+            $IdFacture=$this->IDFACTURE;
+        }
+        $Facture=new xProforma($this->Main);
+        $ReponseListeProduits=[];
+
+        $sql="select E.*, D.*,
+        C.Prenom as 'PrenomClt', C.Nom as 'NomClt',D.IdProduit,u.Login as 'Caissier',
+        C.Tel,C.Solde, C.Avoir ";
+        $sql .=" from ".$this->Table." D left outer join ".$Facture->Table." E on D.IdFacture=E.ID "; 
+        //$sql .=" left outer join article A on D.Id_article=A.ID ";
+        $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".".$Facture->Client->Table." C on C.Id=E.IdClient " ;
+        $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".utilisateur u on u.id=E.IdCaissier " ;
+        $sql .=" where E.ID = ".$IdFacture ;
+        //var_dump($sql);
+        $Lst=$this->ExecSQL($sql);
+        if ($Lst->num_rows){
+            while ($row=$Lst->fetch_assoc()){
+                $ReponseListeProduits[]=$row;
+            }
+        }
+
+        return $ReponseListeProduits;
+    }
+
 }
 ?>

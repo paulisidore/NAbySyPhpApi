@@ -2243,10 +2243,12 @@ Class xNAbySyGS
 			$IdTechnoWeb = trim($_REQUEST['IDTECHNOWEB']);
 			
 			if($IdTechnoWeb !==''){
+				//self::$Log->AddToLog("Recherche de l'ID TechnoWEB ".$IdTechnoWeb);
 				$CltTechnoWeb = self::$TechnoWEBMgr::GetClientTechnoWeb($IdTechnoWeb);
 				if ($CltTechnoWeb){
 					$CltTechnoWeb->Refresh();
 					if($CltTechnoWeb->Id){
+						//self::$Log->AddToLog("Client TechnoWEB Trouvé ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
 						$CltDataBase=trim($CltTechnoWeb->ServiceDB) ;
 						if ($CltDataBase !==''){
 							if($CltTechnoWeb->DBExiste($CltDataBase)){
@@ -2294,6 +2296,7 @@ Class xNAbySyGS
 									}
 
 								}else{
+									self::$Main::$Log->AddToLog("DB Cible TechnoWEB : ".$BoutiqueCible->ToJSON());
 									if($BoutiqueCible->DBName !== $CltDataBase){
 										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Mise a jour de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
 										$BoutiqueCible->DBName = $CltDataBase ;
@@ -2303,8 +2306,8 @@ Class xNAbySyGS
 								}
 
 								if($BoutiqueCible){
-									//self::$Log->Write("Boutique précédente: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
-									//echo __FILE__." Ligne ".__LINE__." Avant DataBase= ". $BoutiqueCible->DataBase."</br>" ;
+									self::$Log->Write("Boutique précédente: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
+									self::$Log->Write( "Future DataBase: ". $BoutiqueCible->DataBase." dafinit dans ".$BoutiqueCible->FullTableName()) ;
 									if($BoutiqueCible->DBname ==''){
 										//var_dump(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
 										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");

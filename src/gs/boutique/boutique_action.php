@@ -28,13 +28,16 @@ switch ($action){
                             if($ClientTechnoWeb->ServiceDB == N::getInstance()->MaBoutique->DBName ){
                                 $IdBout=N::getInstance()->MaBoutique->Id;
                                 $IdBTrouve = $IdBout ;
+                                N::getInstance()::$Log->AddToLog("NAbySyGS DB MainTable: " . N::getInstance()->MainDataBase ) ;
+                                N::getInstance()::$Log->AddToLog("Maint DB Table Boutique: " . N::getInstance()->MaBoutique->FullTableName() ) ;
+                                //N::getInstance()::$Log->AddToLog("Boutique déjà en cour IdBout = ".$IdBout." : DB=>".N::getInstance()->MaBoutique->DBName);
                             }else{
                                 $IdBout = $ClientTechnoWeb->Id ;
-                                $Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
-                            
+                                //$Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
                                 //echo "DB Recherché = ".$Critere . "</p>";
                                 foreach (N::getInstance()::$ListeBoutique as $BoutX) {
                                     //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
+                                    //N::getInstance()::$Log->AddToLog("Recherche ... ".$BoutX->Nom." : DB=>".$BoutX->DBName);
                                     if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
                                         $IdBout = $BoutX->Id;
                                         $IdBTrouve = $IdBout ;
@@ -58,6 +61,7 @@ switch ($action){
             $Reponse->OK=1;
             $rw = $Bout->ToArrayAssoc();
             //$rw['DBASE'] = $Bout->DBname;
+            N::getInstance()::$Log->AddToLog("Boutique trouvée: ".json_encode($rw));
                     
             $rw['URL_ENTETE'] = $Bout->GetLogoEntete(true);
             $rw['ENTETE_TICKET'] =  $rw['URL_ENTETE'] ;
