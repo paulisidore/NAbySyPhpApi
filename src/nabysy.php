@@ -2323,7 +2323,7 @@ Class xNAbySyGS
 									$this->DataBase = $BoutiqueCible->DBName;
 									$this->RepWork = $CltDataBase;
 									$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
-									//self::$Log->Write("Ma boutique est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
+									self::$Log->Write("Ma boutique est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
 									if(!is_dir($this->RepWork)){
 										try {
 											//echo "Création du dossier ".$this->RepWork;
