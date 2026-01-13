@@ -11,7 +11,13 @@ use NAbySy\ORM\xORMHelper;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
 
-include_once 'xDetailVente.class.php';
+try {
+	if(!class_exists('NAbySy\GS\Facture\xDetailVente')){
+		include_once 'xDetailVente.class.php';
+	}
+} catch (\Throwable $th) {
+	//throw $th;
+}
 
 Class xVente extends xORMHelper
 {
@@ -33,12 +39,12 @@ Class xVente extends xORMHelper
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
 		}
-
+		
 		$this->Client=new xClient($this->Main );
 		//$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,'detailfacture',$this->MaBoutique);
 		if ($this->Id>0){
 			$this->Client=new xClient($this->Main,$this->IdClient);
-			$this->DetailVente=new xDetailVente($NAbySyGS,null,$AutoCreateTable,null,null,$this->Id);
+			$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,null,null,$this->Id);
 		}
 		
 	}
@@ -62,9 +68,9 @@ Class xVente extends xORMHelper
 		//Permet de lire une vente par son Id ou IdDetail
 		$OK=false;
 		$NbLigne=0;
-		$sql  ="SELECT v.*, c.Nom as 'NomClt',c.Prenom as 'PrenomClt', U.Login as 'Caissier' from ".$this->Table." v 
-				left outer join ".$this->Client->Table." c on c.id=v.IdClient
-				left outer join utilisateur U on U.id=v.IdCaissier
+		$sql  ="SELECT v.*, c.Nom as 'NomClt',c.Prenom as 'PrenomClt', U.Login as 'Caissier' from ".$this->FullTableName()." v 
+				left outer join ".$this->Client->FullTableName()." c on c.id=v.IdClient
+				left outer join ".$this->DataBase.".utilisateur U on U.id=v.IdCaissier
 				WHERE v.id > 0 ";
 		$crit="" ;
 		if (isset($DateDu)){
@@ -159,13 +165,10 @@ Class xVente extends xORMHelper
 		}
 
 		$TDetail=new xDetailVente($this->Main);
-		$TxTableDet=$TDetail->Table ;
+		$TxTableDet=$TDetail->FullTableName() ;
 		
-		if (!$this->MySQL->ChampsExiste($this->Table,'StockSuivant')){
-			$this->MySQL->AlterTable($this->Table,'StockSuivant',"INT(11)","ADD","0");
-		}
-		if (!$this->MySQL->ChampsExiste($TDetail->Table,'StockSuivant')){
-			$this->MySQL->AlterTable($TDetail->Table,'StockSuivant',"INT(11)","ADD","0");
+		if (!$this->MySQL->ChampsExiste($TDetail->Table,'StockSuiv', $TDetail->DataBase)){
+			$this->MySQL->AlterTable($TDetail->Table,'StockSuiv',"INT(11)","ADD","0", $TDetail->DataBase);
 		}
 		/*
 			Si IdFacture dans panier <=0 alors on creer une nouvelle facture
@@ -233,6 +236,7 @@ Class xVente extends xORMHelper
 			$PrecPdtFacture=$PrecPanier->getList() ;
 			$this->SupprimerPanier($PrecPanier) ;
 			$NbFois=0 ;
+			$NbLigne=0;
 			
 			$ListePdtOK=array() ;
 			//exit ;
@@ -255,11 +259,12 @@ Class xVente extends xORMHelper
 			}
 
 			$TxSQLFinale="";
-			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuivant,VENTEDETAILLEE,PRIXCESSION,DESIGNATION) 
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuiv,VENTEDETAILLEE,PRIXCESSION,DESIGNATION,
+			PrixTotal, TVA) 
         	values ";
 
 			foreach ($PdtFacture as $P){
-					//var_dump($P) ;
+					$NbLigne++;
 					$vId=$P['vId'] ;
 					$Article=$Panier->GetArticle($vId);
 					if ($Article){
@@ -304,21 +309,34 @@ Class xVente extends xORMHelper
 
 							//Mise a jour de la base de donnée en meme temps
 							$StockSuiv=(int)$NewStock ;
-							$PrixAchat=(int)$Article->Pdt->PrixAchat ;
-							if ($P['typev']==1){
-								$PrixAchat=(int)$Article->Pdt->PrixAchatCarton ;
+							$PrixAchat = $Article->Pdt->PrixAchatTTC ;
+							if ((int)$P['typev']==0){
+								$PrixAchat=(int)$Article->Pdt->PrixAchatTTC / $Pdt->STOCKINITDETAIL ;
 							}
 							$PrixVente=$P['PrixU'] ;
 							if ($PrixVente == 0){
-								$PrixVente=(int)$Article->Pdt->PrixVente ;
+								$PrixVente=(int)$Article->Pdt->PrixVenteTTC ;
 							}
 							if (!isset($P['PrixU'])){
-								$PrixVente=(int)$Article->Pdt->PrixVente ;
+								$PrixVente=(int)$Article->Pdt->PrixVenteTTC ;
+							}
+
+							$PrixTotal=$P['qte']*$PrixVente;
+
+							if ((int)$Article->Pdt->RETIRER_TVA>0){
+								$TauxTVA=(int)$Article->Pdt->TVA ;
+								if ($TauxTVA==0){
+									$TauxTVA=1;
+								}
+								$PrixHT=$PrixVente/(1+($TauxTVA/100));
+								$vTVA=$PrixVente - $PrixHT;
+								$TVA=round($vTVA,0)*$P['qte'];
+								$TotalTVA +=$TVA;
 							}
 							
+							
 							$TxSQL="('".$Panier->IdFacture."', '".$P['id_produit']."', '".
-                        	$P['qte']."' , '".$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".$PrixAchat."','".$P['produit']."'),";
-
+                        	$P['qte']."' , '".$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".$PrixAchat."','".$this->Main::$db_link->real_escape_string( $P['produit'])."','".$PrixTotal."','".$TVA."' )," ;
 							$TxSQLFinale .=$TxSQL ;
 
 									
@@ -395,9 +413,9 @@ Class xVente extends xORMHelper
 			$Tache="Nouvelle Facture numero ".$Panier->IdFacture." avec ".$Panier->getNbProductsInCart()." article(s) " ;
 			//On va supprimer les lignes de ventes eventuelle pour stocker les nouvelles
 			$TDetail=new xDetailVente($this->Main);
-			$TxTableDet=$TDetail->Table ;
+			$TxTableDet=$TDetail->FullTableName() ;
 
-			$TxSQL="delete from ".$TxTableDet." where IdFacture='".$Panier->IdFacture."' " ;
+			$TxSQL="delete from ".$TDetail->FullTableName()." where IdFacture='".$Panier->IdFacture."' " ;
 			//$this->Main->ReadWrite($TxSQL,true) ;
 		
 			//Mise a jour des stocks avant enregistrement
@@ -406,7 +424,7 @@ Class xVente extends xORMHelper
 			$TotalTVA=0;
 			$NbLigne=0;
 
-			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuivant,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuiv,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
 			PrixTotal, TVA ) 
 			values ";
 
@@ -423,7 +441,7 @@ Class xVente extends xORMHelper
 					$vQte=(float)$P['qte'] ;
 					if ($P['typev']==1){
 						if ($Pdt->VENTEDETAILLEE == "OUI"){
-							$vQte=(float)$P['qte']*(float)$Pdt->StockInitialDetail ;
+							$vQte=(float)$P['qte']*(float)$Pdt->STOCKINITDETAIL ;
 						}						
 					}
 					$PrecStockG=$Pdt->GetStockGros() ;
@@ -454,18 +472,19 @@ Class xVente extends xORMHelper
 						
 						//Mise a jour de la base de donnée en meme temps
 						$StockSuiv=(int)$NewStock ;
-						$PrixAchat=(int)$Article->Pdt->PrixAchat ;
+						$PrixAchat = $Article->Pdt->PrixAchatTTC ;
+						if ((int)$P['typev']==0){
+							$PrixAchat=(int)$Article->Pdt->PrixAchatTTC / $Pdt->STOCKINITDETAIL ;
+						}
 						//var_dump($Article->Pdt->Designation);
 						$P['produit']=$Article->Pdt->Designation ;
-						if ($P['typev']==1){
-							$PrixAchat=(int)$Article->Pdt->PrixAchatCarton ;
-						}
+
 						$PrixVente=$P['PrixU'] ;
 						if ($PrixVente == 0){
-							$PrixVente=(int)$Article->Pdt->PrixVente ;
+							$PrixVente=(int)$Article->Pdt->PrixVenteTTC ;
 						}
 						if (!isset($P['PrixU'])){
-							$PrixVente=(int)$Article->Pdt->PrixVente ;
+							$PrixVente=(int)$Article->Pdt->PrixVenteTTC ;
 						}
 
 						$PrixTotal=$P['qte']*$PrixVente;
@@ -487,7 +506,7 @@ Class xVente extends xORMHelper
 						}
 	
 						$TxSQL="('".$Panier->IdFacture."', '".$P['id_produit']."', '".
-							$P['qte']."' , '".(int)$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".(int)$PrixAchat."','".$P['produit']."',
+							$P['qte']."' , '".(int)$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".(int)$PrixAchat."','".$this->Main::$db_link->real_escape_string( $P['produit'])."',
 							'".$TxDate."','".$TxHeure."','".$PrixTotal."','".$TVA."'),";
 	
 						$TxSQLFinale .=$TxSQL ;
@@ -575,9 +594,12 @@ Class xVente extends xORMHelper
 			//$Panier->MontantVerse=$SoldePrecedent ;
 			//$Panier->MontantRendu=$SoldeSuivant ;
 		}
-		$TxTable=$this->Table ;
-		if (!$this->MySQL->ChampsExiste($TxTable,'MontantReduction')){
-			$this->MySQL->AlterTable($TxTable,'MontantReduction','int(11)',"ADD",0);
+		$TxTable=$this->FullTableName() ;
+		if (!$this->MySQL->ChampsExiste($this->Table,'MontantReduction', $this->DataBase)){
+			$PrecAutoC=$this->AutoCreate ;
+			$this->AutoCreate=true;
+			$this->MySQL->AlterTable($this->Table,'MontantReduction','int(11)',"ADD",0, $this->DataBase);
+			$this->AutoCreate=$PrecAutoC;
 		}
 		$TxSQL="insert into ".$TxTable."(Id,IdCaissier,IdClient,TotalFacture,ModeReglement,NOMBENEFICIAIRE,DateFacture,MontantVerse,MontantRendu,
 		MontantRemise, MontantReduction)
@@ -926,11 +948,11 @@ Class xVente extends xORMHelper
 		$TDetail=new xDetailVente($this->Main);
 		$TxTableDet=$TDetail->Table ;
 		
-		if (!$this->MySQL->ChampsExiste($this->Table,'StockSuivant')){
-			$this->MySQL->AlterTable($this->Table,'StockSuivant',"INT(11)","ADD","0");
+		if (!$this->MySQL->ChampsExiste($this->Table,'StockSuiv')){
+			$this->MySQL->AlterTable($this->Table,'StockSuiv',"INT(11)","ADD","0");
 		}
-		if (!$this->MySQL->ChampsExiste($TDetail->Table,'StockSuivant')){
-			$this->MySQL->AlterTable($TDetail->Table,'StockSuivant',"INT(11)","ADD","0");
+		if (!$this->MySQL->ChampsExiste($TDetail->Table,'StockSuiv')){
+			$this->MySQL->AlterTable($TDetail->Table,'StockSuiv',"INT(11)","ADD","0");
 		}
 		/*
 			Si IdFacture dans panier <=0 alors on creer une nouvelle facture
@@ -1020,7 +1042,7 @@ Class xVente extends xORMHelper
 			}
 
 			$TxSQLFinale="";
-			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuivant,VENTEDETAILLEE,PRIXCESSION,DESIGNATION) 
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuiv,VENTEDETAILLEE,PRIXCESSION,DESIGNATION) 
         	values ";
 
 			foreach ($PdtFacture as $P){
@@ -1171,7 +1193,7 @@ Class xVente extends xORMHelper
 			$TotalTVA=0;
 			$NbLigne=0;
 
-			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuivant,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuiv,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
 			PrixTotal, TVA ) 
 			values ";
 
@@ -1188,7 +1210,7 @@ Class xVente extends xORMHelper
 					$vQte=(float)$P['qte'] ;
 					if ($P['typev']==1){
 						if ($Pdt->VENTEDETAILLEE == "OUI"){
-							$vQte=(float)$P['qte']*(float)$Pdt->StockInitialDetail ;
+							$vQte=(float)$P['qte']*(float)$Pdt->STOCKINITDETAIL ;
 						}						
 					}
 					$PrecStockG=$Pdt->GetStockGros() ;
@@ -1397,7 +1419,7 @@ Class xVente extends xORMHelper
 			}
 
 			$TxSQLFinale="";
-			$EnteteSQL="insert into ".$TxTableDet." (id_vente,id_article,quantite,prix,StockSuivant,typev,prixr,DESIGNATION) 
+			$EnteteSQL="insert into ".$TxTableDet." (id_vente,id_article,quantite,prix,StockSuiv,typev,prixr,DESIGNATION) 
 			values ";
 
 			foreach ($PdtFacture as $P){
@@ -1567,7 +1589,7 @@ Class xVente extends xORMHelper
 		
 			//Mise a jour des stocks avant enregistrement
 			$TxSQLFinale="";
-			$EnteteSQL="insert into ".$TxTableDet." (id_vente,id_article,quantite,prix,StockSuivant,typev,prixr,DESIGNATION,DATEFACTURE,HEUREFACTURE) 
+			$EnteteSQL="insert into ".$TxTableDet." (id_vente,id_article,quantite,prix,StockSuiv,typev,prixr,DESIGNATION,DATEFACTURE,HEUREFACTURE) 
 			values ";
 
 			foreach($Panier->getList() as $P){ 
@@ -1616,7 +1638,7 @@ Class xVente extends xORMHelper
 							$PrixVente=$Article->Pdt->PrixVente ;
 						}
 						/*
-						$TxSQL="insert into ".$TxTableDet." (id_vente,id_article,quantite,prix,StockSuivant,typev,prixr) 
+						$TxSQL="insert into ".$TxTableDet." (id_vente,id_article,quantite,prix,StockSuiv,typev,prixr) 
 						values (".$Panier->IdFacture.", ".$P['id_produit'].", ".
 						$P['qte']." , ".$PrixVente.", ".$StockSuiv.", ".$P['typev'].",".$PrixAchat."
 						)";

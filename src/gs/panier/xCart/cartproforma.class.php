@@ -2,6 +2,8 @@
 namespace NAbySy\GS\Panier ;
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Client\xClient;
+use NAbySy\GS\Facture\xProforma;
+
 /**
 *  FICHIER : cart.class.php
 *
@@ -26,6 +28,9 @@ class xCartProForma{
   public $MontantRendu ;
   
   public $HeureFacture ;
+
+	public $TotalReduction ;
+	public $TotalRemise ;
 
 /**
  * Référence du Bon de Commande lié au panier
@@ -209,6 +214,26 @@ class xCartProForma{
     }
     return $total;
   }
+
+  /**
+   * Retourne le montant Total Net à payer aprés toutes les réductions.
+   */
+  public function getTotalNetAPayer():float{
+	$TotalFacture=$this->getTotalPriceCart();
+	//$TxLog= "getTotalNetAPayer=".$TotalFacture ."-". (float)$this->TotalRemise ."-". (float)$this->TotalReduction ;
+	$Total=$TotalFacture - (float)$this->TotalRemise - (float)$this->TotalReduction ;
+	$pt=$Total;
+	if($this->MaBoutique->Parametre && $this->MaBoutique->Parametre->ChampsExisteInTable('NbArrondie')){
+		$pt=round($pt, (int)$this->MaBoutique->Parametre->NbArrondie, PHP_ROUND_HALF_DOWN);
+		$Total = $pt;
+		if((int)$this->MaBoutique->Parametre->NbArrondie == 0){
+			$Total = (int)$Total ;
+		}
+	}
+	//$TxLog  ." = ".$Total."</br>";
+	//$this->MaBoutique->Main::$Log->AddToLog($TxLog);
+	return (float)$Total ;
+  }
   
   /**
   * Retourne Les produits dans le panier sous forme de Tableau HTML
@@ -308,15 +333,21 @@ class xCartProForma{
 	  if (isset($NomC)){
 		$_SESSION[$InfoC]['NomClt']=$NomC ;
 		if ($this->IdFacture>0){
-			$TxSQL="update ".$this->MaBoutique->DBase.".proforma SET nom='".$NomC."' where id='".$this->IdFacture."' limit 1" ;
-			$this->MaBoutique->Main->ReadWrite($TxSQL,null,true,null,null,null,true) ;
+			$ProF=new xProforma($this->MaBoutique->Main, $this->IdFacture,true);
+			$ProF->NomBeneficiaire = $NomC;
+			$ProF->Enregistrer();
 		}
 	  }
 	  if (isset($PrenomC)){
 		$_SESSION[$InfoC]['PrenomClt']=$PrenomC ;
 		if ($this->IdFacture>0){
-			$TxSQL="update ".$this->MaBoutique->DBase.".proforma SET prenom='".$PrenomC."' where id='".$this->IdFacture."' limit 1" ;
-			$this->MaBoutique->Main->ReadWrite($TxSQL,null,true,null,null,null,true) ;
+			$ProF=new xProforma($this->MaBoutique->Main, $this->IdFacture,true);
+			if(isset($NomC)){
+				$ProF->NomBeneficiaire = $NomC." ".$PrenomC;
+			}else{
+				$ProF->NomBeneficiaire = $PrenomC ;
+			}
+			$ProF->Enregistrer();
 		}
 	  }
 	  if (isset($IdClient)){

@@ -432,12 +432,30 @@ Class xNAbySyGS
 	public static function initializeTechnoWEB(ITechnoWEB $manager): void {
         self::$TechnoWEBMgr = $manager;
 		if(isset(self::$TechnoWEBMgr)){
-			self::getInstance()->LoadDataBaseFromTechnoWEBClient();
-			//echo("Base de donnée du Client: ".self::getInstance()->MaBoutique->DataBase)."</br>";//exit;
-			self::LoadModuleLib();
-			self::LoadModuleGS();
-			self::$Main->ChargeInfos() ;
+			if(isset($_REQUEST['IDTECHNOWEB'])){
+				$nabysy = self::getInstance(null,true);
+				//self::$Log->Write("TechnoWeb: Boutique Prec: ".$nabysy->MaBoutique->Nom,1) ;
+				//self::$Log->Write("TechnoWeb: Base de donnée Précédent: ".$nabysy->MaBoutique->DataBase,0) ;
+				$nabysy->LoadDataBaseFromTechnoWEBClient();
+				//self::$Log->Write("TechnoWeb: Base de donnée du Client: ".$nabysy->MaBoutique->DataBase,1) ;
+				//echo("Base de donnée du Client: ".self::getInstance()->MaBoutique->DataBase)."</br>";//exit;
+				// self::LoadModuleLib();
+				// self::LoadModuleGS();
+				$nabysy::LoadModuleLib(2);
+				//self::$Log->Write("TechnoWeb: BD Après LoadModuleLib: ".$nabysy->MaBoutique->DataBase,1) ;
+				$nabysy::LoadModuleGS();
+				//self::$Log->Write("TechnoWeb: BD Après LoadModuleGS: ".$nabysy->MaBoutique->DataBase,1) ;
 
+				//self::$Log->Write("TechnoWeb: BD Avant Refresh Parametre: ".$nabysy->MaBoutique->Parametre->DataBase,1) ;
+				$nabysy->MaBoutique->Parametre = new xORMHelper($nabysy,1,true,'parametre');
+				//self::$Main->ChargeInfos() ;
+				self::$Main = $nabysy ;
+				//self::$Log->Write("TechnoWeb BD Après Refresh Parametre: ".$nabysy->MaBoutique->Parametre->DataBase, 1) ;
+				$nabysy->MaBoutique = $nabysy->MaBoutique->Parametre->Main->MaBoutique ;
+				//self::$Log->Write("BOUTIQUE NNN: ".$nabysy->MaBoutique->Nom);
+				//self::$Log->Write("BOUTIQUE III: ".$nabysy->MaBoutique->DataBase);
+				//self::$Log->Write("TechnoWeb: Resolution terminé Base de donnée du Client: ".$nabysy->MaBoutique->DataBase, 1) ;
+			}
 		}
     }
 
@@ -704,9 +722,16 @@ Class xNAbySyGS
 			$FicheExecption=$logFolder."/SQLiException".$TxBout.date('mY').".csv" ;
 			$F= fopen($FicheExecption, 'a');			
 			$TxT=$Dat.";".$Tim.";".$error.";" ;
-			$TxT .="\r\n" ;				
+			$TxT .="\r\n" ;	
+			$TxT .="REQUETTE SOURCE: ".$SQL."\r\n" ;				
 			fputs($F, $TxT);
 			fclose($F);
+
+			if($this->ActiveDebug){
+				header('Content-Type: application/json');
+				echo json_encode(["error" => "SQL Error: " . $e->getMessage(), "sql" => $SQL]);
+				exit;
+			}
 		}		
 
 		if (!$req) {
@@ -1279,12 +1304,12 @@ Class xNAbySyGS
             
             $ListeDossier=[] ;
 			$NbModule=0;
-            if ($DebugLevel>1){
-                echo 'Repertoire '.$rep.' ? ' ;
+            if ($DebugLevel>2){
+                self::$Log->AddToLog('Repertoire '.$rep.' Existe ? ') ;
             }            
             if(self::IsDirectory($rep)){  
-                if ($DebugLevel>1){
-                    echo 'OUI</br>' ;
+                if ($DebugLevel>2){
+                    self::$Log->AddToLog( 'OUI') ;
                 }
                 if($iteration = opendir($rep)){  
                     
@@ -1293,25 +1318,25 @@ Class xNAbySyGS
                         if($dos != "." && $dos != ".." && $dos != "Thumbs.db")  
                         {  
                             $pathfile=$rep.DIRECTORY_SEPARATOR.$dos ;
-                            if ($DebugLevel>1){
-                                echo 'Repertoire Module '.$pathfile.' ? ' ;
+                            if ($DebugLevel>2){
+                                self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ') ;
                             }
                             if (is_dir($pathfile)){
                                 $NbModule ++;
-                                if ($DebugLevel>1){
-                                    echo 'Librairie trouvé: '.$dos.'</br>' ;
+                                if ($DebugLevel>2){
+                                    self::$Log->AddToLog( 'Librairie trouvé: '.$dos) ;
                                 }
                                 //Repertoir nom de module
-                                if ($DebugLevel>1){
-                                    echo 'OUI</br>' ;
+                                if ($DebugLevel>2){
+                                    self::$Log->AddToLog( 'OUI') ;
                                 }
                                 $Mod=[];
                                 $Mod[0]=$dos ;
                                 $Mod[1]=$pathfile ;
                                 $ListeDossier[]=$Mod ;                                
                             }else{
-                                if ($DebugLevel>1){
-                                    echo 'NON</br>' ;
+                                if ($DebugLevel>2){
+                                    self::$Log->AddToLog( 'NON') ;
                                 }
                             }
                         }
@@ -1319,8 +1344,8 @@ Class xNAbySyGS
                     closedir($iteration);  
                 }  
             }else{
-                if ($DebugLevel>1){
-                    echo 'NON</br>' ;
+                if ($DebugLevel>2){
+                    self::$Log->AddToLog( 'NON') ;
                 }
             }
             
@@ -1329,7 +1354,7 @@ Class xNAbySyGS
 				if (file_exists($FichierInterface)){
 					include_once $FichierInterface ;
 				}else{
-					var_dump($FichierInterface." introuvable");
+					self::$Log->AddToLog($FichierInterface." introuvable");
 					$Tache="ERREUR CHARGEMENT DES LIBRAIRIES";
 					$Note=$FichierInterface." introuvable";
 					$TxSQL="select * from journal j where j.Note like '%".$Note."%' and j.DateEnreg = '".date('Y-m-d')."'";
@@ -1359,11 +1384,11 @@ Class xNAbySyGS
             $ListeDossier=[] ;
 			$NbModule=0;
             if ($DebugLevel>1){
-                echo 'Repertoire '.$rep.' ? ' ;
+                self::$Log->AddToLog( 'Repertoire '.$rep.' ? ') ;
             }            
             if(self::IsDirectory($rep)){  
                 if ($DebugLevel>1){
-                    echo 'OUI</br>' ;
+                    self::$Log->AddToLog( 'OUI') ;
                 }
                 if($iteration = opendir($rep)){  
                     
@@ -1373,16 +1398,16 @@ Class xNAbySyGS
                         {  
                             $pathfile=$rep.DIRECTORY_SEPARATOR.$dos ;
                             if ($DebugLevel>1){
-                                echo 'Repertoire Module '.$pathfile.' ? ' ;
+                                self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ') ;
                             }
                             if (is_dir($pathfile)){
                                 $NbModule ++;
                                 if ($DebugLevel>1){
-                                    echo 'Librairie trouvé: '.$dos.'</br>' ;
+                                    self::$Log->AddToLog( 'Librairie trouvé: '.$dos.'') ;
                                 }
                                 //Repertoir nom de module
                                 if ($DebugLevel>1){
-                                    echo 'OUI</br>' ;
+                                    self::$Log->AddToLog( 'OUI') ;
                                 }
                                 $Mod=[];
                                 $Mod[0]=$dos ;
@@ -1390,7 +1415,7 @@ Class xNAbySyGS
                                 $ListeDossier[]=$Mod ;                                
                             }else{
                                 if ($DebugLevel>1){
-                                    echo 'NON</br>' ;
+                                    self::$Log->AddToLog( 'NON') ;
                                 }
                             }
                         }
@@ -1399,7 +1424,7 @@ Class xNAbySyGS
                 }  
             }else{
                 if ($DebugLevel>1){
-                    echo 'NON</br>' ;
+                    self::$Log->AddToLog( 'NON') ;
                 }
             }
             
@@ -2124,8 +2149,21 @@ Class xNAbySyGS
 	 * Retourne l'Objet principal NAbySyGS
 	 * @return xNAbySyGS 
 	 */
-	public static function getInstance(?xBoutique $Boutique=null):xNAbySyGS{
+	public static function getInstance(?xBoutique $Boutique=null, bool $IgnoreTechnoWeb=false):xNAbySyGS{
 		$nab=self::$Main;
+		if(!$IgnoreTechnoWeb && !isset($Boutique)){
+			try {
+				if(isset($nab::$TechnoWEBMgr)){
+					//self::$Log->Write("Je suis ici ".__CLASS__);
+					if($nab::$TechnoWEBMgr->Ready()){
+						self::$Main->LoadDataBaseFromTechnoWEBClient(); ;
+					}
+				}
+			} catch (\Throwable $th) {
+				self::$Log->Write($th->getMessage());
+			}
+		}
+		
 		if(isset($Boutique)){
 			if($Boutique->Id>0){
 				$nab->SelectBoutique($Boutique->Id);
@@ -2358,6 +2396,7 @@ Class xNAbySyGS
 			}
 		}
 		if($BoutiqueCible){
+			//self::$Log->Write("IDTechnoWeb: ".$IdTechnoWeb,1) ;
 			$this->RefreshParametre($BoutiqueCible->DataBase);
 			$Notif->Contenue=$BoutiqueCible ;
 			$Notif->OK=1 ;
@@ -2409,6 +2448,7 @@ Class xNAbySyGS
 	public function RefreshParametre(string $CltDataBase =''):bool{
 		if(trim($CltDataBase) !==''){
 			$this->Parametre=new xORMHelper($this,1,true,"parametre",$CltDataBase);
+			//self::$Log->Write("RAFRAICHISSEMENT DES PARAMETRE: ".$this->Parametre->FullTableName());
 		}
 
 		if ($this->Parametre->Id==0){

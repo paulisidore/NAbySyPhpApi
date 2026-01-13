@@ -11,6 +11,7 @@ use NAbySy\GS\Stock\xProduit;
 use NAbySy\GS\Stock\xProduitNC;
 use NAbySy\Lib\BonAchat\IBonAchatManager;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
+use NAbySy\ORM\xORMHelper;
 use NAbySy\xErreur;
 use NAbySy\xNotification;
 
@@ -149,6 +150,9 @@ use NAbySy\xNotification;
 			$TotalReduction=0;
 			$TotalRemise=null;
 			$RefCmd=null;
+
+			//N::$Log->AddToLog("BOUTIQUE EN COUR: ".N::getInstance()->MaBoutique->Nom, 3);
+			//N::$Log->AddToLog("BD EN COUR: ".N::getInstance()->MaBoutique->DataBase, 3 );exit;
 
 			if($IdProforma && $IdProforma>0){
 				$Panier->IdFacture=$IdProforma;
@@ -545,6 +549,7 @@ use NAbySy\xNotification;
 			$TotalReduction=0;
 			$TotalRemise=null;
 			$RefCmd=null;
+			ob_start();
 
 			if($IdProforma && $IdProforma>0){
 				$Panier->IdFacture=$IdProforma;
@@ -722,12 +727,12 @@ use NAbySy\xNotification;
 			$Liste=$Panier->GetList();
 			//var_dump($Liste);
 			//exit;
-
 			if ($Liste){
 				//On valide la pro forma
 				$Vente=new xProforma(N::getInstance()) ;
 				
 				$IdFacture=0;
+
 				$ReponseID=$Vente->Valider($Panier) ;
 				//echo json_encode($ReponseID);
 				if ($ReponseID instanceof xNotification){
@@ -745,21 +750,33 @@ use NAbySy\xNotification;
 					$Reponse->OK=1;
 					$Reponse->Extra=$IdFacture ;
 					$Reponse->Source=$action ;
-					if (isset($Err->TxErreur)){
-						if ($Err->TxErreur !== ""){
-							$Reponse->TxErreur=$Err->TxErreur;
-						}
+					$Reponse->Contenue = [];
+					$Vente=new xProforma($Vente->Main, $IdFacture) ;
+					$Reponse->Contenue[] = $Vente->ToObject();
+					$TxRep=$Reponse->ToJSON();
+					//N::$Log->AddToLog("Réponse PRO-FORMA = ". $TxRep,3);
+
+					$Panier->Vider() ;
+
+					// On récupère ce qui est "coincé" dans le buffer
+					$contenuBuffer = ob_get_contents(); 
+
+					if (!empty($contenuBuffer)) {
+						// Tu peux loguer ce contenu pour debugger
+						N::$Log->AddToLog("Contenu Php intercepté : " . $contenuBuffer,3);
+						ob_end_clean();
 					}
-					$Reponse->SendAsJSON();
+
+					echo $TxRep;
+					//N::$Log->AddToLog("Renvoyez vers le client ??",3);
 					//$retour=json_encode($Reponse) ;
 					//echo $retour ;
-					$Panier->Vider() ;
 					exit ;
 				}
 			}
 
-			$json_liste=$Panier->GetListeJSON(null,true);
-			echo $json_liste ;
+			$Err->TxErreur="Erreur du panier Proforma";
+			$Err->SendAsJSON();
 			$Panier->Vider() ;
 			exit ;
 
@@ -769,9 +786,12 @@ use NAbySy\xNotification;
 			if ($IdFacture){
 				$Vente=new xProforma($nabysy,$IdFacture) ;				
 				if ($Vente->Id>0){
-					//var_dump($Vente->ToJSON()) ;
-					$Reponse=$Vente->DetailToJSON();
-					echo $Reponse ;
+					$Rep=new xNotification();
+					$Rep->Contenue=[];
+					$Reponse=$Vente->ToArrayAssoc();
+					$Reponse['LIGNES']=json_decode($Vente->DetailToJSON());
+					$Rep->Contenue[] =$Reponse;
+					$Rep->SendAsJSON();
 				}else{
 					$Err->OK=0;
 					$Err->TxErreur='Impossible de trouver la pro forma n°'.$IdFacture;
@@ -783,7 +803,7 @@ use NAbySy\xNotification;
 			}
 			$DateDeb=null;
 			$DateFin=null;
-			$Critere="" ;
+			$Critere="t1.ID>0 " ;
 			if (isset($_REQUEST['DATEDEBUT'])){
 				$DateDeb=$_REQUEST['DATEDEBUT'] ;
 				$DateD=new DateTime($DateDeb);
@@ -792,20 +812,31 @@ use NAbySy\xNotification;
 					$DateF=new DateTime($DateFin);
 				}
 				if ($DateD !== false && $DateF !== false){
-					$Critere .=" DATEFACTURE >='".$DateD->format('Y-m-d')."' and DATEFACTURE <='".$DateF->format('Y-m-d')."' ";
+					$Critere .=" AND DATEFACTURE >='".$DateD->format('Y-m-d')."' and DATEFACTURE <='".$DateF->format('Y-m-d')."' ";
 				}elseif ($DateD !== false ){
-					$Critere .=" DATEFACTURE ='".$DateD->format('Y-m-d')."' ";
+					$Critere .=" AND DATEFACTURE ='".$DateD->format('Y-m-d')."' ";
 				}
 			}
+			$ListeChamp="t1.*, j1.Nom as 'NomClt', j1.Prenom as 'PrenomClt' ";
 			$Vente=new xProforma($nabysy) ;
-			$Lst=$Vente->ChargeListe($Critere);
-			$Reponse="";
+			$Client=new xORMHelper($nabysy,null,false,'client');
+
+			//$TxSQL=$Vente->JoinTable($Client,null,"IDCLIENT")->ChargeListeNoExecute($Critere,'t1.ID DESC',$ListeChamp);
+			//$Vente->AddToLog($TxSQL);
+
+			$Lst=$Vente->JoinTable($Client,null,"IDCLIENT")
+				->JointureChargeListe($Critere,'t1.ID DESC',$ListeChamp);
+
+			//$Lst=$Vente->ChargeListe($Critere);
+			$Reponse=[];
 			if ($Lst){
 				$Rep=[];
 				while ($row=$Lst->fetch_assoc()){
 					$Rep[]=$row ;
 				}
-				$Reponse=json_encode($Rep);
+				$Reponse=$Rep;
+				//echo $Reponse;
+				//exit;
 			}
 			$Rep=new xNotification();
 			$Rep->OK=1;

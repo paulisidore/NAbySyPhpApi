@@ -107,23 +107,22 @@ namespace NAbySy ;
                 /*
                 echo '</br>Vérifions la présence du champ '.$Table.': '.$Champ ;
                 */
+                //$this->Main::$Log->Write('Vérifions la présence du champ '.$Table.': '.$Champ." Avec ".$TxSQL);
             }                
             $reponse=$this->Main->ReadWrite($TxSQL,true,null,false);
             if (count($reponse->fetch_all())>=1){
                 if ($this->DebugMode){
                     /* echo '...Présent</br>' ; */                    
+                    //$this->Main::$Log->Write($Table.': '.$Champ.' présent');
                 } 
                 return true;               
-            }
-            if ($this->DebugMode){
-                /* echo '...Absent</br>' ; */
             }
             if ($this->DebugMode){
                 $Tx=$Table;
                 if (isset($DBaseName)){
                     $Tx=$DBaseName.".".$Table ;
                 }
-                $this->Main::$Log->Write('Absence du champ '.$Tx.".".$Champ);
+                //$this->Main::$Log->Write('Absence du champ '.$Tx.".".$Champ);
             }
                
             return false;
@@ -156,6 +155,8 @@ namespace NAbySy ;
             }else{
                 if ($this->DebugMode){
                     //echo '...ERREUR' ;
+                    $this->Main::$Log->Write("ERR: Impossible de créer le champ avec ".$TxSQL);
+                    //return false;
                 }                    
             }
             return true;

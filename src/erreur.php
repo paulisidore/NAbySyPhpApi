@@ -66,7 +66,10 @@ Class xErreur
      */
     public function SendAsJSON(bool $SendAndExit = true):bool{
         try {
+            header('Content-Type: application/json');
+            N::getInstance()->AutorisationCORS();
             echo json_encode($this);
+            //N::$Log->AddToLog("Réponse depuis ".__CLASS__.": ".json_encode($this));
             if($SendAndExit){
                 exit;
             }

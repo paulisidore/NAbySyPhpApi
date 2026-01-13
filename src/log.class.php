@@ -26,7 +26,7 @@ class xLog{
      * @param bool $LogToDB Si vrai, enregistre le log dans la base de donnée
      * @return bool 
      */
-    public function Write($LogInfos, int $DebugTraceLevel=3, bool $LogToDB=false){
+    public function Write($LogInfos, int $DebugTraceLevel=2, bool $LogToDB=false){
         if (!isset($LogInfos)){
             return false ;
         }
@@ -75,9 +75,9 @@ class xLog{
         return false ;
     }
 
-    public function AddToLog($LogInfos):bool{
+    public function AddToLog($LogInfos, int $DebugTraceLevel=2):bool{
         $Journal=new xORMHelper($this->Main,null,false,"journal");
-        return $Journal->AddToLog($LogInfos);
+        return $Journal->AddToLog($LogInfos, $DebugTraceLevel);
     }
 
 }

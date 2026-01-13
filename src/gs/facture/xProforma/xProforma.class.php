@@ -4,6 +4,7 @@ namespace NAbySy\GS\Facture ;
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Panier\xCart;
+use NAbySy\GS\Panier\xCartProForma;
 use NAbySy\GS\Panier\xPanier;
 use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\Lib\BonAchat\xBonAchatManager;
@@ -11,7 +12,17 @@ use NAbySy\ORM\xORMHelper;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
 
-include_once 'xDetailVente.class.php';
+//include_once '../NAbySyPhpApi/src/gs/facture/xVente/xDetailVente.class.php';
+//include_once '../xVente/xDetailVente.class.php';
+try {
+	if(!class_exists('NAbySy\GS\Facture\xDetailVente')){
+		include_once 'xDetailVente.class.php';
+	}
+} catch (\Throwable $th) {
+
+}
+
+//include_once '../../xVente/xDetailVente.class.php';
 
 Class xProforma extends xORMHelper
 {
@@ -21,27 +32,29 @@ Class xProforma extends xORMHelper
 
 	public xDetailVente $DetailVente ;
 	
-	public function __construct(xNAbySyGS $NAbySyGS,?int $IdFacture=null,$AutoCreateTable=false,$TableName='proforma',xBoutique $Boutique=null){
+	public function __construct(xNAbySyGS $NAbySyGS,?int $IdFacture=null,$AutoCreateTable=false,$TableName='factureproforma',xBoutique $Boutique=null){
 		$this->Main = $NAbySyGS ;
 		$this->MaBoutique = $NAbySyGS->MaBoutique ;
 		if (isset($Boutique)){
 			$this->Main = $Boutique->Main ;
 			$this->MaBoutique=$Boutique;
+		}else{
+			$Boutique=$NAbySyGS->MaBoutique;
 		}
-		if(!$this->Main->MaBoutique->MySQL->TableExiste($TableName)){
-			$TbleC="`".$this->Main->MaBoutique->DataBase."`.`".$TableName."`";
+		if(!$Boutique->MySQL->TableExiste($TableName)){
+			$TbleC="`".$Boutique->DBName."`.`".$TableName."`";
 			$this->MaBoutique->ExecUpdateSQL("create table ".$TbleC." like facture");
 		}
-		if(!$this->Main->MaBoutique->MySQL->TableExiste("detail".$TableName)){
-			$TbleC="`".$this->Main->MaBoutique->DataBase."`.`detail".$TableName."`";
+		if(!$Boutique->MySQL->TableExiste("detail".$TableName)){
+			$TbleC="`".$Boutique->DBName."`.`detail".$TableName."`";
 			$this->MaBoutique->ExecUpdateSQL("create table ".$TbleC." like detailfacture");
 		}
-		if(!$this->Main->MaBoutique->MySQL->TableExiste($TableName)){
-			$this->Main->MaBoutique->AddToLog("ERREUR DE CREATION DE LA TABLE PROFORMA") ;
+		if(!$Boutique->MySQL->TableExiste($TableName)){
+			$Boutique->AddToLog("ERREUR DE CREATION DE LA TABLE PROFORMA") ;
 			return;
 		}
-		if(!$this->Main->MaBoutique->MySQL->TableExiste("detail".$TableName)){
-			$this->Main->MaBoutique->AddToLog("ERREUR DE CREATION DE LA TABLE DETAILPROFORMA") ;
+		if(!$Boutique->MySQL->TableExiste("detail".$TableName)){
+			$Boutique->AddToLog("ERREUR DE CREATION DE LA TABLE DETAILPROFORMA") ;
 			return;
 		}
 
@@ -71,7 +84,7 @@ Class xProforma extends xORMHelper
 			$Id = $this->Id;
 		}
 		//Permet de lire une vente par son Id ou IdDetail
-		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detail'.$this->Table;,$this->MaBoutique,$Id);
+		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detail'.$this->Table,$this->MaBoutique,$Id);
 		return $LDetailVente->ListeProduits;
 	}
 
@@ -130,26 +143,26 @@ Class xProforma extends xORMHelper
 			if ($c == 1){
 				$this->Client = new xClient($this->Main,$row['IdClient']) ;
 				$this->IdClient=$row['IdClient'] ;
-				$this->Caissier=$row['Caissier'] ;
-				$this->Date=$row['DateFacture'] ;
-				$this->Heure=$row['HeureFacture'] ;
+				$this->NomCaissier=$row['Caissier'] ;
+				$this->DateFacture=$row['DateFacture'] ;
+				$this->HeureFacture=$row['HeureFacture'] ;
 				$this->TotalFacture=$row['TotalFacture'] ;
 				$this->Id=$row['IdFacture'] ;
-				$this->IdFacture=$IdVente ;
+				$this->ID=$IdVente ;
 				$NewPanier->HeureFacture=$this->Heure ;
-				$NewPanier->SaveInfosClient($row['Nom'],$row['Prenom'],$row['IdClient'],$row['IdFacture']) ;
-				$NewPanier->DateFacture($this->Date);				
-				$NewPanier->Dump() ;
+				$NewPanier->SaveInfosClient($row['NomClt'],$row['PrenomClt'],$row['IdClient'],$row['IdFacture']) ;
+				$NewPanier->DateFacture($this->DateFacture);				
+				//$NewPanier->Dump() ;
 			}
 			//Charge chaque ligne de la vente dans le Panier
 			$ok=false ;
-			$Qte=$row['Qte'];
-			$vQte=$row['Qte'];
-			$QG=$row['VenteGros'];
+			$Qte=$row['QTE'];
+			$vQte=$row['QTE'];
+			$QG=(int)$row['VENTEDETAILLEE'];
 			$IdPdt=$row['IdProduit'] ;
 			$Designation=$row['Designation'] ;
 			$PrixU=$row['PrixVente'] ;
-			if ($QG > 0){
+			if ($QG == 0 && isset($row['nbunite'])){
 				$Qte=$Qte*$row['nbunite'];
 			}
 			
@@ -165,24 +178,44 @@ Class xProforma extends xORMHelper
 				
 	}
 	
-	public function Valider(xCart $Panier){
+	public function Valider(xCart | xCartProForma $Panier){
 		$Err=new xErreur;
 		$Err->OK=0;
 		$Err->TxErreur="Impossible de valider.";
 		$Err->Source=__CLASS__ ;
+
+		//$this->AddToLog("Nous allons valider le panier de la Proforma Ici: ".__FILE__." LIGNE ".__LINE__, 4);
+
 		if (empty($Panier->getList())){
+			$this->AddToLog("Panier de la Proforma Vide Ici: ".__FILE__." LIGNE ".__LINE__, 4);
 			$Err->TxErreur="Panier Vide";
 			return $Err;
 		}
 
-		$TDetail=new xDetailVente($this->Main, null,true,"detail".$this->Table);
-		$TxTableDet=$TDetail->Table ;
-		
-		if (!$TDetail->ChampsExisteInTable('StockSuivant')){
-			$this->MySQL->AlterTable($TDetail->Table,'StockSuivant',"INT(11)","ADD","0");
+		//$this->AddToLog("Chargement xDetailVente Ici: ", 2);
+		$TDetail=null;
+		try {
+			$Vente=new xVente($this->Main); //Force le chargement de xDetailVente
+			$TDetail=new xDetailVente($this->Main, null,true,"detail".$this->Table, $this->MaBoutique);
+		} catch (\Throwable $th) {
+			$this->AddToLog("ERREUR: ".$th->getMessage());
 		}
-		if (!$TDetail->ChampsExisteInTable('StockSuivant')){
-			$this->MySQL->AlterTable($TDetail->Table,'StockSuivant',"INT(11)","ADD","0");
+		if(!isset($TDetail)){
+			$Err->TxErreur="ERR SYSTEME:Ligne DetailF introuvable !!!";
+			$Err->SendAsJSON();
+			return $Err;
+		}
+		//$TDetail=new xDetailVente($this->Main, null,true,"detail".$this->Table);
+		$TxTableDet=$TDetail->FullTableName() ;
+		//$this->AddToLog("Table xDetailVente: =".$TxTableDet, 2);
+		
+		if (!$TDetail->ChampsExisteInTable('STOCKSUIV')){
+			$this->AddToLog("Création en cour de STOCKSUIV ...");;
+			$this->MySQL->AlterTable($TDetail->Table,'STOCKSUIV',"INT(11)","ADD","0");
+		}
+		
+		if (!$TDetail->ChampsExisteInTable('STOCKSUIV')){
+			$TDetail->AddToLog("Champ STOCKSUIV impossible a créer");
 		}
 		/*
 			Si IdFacture dans panier <=0 alors on creer une nouvelle facture
@@ -205,26 +238,28 @@ Class xProforma extends xORMHelper
 		}
 		
 		$Bout=null ;
+		$TotalTVA=0;
 
 		if ($Panier->IdFacture >0){	//Une facture en modification
+			$DateFacture = $Panier->DateFacture();
+			$HeureFacture = $Panier->HeureFacture;
 			$PrecPanier=$this->ChargerPanier($Panier->IdFacture,true);	
-			$cNote="Total Facture Precedant:".$PrecPanier->getTotalNetAPayer();			
+			if($PrecPanier && is_object($PrecPanier)){
+				$cNote="Total Facture Precedant:".$PrecPanier->getTotalNetAPayer();			
+				$PrecPdtFacture=$PrecPanier->getList() ;
+				$this->SupprimerPanier($PrecPanier) ;
+			}
 
 			$PdtFacture=$Panier->getList() ;
-
-			$PrecPdtFacture=$PrecPanier->getList() ;
-			$this->SupprimerPanier($PrecPanier) ;
-			$NbFois=0 ;
-			
-			$ListePdtOK=array() ;
+			$NbLigne=0;
 			//exit ;
 
 			$TxSQLFinale="";
-			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuivant,VENTEDETAILLEE,PRIXCESSION,DESIGNATION) 
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,QTE,PrixVente,StockSuiv,VENTEDETAILLEE,PRIXCESSION,DESIGNATION, PrixTotal, TVA) 
         	values ";
 
 			foreach ($PdtFacture as $P){
-					//var_dump($P) ;
+					$NbLigne++ ;
 					$vId=$P['vId'] ;
 					$Article=$Panier->GetArticle($vId);
 					if ($Article){
@@ -236,15 +271,15 @@ Class xProforma extends xORMHelper
 						$Note="Saisie de ".$P['produit']." dans la facture n°".$Panier->IdFacture." en cour de modification." ;
 						//echo "<script>console.log('".$Tim." : ".$Note."')</script>" ;
 						$Pdt=$Article->Pdt ;
-						if ($Pdt->StockInitial==0){$Pdt->StockInitial=1 ;}
+						if ($Pdt->STOCKINITDETAIL==0){$Pdt->STOCKINITDETAIL=1 ;}
 						$vQte=$P['qte'] ;
 						if ($P['typev']==1){
-							$vQte=$P['qte']*$Pdt->StockInitial ;
+							$vQte=$P['qte']*$Pdt->STOCKINITDETAIL ;
 						}
-						$StockSuiv=(int)$NewStock ;
-						$PrixAchat=(int)$Article->Pdt->PrixAchat ;
-						if ($P['typev']==1){
-							$PrixAchat=(int)$Article->Pdt->PrixAchatCarton ;
+						$StockSuiv=(int)$Article->Pdt->Stock ;
+						$PrixAchat = $Article->Pdt->PrixAchatTTC ;
+						if ((int)$P['typev']==0){
+							$PrixAchat=(int)$Article->Pdt->PrixAchatTTC / (int)$Pdt->STOCKINITDETAIL ;
 						}
 						$PrixVente=$P['PrixU'] ;
 						if ($PrixVente == 0){
@@ -253,9 +288,22 @@ Class xProforma extends xORMHelper
 						if (!isset($P['PrixU'])){
 							$PrixVente=(int)$Article->Pdt->PrixVente ;
 						}
-						
+
+						$PrixTotal=$P['qte']*$PrixVente;
+
+						if ($Article->Pdt->RETIRER_TVA>0){
+							$TauxTVA=(int)$Article->Pdt->TVA ;
+							if ($TauxTVA==0){
+								$TauxTVA=1;
+							}
+							$PrixHT=$PrixVente/(1+($TauxTVA/100));
+							$vTVA=$PrixVente - $PrixHT;
+							$TVA=round($vTVA,0)*$vQte;
+							$TotalTVA +=$TVA;
+						}
+
 						$TxSQL="('".$Panier->IdFacture."', '".$P['id_produit']."', '".
-						$P['qte']."' , '".$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".$PrixAchat."','".$P['produit']."'),";
+						$P['qte']."' , '".$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".$PrixAchat."','".$TDetail->Main::$db_link->real_escape_string( $P['produit'])."','".$PrixTotal."','".$TVA."'),";
 
 						$TxSQLFinale .=$TxSQL ;
 					}
@@ -270,6 +318,9 @@ Class xProforma extends xORMHelper
 				$TxF=substr($TxSQLFinale,0,strlen($TxSQLFinale)-1) ;
 				$TxSQL .=$TxF." ;" ;				
 				$this->Main->ReadWrite($TxSQL,true) ;
+
+				$TxUpDte="update ".$TxTableDet." D inner join ".$this->FullTableName()." F on F.ID=D.IDFACTURE SET D.DATEFACTURE = F.DATEFACTURE , D.HEUREFACTURE = F.HEUREFACTURE where D.IDFACTURE='".$Panier->IdFacture."' " ;
+				$this->Main->ReadWrite($TxUpDte,true) ;
 
 			}
 
@@ -287,7 +338,7 @@ Class xProforma extends xORMHelper
 
 			//$BonAchatMgr->UpDateFacture($Panier->IdFacture,$Panier);
 			
-			if (isset($PrecPanier)){
+			if (isset($PrecPanier) && is_object($PrecPanier)){
 				$PrecPanier->Fermee=true ;
 				$PrecPanier->DejaValider(true) ;
 				$PrecPanier->Vider() ;
@@ -296,13 +347,14 @@ Class xProforma extends xORMHelper
 			
 			
 		}
-		else{//Nouvelle Facture
+		else{//Nouvelle Facture Proforma
 			
 			//$Panier->IdFacture=0 ;
+			//$this->AddToLog("Nouvelle Pro Forma... ");
 			$IdF=$this->SavePanierToDB($Panier,true) ; //Pour avoir un numero de facture
 			
 			if ($Panier->IdFacture !== $IdF){
-				//echo "console.write('IdFacture Obtenue='".$IdF.")" ;
+				$this->AddToLog("Id Nouvelle Pro Forma... ".$IdF);
 				$Panier->IdFacture = $IdF ;
 			}
 			
@@ -325,7 +377,7 @@ Class xProforma extends xORMHelper
 			$TotalTVA=0;
 			$NbLigne=0;
 
-			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuivant,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
+			$EnteteSQL="insert into ".$TxTableDet." (IdFacture,IdProduit,Qte,PrixVente,StockSuiv,VenteDetaillee,PRIXCESSION,DESIGNATION,DATEFACTURE,HEUREFACTURE, 
 			PrixTotal, TVA ) 
 			values ";
 
@@ -336,17 +388,18 @@ Class xProforma extends xORMHelper
 				$Note="Vente de ".$P['produit']." dans la facture numero ".$Panier->IdFacture ;
 				if ($Article){
 					$Pdt=$Article->Pdt ;
-					if ($Pdt->StockInitial==0){$Pdt->StockInitial=1 ;}
+					if ($Pdt->STOCKINITDETAIL==0){$Pdt->STOCKINITDETAIL=1 ;}
 					$vQte=(float)$P['qte'] ;
 					if ($P['typev']==1){
 						if ($Pdt->VENTEDETAILLEE == "OUI"){
-							$vQte=(float)$P['qte']*(float)$Pdt->StockInitialDetail ;
+							$vQte=(float)$P['qte']*(float)$Pdt->STOCKINITDETAIL ;
 						}						
 					}
 				
 					$P['produit']=$Article->Pdt->Designation ;
-					if ($P['typev']==1){
-						$PrixAchat=(int)$Article->Pdt->PrixAchatCarton ;
+					$PrixAchat = $Article->Pdt->PrixAchatTTC ;
+					if ((int)$P['typev']==0){
+						$PrixAchat=(int)$Article->Pdt->PrixAchatTTC / (int)$Pdt->STOCKINITDETAIL ;
 					}
 					$PrixVente=$P['PrixU'] ;
 					if ($PrixVente == 0){
@@ -374,11 +427,14 @@ Class xProforma extends xORMHelper
 						$TotalTVA +=$TVA;
 					}
 
+					$StockSuiv=(int)$Article->Pdt->Stock ;
+
 					$TxSQL="('".$Panier->IdFacture."', '".$P['id_produit']."', '".
-						$P['qte']."' , '".(int)$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".(int)$PrixAchat."','".$P['produit']."',
-						'".$TxDate."','".$TxHeure."','".$PrixTotal."','".$TVA."'),";
+						$P['qte']."' , '".(int)$PrixVente."', '".$StockSuiv."', '".$P['typev']."','".(int)$PrixAchat."','".$this->Main::$db_link->real_escape_string( $P['produit'])."','".$TxDate."','".$TxHeure."','".$PrixTotal."','".$TVA."'),";
 
 					$TxSQLFinale .=$TxSQL ;
+
+					$this->AddToLog("Requette ECHAPPEE ICI: ".$this->Main::$db_link->real_escape_string( $P['produit']),2);
 					
 				}
 			}
@@ -387,6 +443,7 @@ Class xProforma extends xORMHelper
 				$TxSQL=$EnteteSQL ;
 				$TxF=substr($TxSQLFinale,0,strlen($TxSQLFinale)-1) ;
 				$TxSQL .=$TxF." ;" ;
+				$this->AddToLog("Ajout ici Ligne Produit: ".$TxSQLFinale);
 				//echo "<script>console.log('".$TxSQL."');</script>" ;
 				//echo hrtime(true)." : Nouvelle inscription des données dans la base de donnée ....".' ('.date('H:i:s.u').'</br>' ;
 				$this->Main->ReadWrite($TxSQL,true) ;
@@ -401,7 +458,7 @@ Class xProforma extends xORMHelper
 		$this->SavePanierToDB($Panier) ;
 		$IdFacture=$Panier->IdFacture ;
 		if ($IdFacture>0){
-			$Vte=new xProforma($this->Main,$IdFacture);
+			$Vte=new xProforma($this->Main,$IdFacture, $this->Main::GLOBAL_AUTO_CREATE_DBTABLE);
 			$Vte->TotalTVA=$TotalTVA;
 			$Vte->NbLigne=$NbLigne;
 			if ($Vte->IdClient==0){
@@ -428,11 +485,12 @@ Class xProforma extends xORMHelper
 		
 	}
 	
-	private function SavePanierToDB(xCart $Panier,$GetIdFacture=null){
+	private function SavePanierToDB(xCart | xCartProForma $Panier,$GetIdFacture=null){
 		//Enregistre ou met á jour reelement le panier dans la base de donnee
 		//Enregistrons l'entete de la facture
 		
 		if (!$Panier->getList()){
+			$this->AddToLog("Aucune liste d'article dans la Pro Forma.");
 			return false ;
 		}
 		$IsUpDate=false;
@@ -457,8 +515,8 @@ Class xProforma extends xORMHelper
 			//$Panier->MontantRendu=$SoldeSuivant ;
 		}
 		$TxTable=$this->Table ;
-		if (!$this->MySQL->ChampsExiste($TxTable,'MontantReduction')){
-			$this->MySQL->AlterTable($TxTable,'MontantReduction','int(11)',"ADD",0);
+		if (!$this->ChampsExisteInTable('MontantReduction')){
+			$this->MySQL->AlterTable($TxTable,'MontantReduction','int(11)',"ADD",0, $this->DataBase);
 		}
 		$TxSQL="insert into ".$TxTable."(Id,IdCaissier,IdClient,TotalFacture,ModeReglement,NOMBENEFICIAIRE,DateFacture,MontantVerse,MontantRendu,
 		MontantRemise, MontantReduction)
@@ -517,8 +575,10 @@ Class xProforma extends xORMHelper
 		}
 		
 		$Id=0 ;
+		//$this->AddToLog("Pret a enregistrer la Pro Forma...".$this->FullTableName());
 		if ($this->Enregistrer()){
 			$Id=$this->Id;
+			//$this->AddToLog("Id Pro Forma = ".$Id);
 			$Panier->IdFacture=$this->Id;
 			if($Panier->RefCMD !=='' && $this->REFCMD !== $Panier->RefCMD){
 				$this->REFCMD = $Panier->RefCMD ;
@@ -528,14 +588,18 @@ Class xProforma extends xORMHelper
 					self::$xMain::$Log->AddToLog('Le champ REFCMD est introuvable dans la table '.$this->Table) ;
 				}
 			}		
+		}else{
+			$this->AddToLog("Erreur lors de l'enregistrement de la Pro Forma.");
 		}
 		
+		//$this->AddToLog("Sauvegarde InfoClient la Pro Forma.");
 		$Panier->SaveInfosClient($Panier->NomClt,$Panier->PrenomClt,$Panier->IdClient,$Panier->IdFacture ) ;
 		if (isset($GetIdFacture)){
 			if ($GetIdFacture){
 				return $Id ;
 			}
 		}
+		//$this->AddToLog("Id Pro Forma Trouvé = ".$Id);
 
 		/*Pour ne pas conserver la date de la facture et enregistrer la date de modification */
 		if ($IsUpDate){
@@ -546,13 +610,13 @@ Class xProforma extends xORMHelper
 			$this->Enregistrer();
 		}
 
-		$Panier->Fermee=true ;		
+		$Panier->Fermee=true ;	
 		return true ;
 		
 		
 	}
 
-	public function SupprimerPanier(xCart $PanierToSup){
+	public function SupprimerPanier(xCart | xCartProForma $PanierToSup){
 		if (!isset($PanierToSup)){
 			return false ;
 		}
@@ -560,7 +624,7 @@ Class xProforma extends xORMHelper
 		//Supprime un panier. Si le Panier à une Facture liée alors on supprime la facture aussi
 		if ($PanierToSup->IdFacture>0){
 			$PrecFact=new xProforma($this->Main,$PanierToSup->IdFacture);
-			$DetailVente =new xDetailVente($NAbySyGS,null,$AutoCreateTable, "detail".$PrecFact->Table,$this->MaBoutique,$this->Id);
+			$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$PrecFact->Table,$this->MaBoutique,$this->Id);
 			//Le panier est lié à une facture
 			//On supprime la facture ligne par ligne ->getList()
 			$NbFois=0 ;
@@ -628,7 +692,7 @@ Class xProforma extends xORMHelper
 		$this->Main->MaBoutique->AddToJournal($Tache,$Note) ;
 		
 		//On va supprimer la la facture pro forma
-		$DetailVente =new xDetailVente($NAbySyGS,null,$AutoCreateTable, "detail".$this->Table,$this->MaBoutique,$this->Id);
+		$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$this->Table,$this->MaBoutique,$this->Id);
 
 		$TxTableDet=$DetailVente->FullTableName() ;
 		$TxSQL="delete from ".$TxTableDet." where IDFACTURE='".$IdFacture."' " ;
@@ -661,7 +725,7 @@ Class xProforma extends xORMHelper
 	{
 		$Reponse=json_encode([]);;
 		if ($FullDetail){
-			$DetailVente =new xDetailVente($NAbySyGS,null,$AutoCreateTable, "detail".$this->Table,$this->MaBoutique,$this->Id);
+			$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$this->Table,$this->MaBoutique,$this->Id);
 			$DetailV=$DetailVente->GetFullInfosProformaByLine($this->Id);
 		}else{
 			$DetailV=$this->GetVente($this->Id);

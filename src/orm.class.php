@@ -29,7 +29,17 @@ class xORMHelper implements IORM , JsonSerializable{
     public xNAbySyGS $Main ;
     public static xNAbySyGS $xMain;
 
+    /**
+     * Liste interne des champs de la Table
+     * @var array
+     */
     private array $ListeChampDB ;
+
+    /**
+     * Liste de définition des Tables jointes
+     * @var xORMJoinTableSpec[]
+     */
+    private array $joins=[];
 
     /**
      * Nom de la base de donnée liée à cet ORM
@@ -153,7 +163,13 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function current(): mixed {
             if (!isset($this->MySQL)){
-                throw new Exception("Aucune base de donnée attachée", 1);
+                if($this->DebugMode){
+                    $TxErreur="Aucune base de donnée attachée" ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                 return null ;
             }
             if ($this->TableIsEmpty()){
@@ -182,7 +198,13 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function valid(): bool { 
             if (!isset($this->MySQL)){
-                throw new Exception("Aucune base de donnée attachée", 1);
+               if($this->DebugMode){
+                    $TxErreur="Aucune base de donnée attachée" ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                 return false ;
             }
             if ($this->TableIsEmpty()){
@@ -206,7 +228,13 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function offsetExists(mixed $NChamp): bool { 
             if (!is_string($NChamp)){
-                throw new Exception("Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp), 1);
+                if($this->DebugMode){
+                    $TxErreur="Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp) ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                 return false;
             }
             $ValeurTrouve = $this->__get($NChamp);
@@ -220,7 +248,13 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function offsetGet(mixed $NChamp): mixed {
             if (!is_string($NChamp)){
-                throw new Exception("Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp), 1);
+                if($this->DebugMode){
+                    $TxErreur="Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp) ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                 return null;
             }
             $ValeurTrouve = $this->__get($NChamp);
@@ -229,7 +263,13 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function offsetSet(mixed $NChamp, mixed $value): void { 
             if (!is_string($NChamp)){
-                throw new Exception("Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp), 1);
+                 if($this->DebugMode){
+                    $TxErreur="Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp) ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                 return;
             }
             $this->__set($NChamp,$value);
@@ -237,7 +277,13 @@ class xORMHelper implements IORM , JsonSerializable{
 
         public function offsetUnset(mixed $NChamp): void { 
             if (!is_string($NChamp)){
-                throw new Exception("Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp), 1);
+                if($this->DebugMode){
+                    $TxErreur="Le nom du champ doit etre de type string. Type trouvé: ".gettype($NChamp) ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                 return;
             }
             if (!is_string($NChamp)){
@@ -312,8 +358,7 @@ class xORMHelper implements IORM , JsonSerializable{
         $this->ListeTypeChampDB=[];
         $Tabl="`".$this->DataBase."`.`".$this->Table."`" ;
         $query = "SELECT * from " . $Tabl . " limit 1";
-        //var_dump($query);
-        if($result =$this->Main::$db_link->query($query)){
+        if($result = $this->Main::$db_link->query($query)){
             // Get field information for all columns
             while ($column_info = $result->fetch_field()){
                 //var_dump($column_info);
@@ -397,7 +442,13 @@ class xORMHelper implements IORM , JsonSerializable{
              $this->MySQL->CreateTable($this->Table,$this->DataBase) ;
              if (!$this->MySQL->TableExiste($this->Table,$this->DataBase)){
                  /* en cas d'erreur */
-                 throw new Exception("Impossible de créer la table ".$this->Table) ;
+                if($this->DebugMode){
+                    $TxErreur="Impossible de créer la table ".$this->FullTableName() ;
+                    self::$xMain::$Log->Write($TxErreur);
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
                  return false ;
              }
          }
@@ -414,7 +465,13 @@ class xORMHelper implements IORM , JsonSerializable{
                 $this->MySQL->CreateTable($this->Table,$this->DataBase) ;
                 if (!$this->MySQL->TableExiste($this->Table,$this->DataBase)){
                     /* en cas d'erreur */
-                    throw new Exception("Impossible de créer la table ".$this->Table) ;
+                    if($this->DebugMode){
+                        $TxErreur="Impossible de créer la table ".$this->FullTableName() ;
+                        self::$xMain::$Log->Write($TxErreur);
+                        header('Content-Type: application/json');
+                        echo json_encode(["error" => $TxErreur]);
+                        exit;
+                    }
                     return null ;
                 }
             }
@@ -482,9 +539,14 @@ class xORMHelper implements IORM , JsonSerializable{
             $this->MySQL->AlterTable($this->Table,$Ch->Nom,$TypeChamp,'ADD',$ValDefaut,$this->DataBase);
             /* On vérifie si le champ existe dans la table */
             if (!$this->MySQL->ChampsExiste($this->Table,$NomChamp,$this->DataBase)){
-                
-                throw new Exception("Impossible de créer le champ ".$Ch->Nom.' de type '.$TypeChamp.' automatiquement dans la table '.$this->Table) ;
-
+                $TxErreur="Impossible de créer le champ ".$Ch->Nom.' de type '.$TypeChamp.' automatiquement dans la table '.$this->FullTableName() ;
+                self::$xMain::$Log->Write($TxErreur);
+                if($this->DebugMode){
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }
+                exit;
             }
 
             /* On recharge le nouveau champ dans la liste des champs */
@@ -520,7 +582,16 @@ class xORMHelper implements IORM , JsonSerializable{
         $PrecValeur=$this->__get($NomChamp) ;
         if (!isset($PrecValeur)){
             //Impossible d'affecter la valeur au champ
-            throw new Exception("Impossible d\'affecter la valeur ".$Valeur." au champ ".$NomChamp) ;
+            $TxErreur="Impossible d'affecter la valeur ".$Valeur." au champ ".$NomChamp." sur ".$this->FullTableName();
+            if(!$this->ChampIsPresent($NomChamp)){
+                $TxErreur .=" Absence du champ dans la table.";
+            }
+            self::$xMain::$Log->Write($TxErreur);
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }
             return ;
         }
         $NewListe=[];
@@ -767,7 +838,7 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public function Supprimer() : bool {
         try {
-            $Tabl=$this->DataBase.".".$this->Table ;
+            $Tabl=$this->FullTableName() ;
             $TxSQL="delete from ".$Tabl." where Id='".(int)$this->Id."' limit 1" ;
             $this->Main->ReadWrite($TxSQL,true,null,$this->DebugMode);
             //Remise de l'auto increment;
@@ -791,9 +862,14 @@ class xORMHelper implements IORM , JsonSerializable{
             $this->Main->RaiseEvent($ActualClass,$Arg) ;
             return true ;
         }catch(Exception $ex){
-            $Note=__CLASS__.':'.$this->Table.'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
-            $this->Main->Log->Write($Note) ;
-            throw new Exception($Note) ;
+            $Note=__CLASS__.':'.$this->FullTableName().'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
+            $TxErreur=$Note ;
+            self::$xMain::$Log->Write($TxErreur);
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }
         } 
         return false ;       
     }
@@ -805,7 +881,7 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public function ChargeOne(int $Id): ?\mysqli_result {
         $resultat = null;
-        $TxSQL = 'select * from '.$this->DataBase.".".$this->Table." where Id='".(int)$Id."' limit 1" ;
+        $TxSQL = 'select * from '.$this->FullTableName()." where Id='".(int)$Id."' limit 1" ;
         //var_dump($TxSQL);
         try{
             $retour=$this->Main->ReadWrite($TxSQL);
@@ -852,7 +928,7 @@ class xORMHelper implements IORM , JsonSerializable{
             }            
             return $resultat ;
         }catch(Exception $ex){
-            $Note=__CLASS__.':'.$this->Table.'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
+            $Note=__CLASS__.':'.$this->FullTableName().'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
             $this->Main::$Log->Write($Note) ;
         }
         
@@ -870,7 +946,7 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public function ChargeListe(string $Critere=null,$Ordre=null,$SelectChamp="*", $GroupBy=null, ?string $Limit=null):?mysqli_result {
         $resultat =null;
-        $Tabl=$this->DataBase.".".$this->Table ;
+        $Tabl=$this->FullTableName() ;
         if(!isset($SelectChamp)){
             $SelectChamp="*";
         }
@@ -908,11 +984,86 @@ class xORMHelper implements IORM , JsonSerializable{
             $resultat = $this->Main->ReadWrite($TxSQL) ;
             return $resultat ;
         }catch(Exception $ex){
-            $Note=__CLASS__.':'.$this->Table.'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
+            $Note=__CLASS__.':'.$this->FullTableName().'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
             $this->Main::$Log->Write($Note) ;
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => "SQL Error: " . $ex->getMessage(), "sql" => $TxSQL]);
+                exit;
+            }
         }
 
         return $resultat ;
+        
+    }
+
+    /**
+     * Permet de retourner uniquement la requette SQL sans execution vers la base de donnée.
+     * @param string|null $Critere 
+     * @param mixed $Ordre 
+     * @param string $SelectChamp 
+     * @param mixed $GroupBy 
+     * @param null|string $Limit 
+     * @return string 
+     */
+    public function ChargeListeNoExecute(string $Critere=null,$Ordre=null,$SelectChamp="*", $GroupBy=null, ?string $Limit=null):string {
+        $mainAlias = "t1"; // Alias par défaut pour la table principale
+        $joinSql = "";
+        if(isset($this->joins) && count($this->joins)){
+            foreach ($this->joins as $j) {
+                // Syntaxe SQL : LEFT JOIN table AS alias ON t1.ID = alias.foreign_key
+                $joinSql .= " {$j->type} {$j->table} AS {$j->alias} ON {$mainAlias}.{$j->localKey} = {$j->alias}.{$j->foreignKey}";
+            }
+        }
+
+        if($joinSql==''){
+            $mainAlias=""; //On retire l'alias de la table principal si aucune jointure
+        }
+
+        $Tabl=$this->FullTableName() ;
+        if(!isset($SelectChamp)){
+            $SelectChamp="*";
+            if(trim($mainAlias !=='')){
+                $SelectChamp="{$mainAlias}.*" ;
+            }
+        }
+        $TxSQL ="select ".$SelectChamp." from ".$Tabl." where Id>0 " ;
+        if($mainAlias !==''){
+            $TxSQL ="select ".$SelectChamp." from ".$Tabl." as ".$mainAlias." where ".$mainAlias.".Id>0 " ;
+            if($joinSql !==''){
+                $TxSQL ="select ".$SelectChamp." from ".$Tabl." as ".$mainAlias." ".$joinSql." where ".$mainAlias.".Id>0 " ;
+            }
+        }
+        
+        if (isset($Critere)){
+            if (substr(strtolower($Critere),0,strlen('where '))=='where '){
+                $Critere=substr($Critere,0,strlen('where ')) ;
+            }
+            if (substr(strtolower($Critere),0,strlen('and '))=='and '){
+                $Critere=substr($Critere,0,strlen('and ')) ;
+            }
+            $TxSQL .=" AND ".$Critere ;
+        }
+
+        if (isset($GroupBy)){
+            if ($GroupBy !==''){
+                $TxSQL .=' GROUP BY '.$GroupBy ;
+            }
+        }
+
+        if (isset($Ordre)){
+            if (substr(strtolower($Ordre),0,strlen('order by '))=='order by '){
+                $Ordre=substr($Ordre,0,strlen('order by ')) ;
+            }
+            $TxSQL .=" ORDER BY ".$Ordre ;
+        }
+        if (isset($Limit)){
+            if (substr(strtolower($Limit),0,strlen('Limit '))=='Limit '){
+                $Limit=substr($Limit,0,strlen('Limit ')) ;
+            }
+            $TxSQL .=" LIMIT ".$Limit ;
+        }
+        return $TxSQL ;
         
     }
 
@@ -974,7 +1125,7 @@ class xORMHelper implements IORM , JsonSerializable{
      * @param string $Note : Note à inscrire
      * @return bool
      */
-    public function AddToLog(string $Note, int $DebugTraceLevel=3):bool{
+    public function AddToLog(string $Note, int $DebugTraceLevel=2):bool{
         if ($Note==''){
             return false;
         }
@@ -998,7 +1149,7 @@ class xORMHelper implements IORM , JsonSerializable{
             return true;
         }
         $resultat =null;
-        $Tabl=$this->DataBase.".".$this->Table ;
+        $Tabl=$this->FullTableName() ;
         $TxSQL ="select * from ".$Tabl." where Id>0 limit 1" ;       
 
         try{
@@ -1014,10 +1165,28 @@ class xORMHelper implements IORM , JsonSerializable{
             }
             
         }catch(Exception $ex){
-            $Note=__CLASS__.':'.$this->Table.'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
+            $Note=__CLASS__.':'.$this->FullTableName().'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
             $this->Main::$Log->Write($Note) ;
         }
         return false ;        
+    }
+
+
+    /**
+     * Indique si réeelement le champ est présent dans la Table
+     * @param string $NomChamp 
+     * @return bool 
+     */
+    private function ChampIsPresent(string $NomChamp):bool{
+        $Existant=false ;
+        foreach ($this->ListeTypeChampDB as  $champ){
+            $Ch=$champ ; // new \NAbySy\ORM\xChampDB($champ->Nom,$champ->Valeur) ;
+            if (strtolower($Ch['NOM']) == strtolower($NomChamp)){
+                $Existant=true ;
+                break;
+            }
+        }
+        return $Existant;
     }
 
     /**
@@ -1359,6 +1528,127 @@ class xORMHelper implements IORM , JsonSerializable{
         return false;
     }
 
+/*     public function AddTableByText($tableJointe, $cleJointe, $clePrincipale = 'ID', $type = 'LEFT JOIN') {
+        $this->joins[] = [
+            'type' => $type,
+            'table' => $tableJointe,
+            'on' => "{$this->FullTableName()}.{$clePrincipale} = {$tableJointe}.{$cleJointe}"
+        ];
+        return $this;
+    } */
+
+    public function JoinTable(xORMHelper $TargetOrm, string $Alias=null,string $cleJointeSrc, string $cleJointeEtrangere='ID', $type = 'LEFT OUTER JOIN'):xORMHelper {
+        if(!isset($TargetOrm)){
+            $TxErreur="TargetORM non définit.";
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }else {
+                self::$xMain::$Log->AddToLog($TxErreur);
+            }
+        }
+        if(trim($cleJointeSrc) =='' ){
+            $TxErreur="La clé de jointure d'origine sur ".$this->Table." est absente.";
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }else {
+                self::$xMain::$Log->AddToLog($TxErreur);
+            }
+        }
+        if(trim($cleJointeEtrangere) =='' ){
+            $TxErreur="La clé de jointure de la table cible ".$TargetOrm->Table." est absente.";
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }else {
+                self::$xMain::$Log->AddToLog($TxErreur);
+            }
+        }
+        if(!$this->ChampIsPresent($cleJointeSrc)){
+            $TxErreur="Absence de la clé de jointure source ".$cleJointeSrc." sur ".$this->FullTableName();
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }else {
+                self::$xMain::$Log->AddToLog($TxErreur);
+            }
+        }
+        if(!$TargetOrm->ChampsExisteInTable($cleJointeEtrangere)){
+            $TxErreur="Absence de la clé de jointure cible ".$cleJointeEtrangere." sur ".$TargetOrm->FullTableName();
+            if($this->DebugMode){
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+                exit;
+            }else {
+                self::$xMain::$Log->AddToLog($TxErreur);
+            }
+        }
+        $TxAlias='';
+        if(isset($Alias)){
+            $TxAlias=trim($Alias);
+        }
+        // Si l'alias est vide ou numérique, on génère un alias auto (ex: j1, j2...)
+        // Sinon on utilise celui de l'utilisateur
+        //if($TxAlias=''){
+        $jCounter = count($this->joins)+1 ;
+        $finalAlias = (!empty($TxAlias) && !is_numeric($TxAlias))  ? $TxAlias : "j" . $jCounter;
+        $TxAlias=$finalAlias;
+        //}
+
+        if(trim($type)==''){
+            $type = xORMJoinTableSpec::LEFT_OUTER_JOIN ;
+        }
+        $nJoin=new xORMJoinTableSpec();
+        $nJoin->alias = $TxAlias;
+        $nJoin->foreignKey = $cleJointeEtrangere ;
+        $nJoin->localKey = $cleJointeSrc ;
+        $nJoin->on = "{$this->FullTableName()}.{$cleJointeSrc} = {$TargetOrm->FullTableName()}.{$cleJointeEtrangere}" ;
+        $nJoin->table = $TargetOrm->FullTableName();
+        $nJoin->type = $type ;
+
+        $this->joins[] = $nJoin;
+        return $this;
+    }
+
+    public function JointureChargeListe(string $Critere=null,$Ordre=null,$SelectChamp="*", $GroupBy=null, ?string $Limit=null):?mysqli_result{
+        $resultat = null;
+        try {
+            $TxSQL = $this->ChargeListeNoExecute($Critere,$Ordre,$SelectChamp, $GroupBy, $Limit);
+            //var_dump($TxSQL);
+            try{
+                $resultat = $this->Main->ReadWrite($TxSQL) ;
+                //On vide la jointure
+                $this->joins=[];
+
+                return $resultat ;
+            }catch(Exception $ex){
+                $Note=__CLASS__.':'.$this->Table.'::'.__FUNCTION__.';Erreur:'.$ex->getMessage() ;
+                $this->Main::$Log->Write($Note) ;
+                if($this->DebugMode){
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => "SQL Error: " . $ex->getMessage(), "sql" => $TxSQL]);
+                    exit;
+                }
+            }
+        } catch (\Throwable $th) {
+            if($this->DebugMode){
+                $TxErreur=$th->getMessage().' CODE:'.$th->getCode().' sur l\'objet xORM_'.$this->FullTableName() ;
+                self::$xMain::$Log->Write($TxErreur);
+                header('Content-Type: application/json');
+                echo json_encode(["error" => $TxErreur]);
+            }
+            $this->AddToLog("ERREUR SQL: ".$th->getMessage());
+            exit;
+        }
+
+        return $resultat ;
+    }
+
     public function __debugInfo() {
         $listeV=[];
         foreach ($this->ListeChampDB as $Champ){
@@ -1372,6 +1662,21 @@ class xORMHelper implements IORM , JsonSerializable{
         }
         return $listeV;
     }
+}
+
+class xORMJoinTableSpec {
+    public const LEFT_OUTER_JOIN = 'LEFT OUTER JOIN' ;
+    public const RIGHT_OUTER_JOIN = 'RIGHT OUTER JOIN' ;
+    public const LEFT_JOIN = 'LEFT JOIN' ;
+    public const RIGHT_JOIN = 'RIGHT JOIN' ;
+    public const INNER_JOIN = 'INNER JOIN' ;
+
+    public string $type =self::LEFT_OUTER_JOIN;
+    public string $table;
+    public string $localKey;
+    public string $foreignKey;
+    public string $alias;
+    public string $on;
 }
 
 ?>

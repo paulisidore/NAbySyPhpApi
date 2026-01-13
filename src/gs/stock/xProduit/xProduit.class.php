@@ -144,10 +144,10 @@ Class xProduit extends xORMHelper
 			$TxDateV=", DERNIERELIVRAISON='".date("Y-m-d")."' " ;
 		}
 		//Ajoute Qte dans le stock du produit
-		$sql="update ".$this->Table." A SET A.STOCK=A.STOCK+".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
+		$sql="update ".$this->FullTableName()." A SET A.STOCK=A.STOCK+".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
 		if($InStockDetail){
 			$this->StockDetail=(float)$this->StockDetail+(float)$Qte ;
-			$sql="update ".$this->Table." A SET A.STOCKDETAIL=A.STOCKDETAIL+".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
+			$sql="update ".$this->FullTableName()." A SET A.STOCKDETAIL=A.STOCKDETAIL+".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
 		}else{
 			$this->Stock= (float)$this->Stock+$Qte ;
 		}
@@ -189,10 +189,10 @@ Class xProduit extends xORMHelper
 			$TxDateV=", DERNIEREVENTE='".date("Y-m-d")."' " ;
 		}
 		//Retire Qte dans le stock du produit
-		$sql="update ".$this->Table." A SET A.STOCK=A.STOCK-".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
+		$sql="update ".$this->FullTableName()." A SET A.STOCK=A.STOCK-".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
 		if($InStockDetail){
 			$this->StockDetail = (float)$this->StockDetail - $Qte ;
-			$sql="update ".$this->Table." A SET A.STOCKDETAIL=A.STOCKDETAIL - ".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
+			$sql="update ".$this->FullTableName()." A SET A.STOCKDETAIL=A.STOCKDETAIL - ".$Qte.$TxDateV." Where A.Id='".$this->Id."' limit 1" ;
 		}else{
 			$this->Stock= (float)$this->Stock-$Qte ;
 		}

@@ -350,13 +350,9 @@ Class xBoutique extends xORMHelper  {
 	 * Retourne un objet Panier
 	 */
 	public function GetNewPanier($IdSession=null,$IsTemp=null,$Proforma=null){
-		//$this->ChargeListePanier();
-		$NbPanier=0 ;
 		$PanierIdR='panier' ;
 		if (!isset($Proforma)){
-			$NbPanier=count($this->ListePanier) ;
 		}else{
-			$NbPanier=count($this->ListePanierProforma) ;
 			$PanierIdR='panierproforma' ;
 		}
 		
@@ -386,7 +382,6 @@ Class xBoutique extends xORMHelper  {
 		if ($NewPanier){
 			$NewPanier->Existe=true;
 			$NewPanier->DejaValider(false) ;
-			array_push($this->ListePanier,$NewPanier);
 		}
 		return $NewPanier ;
 	}

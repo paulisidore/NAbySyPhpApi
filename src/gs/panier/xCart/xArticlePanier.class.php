@@ -85,7 +85,6 @@ Class xArticlePanier
 	
 	public function SetPrixAchat(float $NewPC=0){
 		//Correction du prix achat
-		echo 'PrixAchat en correction ...' ;
 		if (isset($this->Pdt)){
 			//$this->Pdt->PrixAchat=$NewPC ;
 			$this->Pdt->Enregistrer() ;

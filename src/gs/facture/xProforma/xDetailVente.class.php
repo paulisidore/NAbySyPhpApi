@@ -21,14 +21,14 @@ Class xDetailVente extends xORMHelper{
     
     public function __construct(xNAbySyGS $NAbySyGS,$Id=null,$AutoCreateTable=false,$TableName='detailfacture',
         xBoutique $Boutique=null,$IdFacture=null, $FullInfos=true){
-        $LaDataBase=$NAbySyGS->MaBoutique->DataBase;
+        $DataBase=$NAbySyGS->MaBoutique->DataBase;
         if (isset($Boutique)){
-            $LaDataBase=$Boutique->DataBase;
+            $DataBase=$Boutique->DataBase;
         }
         if (!isset($TableName)){
             $TableName='detailfacture';
         }
-		parent::__construct($NAbySyGS,$Id,$AutoCreateTable,$TableName,$LaDataBase) ;
+		parent::__construct($NAbySyGS,$Id,$AutoCreateTable,$TableName,$DataBase) ;
 
         $this->ListeProduits=[];
 
@@ -166,14 +166,19 @@ Class xDetailVente extends xORMHelper{
         $ReponseListeProduits=[];
 
         $sql="select E.*, D.*,
-        C.Prenom as 'PrenomClt', C.Nom as 'NomClt',D.IdProduit,u.Login as 'Caissier',
+        C.Prenom as 'PrenomClt', C.Nom as 'NomClt', C.Tel as 'ClientOTel', C.Adresse as 'ClientOAdresse' ,D.IdProduit,u.Login as 'Caissier',
         C.Tel,C.Solde, C.Avoir ";
-        $sql .=" from ".$this->Table." D left outer join ".$Facture->Table." E on D.IdFacture=E.ID "; 
+        $sql .=" from ".$this->FullTableName()." D left outer join ".$Facture->FullTableName()." E on D.IdFacture=E.ID "; 
         //$sql .=" left outer join article A on D.Id_article=A.ID ";
-        $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".".$Facture->Client->Table." C on C.Id=E.IdClient " ;
+        if(isset($Facture->Client)){
+            $sql .=" left outer join ".$Facture->Client->FullTableName()." C on C.Id=E.IdClient " ;
+        }else{
+            $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".client C on C.Id=E.IdClient " ;
+        }
+        
         $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".utilisateur u on u.id=E.IdCaissier " ;
         $sql .=" where E.ID = ".$IdFacture ;
-        //var_dump($sql);
+        //echo $sql;exit;
         $Lst=$this->ExecSQL($sql);
         if ($Lst->num_rows){
             while ($row=$Lst->fetch_assoc()){

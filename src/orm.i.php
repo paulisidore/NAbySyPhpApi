@@ -4,6 +4,7 @@
 use ArrayAccess;
 use Countable;
 use Iterator;
+use mysqli_result;
 use NAbySy\xNAbySyGS;
 
     /**
@@ -48,6 +49,31 @@ use NAbySy\xNAbySyGS;
          * @return bool 
          */
         public function ChangeTypeChamps(string $NomChamps, string $NewType):bool ;
+
+        /**
+         * Ajoute une table de jointure
+         * @param xORMHelper $TargetOrm La la Table cible
+         * @property string $Alias Permet d'attribuer une alias à la table jointe
+         * @param string $cleJointeSrc La clé sur laquelle la table cible sera joint à cet objet
+         * @param string $cleJointeEtrangere La clé étrangère de l'objet cible qui sera lié à l'objet en cour
+         * @param string $type 'LEFT JOIN' | INNER JOIN | 'RIGHT JOIN'
+         * @return xORMHelper 
+         */
+        public function JoinTable(xORMHelper $TargetOrm, string $Alias=null,string $cleJointeSrc, string $cleJointeEtrangere='ID', $type = 'LEFT JOIN'):xORMHelper ;
+
+
+        /**
+         * Execute une requette sql SELECT avec éventuellement des jointure de table ajoutées précédemment à l'objet en cour
+         * @param string|null $Critere 
+         * @param mixed $Ordre 
+         * @param string $SelectChamp En cas de jointure, la table principale est nommée T1 et les tables joint seront soit 
+         *  nommée via leurs alias définit lors de leurs ajout ou bien un alias automatique commençant par j+numro d'ordre
+         *  exemple j1, j2, j3, ...
+         * @param mixed $GroupBy 
+         * @param null|string $Limit 
+         * @return null|mysqli_result 
+         */
+        public function JointureChargeListe(string $Critere=null,$Ordre=null,$SelectChamp="*", $GroupBy=null, ?string $Limit=null):?mysqli_result ;
 
         /**
          * Convertir l'objet en cour au format JSON
