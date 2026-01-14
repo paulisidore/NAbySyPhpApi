@@ -262,6 +262,7 @@ Class xProforma extends xORMHelper
 					$NbLigne++ ;
 					$vId=$P['vId'] ;
 					$Article=$Panier->GetArticle($vId);
+					$TVA=0;
 					if ($Article){
 						//Pdt additionnel trouver dans la Panier
 						$vId=$P['vId'];

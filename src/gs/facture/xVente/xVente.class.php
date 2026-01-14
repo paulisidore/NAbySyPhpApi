@@ -266,6 +266,7 @@ Class xVente extends xORMHelper
 			foreach ($PdtFacture as $P){
 					$NbLigne++;
 					$vId=$P['vId'] ;
+					$TVA=0;
 					$Article=$Panier->GetArticle($vId);
 					if ($Article){
 						//Pdt additionnel trouver dans la Panier
