@@ -48,7 +48,7 @@ class xCart{
   public int $IdPoste ;
   public string $NomPoste ;
 
-  public string $NomBeneficiaireRemise ;
+  public string $NomBeneficiaireRemise = '' ;
 
   public string $TextNote ;
 

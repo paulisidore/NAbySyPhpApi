@@ -173,6 +173,7 @@ switch ($action){
             }
 
             $YouCanSave=false ;
+            $YouCanSaveBout=false;
             $MySQL=new xDB($nabysy);
             $MySQL->DebugMode=false;
             $ListeChampIntrouvable=[];
@@ -190,24 +191,32 @@ switch ($action){
                     if(strtoupper($Champ) == 'MONNAIE_LONGUE'){
                         $Champ = 'MONNAIELONG' ;
                     }
-                    if ($MySQL->ChampsExiste($Param->Table,$Champ,$Param->DataBase)){
-                        if ($Valeur !=='undefined'){
-                            if ($Param->IsTypeChampNumeric($Champ)){
-                                if ($Param->GetTypeChampInDB($Champ)==$Param::$Ctype::FLOAT ||
-                                    $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DOUBLE ||
-                                    $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DECIMAL ){
+                    if ($Valeur !=='undefined'){
+                        if ($Param->IsTypeChampNumeric($Champ)){
+                            if ($Param->GetTypeChampInDB($Champ)==$Param::$Ctype::FLOAT ||
+                                $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DOUBLE ||
+                                $Param->GetTypeChampInDB($Champ)==$Param::$Ctype::DECIMAL ){
 
-                                    $Valeur=(float)$Valeur;
-                                }else{
-                                    $Valeur=(int)$Valeur;
-                                }
+                                $Valeur=(float)$Valeur;
+                            }else{
+                                $Valeur=(int)$Valeur;
                             }
+                        }
+                        if ($MySQL->ChampsExiste($Param->Table,$Champ,$Param->DataBase)){
                             //$Param->AddToLog(__FILE__.":".__LINE__." Champ existant: ".$Champ."=".$Valeur);
                             $Param->$Champ=$Valeur;
                             $YouCanSave=true;
+                            if($Bout->ChampsExisteInTable($Champ)){
+                                $Bout->$Champ = $Valeur ;
+                                $YouCanSaveBout = true;
+                            }
+                        }elseif($Bout->ChampsExisteInTable($Champ)){
+                            $Bout->$Champ = $Valeur ;
+                            $YouCanSaveBout = true;
                         }
-                    }else{
-                        $ListeChampIntrouvable[]=$Champ;
+                        else{
+                            $ListeChampIntrouvable[]=$Champ;
+                        }
                     }
                 }
             }
@@ -219,6 +228,12 @@ switch ($action){
                     if ($NewConfig){
                         $Param->AddToJournal("PARAMETRE","Enregistrement d'un nouveau paramètre. IdParam = ".$Param->Id) ;
                     }
+                }
+            }
+
+            if($YouCanSaveBout){
+                if($Bout->Enregistrer()){
+                    $Bout->AddToJournal("PARAMETRE-BOUTIQUE","Miase à jour des paramètres pour la boutique ".$Bout->Nom) ;
                 }
             }
 

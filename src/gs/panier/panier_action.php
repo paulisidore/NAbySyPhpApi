@@ -240,6 +240,8 @@ use NAbySy\xNotification;
 			$Panier->TotalReduction=0;
 			//var_dump($Panier->TotalReduction );
 			//echo json_encode($ListeArticle);exit;
+			$TxJournal="";
+
 			foreach ($ListeArticle as $xArt){
 				$VenteDet=0;
 				$TypeVenteParDefaut=1 ;
@@ -290,6 +292,13 @@ use NAbySy\xNotification;
 							}
 						}	
 					}
+
+					if(N::getInstance()->User->NiveauAcces>2){
+						if($NewArticle->PrixU !== (float)$xArt->PrixU ){
+							$TxJournal .="Le prix de vente de ".$NewArticle->Pdt->Designation." est passé de ".$NewArticle->PrixU." à ".$xArt->PrixU.". ";
+							$NewArticle->PrixU = $xArt->PrixU;
+						}
+					}
 					
 					//echo json_encode($NewArticle);exit;
 					//echo ' </br>Article Prix de Vente: '. $NewArticle->PrixU." Pour le TypeVente=".$TypeVenteParDefaut." Vente Grossiste=".$Grossiste ;
@@ -312,17 +321,19 @@ use NAbySy\xNotification;
 				
                 $TotalRemise=(int)$Panier->TotalRemise ;
 				//var_dump($TotalRemise);
-                foreach($ListeRemise as $Remise){
+                foreach($ListeRemise as $Rem){
 					//var_dump($Remise);
-					//foreach ($Rem as $Remise){
+					foreach ($Rem as $Remise){
 						
 						if (isset($Remise['MontantRemise'])){
 							$TotalRemise +=(int)$Remise['MontantRemise'];
-							$Panier->NomBeneficiaireRemise=$Remise['NOMBENEFICIAIRE'] ;
+							if(isset($Remise['NOMBENEFICIAIRE'])){
+								$Panier->NomBeneficiaireRemise=$Remise['NOMBENEFICIAIRE'] ;
+							}
 						}else{
 							//var_dump($Remise);
 						}
-					//}
+					}
 					//var_dump($TotalRemise);
 					//exit;
                 }
@@ -519,6 +530,11 @@ use NAbySy\xNotification;
 						}
 					}
 
+					if(trim($TxJournal) !==''){
+						$TxJournal ="Durant la vente n°".$IdFacture." : ".$TxJournal ;
+						$Vente->AddToJournal("MODIFICATION", $TxJournal);
+					}
+
 					$Reponse=new xNotification();
 					$Reponse->OK=1;
 					$Reponse->Extra=$IdFacture ;
@@ -680,6 +696,11 @@ use NAbySy\xNotification;
 						}	
 					}
 					
+
+					if($NewArticle->PrixU !== (float)$xArt->PrixU ){
+						$NewArticle->PrixU = $xArt->PrixU;
+					}
+
 					//echo json_encode($NewArticle);exit;
 					//echo ' </br>Article Prix de Vente: '. $NewArticle->PrixU." Pour le TypeVente=".$TypeVenteParDefaut." Vente Grossiste=".$Grossiste ;
 					/* 	---------------------------------------------------- */
@@ -701,17 +722,19 @@ use NAbySy\xNotification;
 				
                 $TotalRemise=(int)$Panier->TotalRemise ;
 				//var_dump($TotalRemise);
-                foreach($ListeRemise as $Remise){
+                foreach($ListeRemise as $Rem){
 					//var_dump($Remise);
-					//foreach ($Rem as $Remise){
+					foreach ($Rem as $Remise){
 						
 						if (isset($Remise['MontantRemise'])){
 							$TotalRemise +=(int)$Remise['MontantRemise'];
-							$Panier->NomBeneficiaireRemise=$Remise['NOMBENEFICIAIRE'] ;
+							if(isset($Remise['NOMBENEFICIAIRE'])){
+								$Panier->NomBeneficiaireRemise=$Remise['NOMBENEFICIAIRE'] ;
+							}
 						}else{
 							//var_dump($Remise);
 						}
-					//}
+					}
 					//var_dump($TotalRemise);
 					//exit;
                 }

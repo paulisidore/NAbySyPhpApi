@@ -674,6 +674,27 @@ Class xNAbySyGS
 		return $Bout ;
 	}
 
+	/**
+	 * Retourne la première boutique utilisant le nom de la base de donnée passée en paramètre
+	 * @param string $DataBaseToFind 
+	 * @return null|xBoutique 
+	 */
+	public static function GetBoutiqueByDataBase(string $DataBaseToFind):null|xBoutique{
+		$nab=self::$ParentNAbySy;
+		if(!isset($nab)){
+			return null ;
+		}
+		$Bout=null;
+		foreach ($nab->Boutiques as $BoutPresent) {
+			if(strtolower($BoutPresent->DBname) == strtolower($DataBaseToFind) 
+				|| strtolower($BoutPresent->DBase) == strtolower($DataBaseToFind) ){
+				$Bout = $BoutPresent;
+				break;
+			}
+		}
+		return $Bout ;
+	}
+
 	public function ReadSQLArray($SQL,$Debug=true){
 		$MySQLReponse=$this->ReadWrite($SQL,null,null,$Debug) ;
 		$Reponse=self::EncodeReponseSQL($MySQLReponse) ;
@@ -843,7 +864,7 @@ Class xNAbySyGS
 		return $req ;
 	}	 
 
-	public function AddToJournal($login=null,$IdTechnicien=null,$Tache='',$Note=''){
+	public function AddToJournal($login=null,$IdTechnicien=null,$Tache='',$Note='', ?xBoutique $Boutique=null){
 		//$this->MODULE ;
 		if (!isset($login)){
 			$login="SYSTEME NABYSY" ;
@@ -872,23 +893,29 @@ Class xNAbySyGS
 		$ChampOperation = "OPERATION" ;
 		$ChampPortClient = "PortClient";
 		$MyDB=new xDB($this) ;
-		if(!$MyDB->ChampsExiste("journal",$ChampDate,$this->MainDataBase)){
-			if($MyDB->ChampsExiste("journal","Date",$this->MainDataBase)){
+
+		$JournalDB=$this->MainDataBase;
+		if($Boutique && trim($Boutique->DBName) !==''){
+			$JournalDB = $Boutique->DBName;
+		}
+
+		if(!$MyDB->ChampsExiste("journal",$ChampDate,$JournalDB)){
+			if($MyDB->ChampsExiste("journal","Date",$JournalDB)){
 				$ChampDate="Date" ;
 				$ChampHeure="Heure" ;
 				$ChampOperation = "Tache" ;
 			}
 		}
-		if(!$MyDB->ChampsExiste("journal","IdUtilisateur",$this->MainDataBase)){
-			$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","ADD","0",$this->MainDataBase) ;
+		if(!$MyDB->ChampsExiste("journal","IdUtilisateur",$JournalDB)){
+			$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","ADD","0",$JournalDB) ;
 		}
-		if(!$MyDB->ChampsExiste("journal","IP",$this->MainDataBase)){
-			$MyDB->AlterTable("journal","IP","VARCHAR(255)","ADD","0.0.0.0",$this->MainDataBase) ;
+		if(!$MyDB->ChampsExiste("journal","IP",$JournalDB)){
+			$MyDB->AlterTable("journal","IP","VARCHAR(255)","ADD","0.0.0.0",$JournalDB) ;
 		}
-		if(!$MyDB->ChampsExiste("journal",$ChampPortClient,$this->MainDataBase)){
-			$MyDB->AlterTable("journal",$ChampPortClient,"INT(11)","ADD","0",$this->MainDataBase) ;
+		if(!$MyDB->ChampsExiste("journal",$ChampPortClient,$JournalDB)){
+			$MyDB->AlterTable("journal",$ChampPortClient,"INT(11)","ADD","0",$JournalDB) ;
 		}
-		$sqljo="INSERT INTO ".$this->MasterDataBase.".journal (".$ChampDate.", ".$ChampHeure.", IdUtilisateur, IP, ".$ChampPortClient.", ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
+		$sqljo="INSERT INTO ".$JournalDB.".journal (".$ChampDate.", ".$ChampHeure.", IdUtilisateur, IP, ".$ChampPortClient.", ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
 		$reqJ=$this->ReadWrite($sqljo,true,'journal',false) ;
 		if (!$reqJ)
 			{

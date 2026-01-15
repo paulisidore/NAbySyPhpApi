@@ -17,6 +17,8 @@ Class xPanier
 	public $NomClient;
 	public $NBProduit;
 	public $TotalFacture;
+	public float $MontantRemise;
+	public bool $AvecRemise ;
 	public $MontantVerse;
 	public $MontantRendu;
 	public $Articles=array();
@@ -49,7 +51,6 @@ Class xPanier
 
 	public function Valider(){
 		//Enregistre le contenue du panier dans la table vente et/ou, met a jour les qté
-		echo "Valider Panier" ;
 		if ($this->IdFacture == ''){
 			return false ;
 		}
@@ -78,7 +79,11 @@ Class xPanier
 		//Mise a jour du compte de la boutique 6 on ajoute q son solde
 			if ($this->Client){ 
 				//Il peut arrivé que la facture soit sans client ou que la facture soit supprimée
-				$this->Client->CrediterSolde($this->TotalFacture) ;
+				$TotalNet=$this->TotalFacture;
+				if($this->AvecRemise){
+					$TotalNet -= $this->MontantRemise;
+				}
+				$this->Client->CrediterSolde($TotalNet) ;
 			}
 		//-------------------------------------------
 		$this->Vider() ;
@@ -98,7 +103,11 @@ Class xPanier
 		//Mise a jour du compte de la boutique
 			if(isset($this->Client)){
 				if ($this->Client->Id>0){
-					$this->Client->DebiterSolde($this->TotalFacture) ;
+					$TotalNet=$this->TotalFacture;
+					if(trim($PrecFact->AvecRemise)=='OUI' && (float)$PrecFact->MontantRemise !== 0 ){
+						$TotalNet -= (float)$PrecFact->MontantRemise ;
+					}
+					$this->Client->DebiterSolde($TotalNet) ;
 				}
 			}
 		//-------------------------------------------			
@@ -177,7 +186,7 @@ Class xPanier
 		$this->NomClient="";
 		//Recharge le panier correspondant a une facture pour une eventuelle modification
 		$sql="select d.IDPRODUIT as 'id_article', d.QTE as 'quantite',d.PrixVente as 'prix',d.VENTEDETAILLEE, d.VENTEDETAILLEE as 'typev',d.VENTEDETAILLEE as 'VenteGros',a.STOCKINITDETAIL as 'nbunite',e.IDCLIENT as 'id_client', e.DATEFACTURE as 'date', e.TotalFacture,
-		c.nom as 'NomClient',c.prenom as 'PrenomClient',c.Solde as 'SoldeClient', e.IDCAISSIER as 'id_caissier', u.Login as 'Caissier' from ".$this->Main->MaBoutique->DBase.".detailfacture d 
+		c.nom as 'NomClient',c.prenom as 'PrenomClient',c.Solde as 'SoldeClient', e.IDCAISSIER as 'id_caissier', u.Login as 'Caissier', e.AvecRemise, e.MontantRemise from ".$this->Main->MaBoutique->DBase.".detailfacture d 
 		left outer join ".$this->Main->MaBoutique->DBase.".produits a on a.id=d.IDPRODUIT
 		left outer join ".$this->Main->MaBoutique->DBase.".facture e on e.id=d.IDFACTURE  
 		left outer join ".$this->Main->MaBoutique->DBase.".client c on c.id=e.IDCLIENT  
@@ -201,6 +210,14 @@ Class xPanier
 					$this->Date=$row['date'] ;
 					$this->TotalFacture=$row['TotalFacture'] ;
 					$this->NomClient=$row['PrenomClient'].' '.$row['NomClient'];
+
+					if($row['AvecRemise'] == 'OUI' && (float)$row['MontantRemise']!==0){
+						$this->AvecRemise=true;
+						$this->MontantRemise = (float)$row['MontantRemise'];
+					}else{
+						$this->AvecRemise=false;
+						$this->MontantRemise=0;
+					}
 				}
 			}
 			//Charge chaque ligne de la vente 

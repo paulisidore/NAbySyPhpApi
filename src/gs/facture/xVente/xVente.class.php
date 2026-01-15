@@ -402,13 +402,20 @@ Class xVente extends xORMHelper
 						$Panier->Client=$Client ;
 					}
 					$SoldePrec=$Panier->Client->Solde ;
-					$Panier->Client->CrediterSolde($Panier->getTotalPriceCart()) ;
+					$TotalNet = $Panier->getTotalPriceCart();
+					if($Panier->TotalRemise > 0 && $Panier->TotalRemise<=$TotalNet){
+						$TotalNet = $TotalNet - $Panier->TotalRemise ;
+					}
+					if($Panier->TotalReduction > 0 && $Panier->TotalReduction<=$TotalNet){
+						$TotalNet = $TotalNet - $Panier->TotalReduction ;
+					}
+					$Panier->Client->CrediterSolde($TotalNet) ;
 					$SoldeSuiv=$Panier->Client->Solde ;
 					$cTache="MISE A JOUR SOLDE CLIENT" ;
 					$cNote="Suite à la nouvelle facture n°".$Panier->IdFacture." 
 					Le solde du client ".$Panier->Client->Prenom." ".$Panier->Client->Nom." 
 					 est passé de ".$SoldePrec." à ".$SoldeSuiv ;
-					$this->MaBoutique->AddToJournal($cTache,$cNote) ;
+					$Panier->Client->AddToJournal($cTache,$cNote) ;
 				}
 				
 			$Tache="Nouvelle Facture numero ".$Panier->IdFacture." avec ".$Panier->getNbProductsInCart()." article(s) " ;
@@ -760,7 +767,14 @@ Class xVente extends xORMHelper
 			if ($PanierToSup->IdClient > 0){
 				//Si le Client est un Bon alors on corrige son solde
 				$SoldePrec=$PanierToSup->Client->Solde ;
-				$PanierToSup->Client->DebiterSolde($PanierToSup->getTotalPriceCart()) ;
+				$TotalNet = $PanierToSup->getTotalPriceCart();
+				if($PanierToSup->TotalRemise > 0 && $PanierToSup->TotalRemise<=$TotalNet){
+					$TotalNet = $TotalNet - $PanierToSup->TotalRemise ;
+				}
+				if($PanierToSup->TotalReduction > 0 && $PanierToSup->TotalReduction<=$TotalNet){
+					$TotalNet = $TotalNet - $PanierToSup->TotalReduction ;
+				}
+				$PanierToSup->Client->DebiterSolde($TotalNet) ;
 				$PanierToSup->Client->ChargeClient($PanierToSup->IdClient);
 				$SoldeSuiv=$PanierToSup->Client->Solde ;
 				$cTache="MISE A JOUR SOLDE CLIENT-SUPPRESSION DE PANIER" ;

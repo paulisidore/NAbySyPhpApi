@@ -241,8 +241,58 @@ Class xProforma extends xORMHelper
 		$TotalTVA=0;
 
 		if ($Panier->IdFacture >0){	//Une facture en modification
-			$DateFacture = $Panier->DateFacture();
-			$HeureFacture = $Panier->HeureFacture;
+			$PrecFacture = new xProforma($this->Main, $Panier->Id);
+			if($PrecFacture && $PrecFacture->Id>0){
+				$DateFacture = $PrecFacture->DateFacture;
+				$HeureFacture = $PrecFacture->HeureFacture;
+				$PrecFacture->IdClient=$Panier->IdClient;
+				
+				$PrecFacture->TotalFacture=$Panier->getTotalPriceCart();
+				$PrecFacture->ModeReglement=$Panier->ModePaiement;
+				if ($PrecFacture->ModeReglement==""){
+					$PrecFacture ->ModeReglement="E";
+				}
+
+				if ($Panier->IdClient >2){
+					$PrecFacture->ModeReglement = "BP";
+				}
+
+				$PrecFacture->NomBeneficiaire=$Panier->PrenomClt." ".$Panier->NomClt;
+				$PrecFacture->MontantReduction=(int)$Panier->TotalReduction;
+				$PrecFacture->MontantRemise = (float)$Panier->TotalRemise;
+				if ($PrecFacture->MontantRemise<>0){
+					$PrecFacture->AvecRemise='OUI';
+					//On détermine le Pourcentage de la remise
+					$PourCRem=(float)(((float)$PrecFacture->MontantRemise / $PrecFacture->TotalFacture)*100) ;
+					$PrecFacture->ValRemise=$PourCRem;
+					//$this->MODEREGLEMENT='R';
+					$PrecFacture->NomBeneficiaire=$Panier->NomBeneficiaireRemise;
+				}else{
+					$PrecFacture->AvecRemise='NON';
+					$PrecFacture->ValRemise=0;
+					$PrecFacture->MontantRemise=0;
+				}
+
+				if ($PrecFacture->IdClient>2){
+					//Vente a crédit
+					$SoldePrecedent = $PrecFacture->SoldePrec;
+					$SoldeSuivant = $PrecFacture->SoldeSuiv;
+					if($Panier->Client){
+						$SoldePrecedent = $Panier->Client->Solde;
+						$SoldeSuivant = $SoldePrecedent + $Panier->getTotalNetAPayer();
+					}
+					$PrecFacture->PAYER='NON';
+					$PrecFacture->NomBeneficiaire=$Panier->PrenomClt." ".$Panier->NomClt;
+					$PrecFacture->SoldePrec=$SoldePrecedent;
+					$PrecFacture->SoldeSuiv=$SoldeSuivant;
+
+				}else{
+					$PrecFacture->PAYER='OUI';
+					$PrecFacture->MontantVerse=$Panier->MontantVerse;
+					$PrecFacture->MontantRendu=$Panier->MontantRendu;
+				}
+			}
+			
 			$PrecPanier=$this->ChargerPanier($Panier->IdFacture,true);	
 			if($PrecPanier && is_object($PrecPanier)){
 				$cNote="Total Facture Precedant:".$PrecPanier->getTotalNetAPayer();			
@@ -385,6 +435,7 @@ Class xProforma extends xORMHelper
 			foreach($Panier->getList() as $P){
 				$NbLigne++;
 				$vId=$P['vId'];
+				$TVA=0;
 				$Article=$Panier->GetArticle($vId);
 				$Note="Vente de ".$P['produit']." dans la facture numero ".$Panier->IdFacture ;
 				if ($Article){

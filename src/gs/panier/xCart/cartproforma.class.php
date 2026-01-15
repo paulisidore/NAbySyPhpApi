@@ -31,6 +31,7 @@ class xCartProForma{
 
 	public $TotalReduction ;
 	public $TotalRemise ;
+	public string $NomBeneficiaireRemise = '' ;
 
 /**
  * Référence du Bon de Commande lié au panier

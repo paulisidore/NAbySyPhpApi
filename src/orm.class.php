@@ -7,6 +7,7 @@ use NAbySy\ORM\IORM;
 use Exception;
 use JsonSerializable;
 use mysqli_result;
+use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\xDB;
 use NAbySy\xNAbySyGS;
@@ -28,6 +29,8 @@ class xORMHelper implements IORM , JsonSerializable{
     private array $RS ;
     public xNAbySyGS $Main ;
     public static xNAbySyGS $xMain;
+
+    public xBoutique $MaBoutique ;
 
     /**
      * Liste interne des champs de la Table
@@ -89,6 +92,7 @@ class xORMHelper implements IORM , JsonSerializable{
         $this->DataBase = $this->Main->MainDataBase ;
         if (isset($NAbySy->MaBoutique)){
             $this->DataBase = $NAbySy->MaBoutique->DBase;
+            $this->MaBoutique = $NAbySy->MaBoutique;
         }
         $this->AutoCreate=$CreationChampAuto ;
         $this->DebugMode=false ;
@@ -104,8 +108,16 @@ class xORMHelper implements IORM , JsonSerializable{
         if (isset($DBName)){
             $this->DataBase=$DBName;
         }
+
         if ($this->DataBase==''){
             $this->DataBase=$this->Main->MainDataBase ;
+        }elseif($this->DataBase !== $NAbySy->MasterDataBase && $this->DataBase !== $NAbySy->MainDataBase) {
+            $PossibleBoutique=$NAbySy::GetBoutiqueByDataBase($this->DataBase);
+            if($PossibleBoutique && $PossibleBoutique->Id !== $this->MaBoutique->Id){
+                $BoutPrec=$this->MaBoutique->DBName ;
+                $this->MaBoutique = $PossibleBoutique;
+                $this->AddToLog("La base de donnée dans ".__CLASS__." est passé de ".$BoutPrec." à ".$PossibleBoutique->DBName." suite à une recherche par DBName");
+            }
         }
 
         self::$dataBaseName = $this->DataBase;
@@ -1116,7 +1128,7 @@ class xORMHelper implements IORM , JsonSerializable{
         if (!isset($UserN)){
             $UserN='SYS_ORM';
         }
-        $this->Main->AddToJournal($UserN,$IdU,$Tache,$Note);
+        $this->Main->AddToJournal($UserN,$IdU,$Tache,$Note, $this->MaBoutique);
         return true;        
     }
 
