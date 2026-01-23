@@ -333,6 +333,87 @@ Class xProduit extends xORMHelper
 		return false ;
 	}
 
+	public static function ImageExiste(xNAbySyGS $nabysy, int $IdPdt):bool{
+		$Pdt=new xProduit($nabysy,$IdPdt) ;
+		return $Pdt->PhotoExiste();
+	}
+
+	public static function GetImageURL(xNAbySyGS $nabysy, int $IdPdt, bool $CanAddDefautPath=true): string{
+		$Chemin="";
+		if (isset($IdPdt)){
+			$Pdt=new xProduit($nabysy,$IdPdt) ;
+			if($Pdt->PhotoExiste()){
+				$Chemin=$Pdt->GetPhoto(true) ;
+			}else{
+				if((int)$nabysy->MaBoutique->SupportArticlePhotos>0){
+					$Chemin = self::GetCheminAucunePhoto($nabysy,true);
+				}else{
+					$Chemin="";
+				}
+			}
+        }
+		return $Chemin;
+	}
+
+	/**
+	 * Retourne le lien ou le fichier aucune.png pour les articles sans photo par exemple.
+	 */
+	public static function GetCheminAucunePhoto(xNAbySyGS $nabysy, $NoSendToClient=false,string $baseUrlPhoto=null){
+		$Photo=new xPhoto( $nabysy);
+		$FileName='aucune.png' ;
+		$vFileName='aucune.png' ;
+		$DossierPhotos=$Photo->GetDossierPhoto() ;
+		$FileName=$DossierPhotos.'aucune.png' ;
+		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
+		//$Debugger->AddToLog($Tx);
+		if (!file_exists($FileName)){
+			//$Debugger->AddToLog("Fichier ".$FileName." existe.");
+			$nabysy->MaBoutique->AddToLog("Absence du Fichier ".$FileName.".");
+		}
+
+		//On copie dans un dossier temporaire pour la sécurité
+		$httpX='http://' ;
+		if (isset($_SERVER['HTTPS'])){
+			$httpX='https://';
+		}
+		//print_r($_SERVER);
+		$DosTmp=$_SERVER['DOCUMENT_ROOT'].'/tmp' ;		
+
+		if (!is_dir($DosTmp)){
+			mkdir($DosTmp) ;
+		}
+
+		if (!$NoSendToClient){
+			$Photo->SendFile($FileName) ;
+			return true ;
+		}
+
+		$File=$DosTmp.'/'.$vFileName ;
+		$Site=$httpX.$_SERVER['HTTP_HOST'].'/tmp/'.$vFileName ;
+
+		if(isset($baseUrlPhoto)){
+			$Site = $baseUrlPhoto . '/' . $vFileName;
+			//return $Site;
+		}
+
+		if (file_exists($File)){
+			//$nabysy->MaBoutique->AddToLog("URL IMAGE TROUVEE ".$File);
+			//$Debugger->AddToLog("Lien fichier Envoyé: ".$Site);
+			return $Site ;
+		}else{
+			//Copie du fichier image
+			$nabysy->MaBoutique->AddToLog("Copie du Fichier ".$FileName." vers ".$File);
+			try {
+				if (copy($FileName,$File)){
+					$nabysy->MaBoutique->AddToLog($File." Copié correctement.");
+				}
+				$nabysy->MaBoutique->AddToLog("IMAGE TROUVEE ET COPIEE ".$httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png');
+			} catch (\Throwable $th) {
+				$nabysy->MaBoutique->AddToLog("Erreur de copie: ".$th->getMessage());
+			}
+		}
+		return $httpX.$_SERVER['HTTP_HOST'].'/tmp/aucune.png';		
+	}
 
 
 	/**

@@ -50,6 +50,10 @@ switch ($action){
                 }
             }
             $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
+            if($Bout->SupportArticlePhotos==''){
+                $Bout->SupportArticlePhotos = 0; //Par defaut les photos d'article ne seront pas authorisé
+                $Bout->Enregistrer();
+            }
             if($Bout->Id==0){
                 $Err=new xErreur();
                 $Err->Autres = $IdBout ;
