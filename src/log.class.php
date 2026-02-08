@@ -75,9 +75,22 @@ class xLog{
         return false ;
     }
 
-    public function AddToLog($LogInfos, int $DebugTraceLevel=2):bool{
+    public function AddToJournalODBC($LogInfos, int $DebugTraceLevel=2):bool{
         $Journal=new xORMHelper($this->Main,null,false,"journal");
         return $Journal->AddToLog($LogInfos, $DebugTraceLevel);
+    }
+
+    /**
+     * Ajoute une entrée dans le journal CSV des évènements systèmes
+     * @param string $Note : Note à inscrire
+     * @return bool
+     */
+    public function AddToLog(string $Note, int $DebugTraceLevel=2):bool{
+        if ($Note==''){
+            return false;
+        }
+        $this->Main::$Log->Write($Note, $DebugTraceLevel) ;
+        return true;
     }
 
 }

@@ -84,7 +84,7 @@ use NAbySy\xUser;
         //print_r($UserToken) ;
         //exit;
         //echo "Reponse=: ".$UserToken->user_login ; // Marche bien et retourne la bonne infos
-        if ($User->BLOQUE=='OUI' || ($User->Etat !=='Actif' && $User->Etat !=='A') ){
+        if ($User->BLOQUE=='OUI' || ($User->ETAT !=='Actif' && $User->ETAT !=='A') ){
             $Err->TxErreur="Compte utilisateur ".$User->Login." bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
             $Err->OK=0;
             $Err->Source=$User->DataBase ;

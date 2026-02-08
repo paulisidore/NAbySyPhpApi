@@ -1,5 +1,8 @@
 <?php
 namespace NAbySy ;
+
+use xDBStateFullSet;
+
     Class xDB{
 
         public $Main ;
@@ -50,6 +53,14 @@ namespace NAbySy ;
         }
 
         public function TableExiste($Table,$DBaseName=null){
+            if($this->Main::$CanUseDBStateFullSet){
+                if($DBaseName==null && $this->Main->MaBoutique != null){
+                    $DBaseName=$this->Main->MaBoutique->DBName ;
+                }
+                if(isset($DBaseName)){
+                    return xDBStateFullSet::tableExists($DBaseName,$Table);
+                }
+            }
             $TxSQL="SHOW TABLES like '".$Table."' " ;
             if (isset($DBaseName)){
                 if(trim($DBaseName) !==''){
@@ -98,7 +109,14 @@ namespace NAbySy ;
         }
 
         public function ChampsExiste($Table,$Champ,$DBaseName=null){
-            //SHOW COLUMNS FROM bd_depot.`utilisateur` LIKE 'id'
+            if($this->Main::$CanUseDBStateFullSet){
+                if($DBaseName==null && $this->Main->MaBoutique != null){
+                    $DBaseName=$this->Main->MaBoutique->DBName ;
+                }
+                if(isset($DBaseName)){
+                    return xDBStateFullSet::fieldExists($DBaseName,$Table,$Champ);
+                }
+            }
             $TxSQL="SHOW COLUMNS FROM ".$Table." like '".$Champ."' "  ;
             if (isset($DBaseName)){
                 $TxSQL="SHOW COLUMNS FROM ".$DBaseName.".".$Table." like '".$Champ."' " ;
@@ -168,6 +186,14 @@ namespace NAbySy ;
          * @return bool 
          */
         public function DBExiste(string $DBaseName=null):bool{
+            if($this->Main::$CanUseDBStateFullSet){
+                if($DBaseName==null && $this->Main->MaBoutique != null){
+                    $DBaseName=$this->Main->MaBoutique->DBName ;
+                }
+                if(isset($DBaseName)){
+                    return xDBStateFullSet::databaseExists($DBaseName);
+                }
+            }
             if(!isset($DBaseName)){
                return false;
             }

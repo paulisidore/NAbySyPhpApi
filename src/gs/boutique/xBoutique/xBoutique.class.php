@@ -33,8 +33,8 @@ Class xBoutique extends xORMHelper  {
 		parent::__construct($NAbySy,$IdBoutique,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
 
 		if(isset($NAbySy->MaBoutique)){
-			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET')){
-				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET');
+			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET', $BoutiqueDBName)){
+				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET',$BoutiqueDBName);
 			}
 			$this->Parametre=new xORMHelper($NAbySy,1,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
 			if ($this->Parametre->Id > 0){

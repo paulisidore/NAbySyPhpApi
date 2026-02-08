@@ -55,6 +55,8 @@ include_once 'GSUrlRouterManager.class.php';
 include_once 'xNAbySyApiProxy.class.php';
 
 include_once 'xCacheFileMGR.class.php';
+include_once 'xDBStateFullSet.class.php' ; //Gestionnaire de cache de la structure de la base de donnée pour éviter les requettes SHOW TABLES et DESC TABLE à répétition
+
 
 include_once 'startupinfo.php' ;
 
@@ -78,6 +80,7 @@ use NAbySy\Router\Url\xGSUrlRouterManager;
 use NAbySy\Router\Url\xGSUrlRouterResponse;
 use NAbySy\xErreur;
 use ReflectionObject;
+use xDBStateFullSet;
 use xNAbySyCustomListOf;
 
 Class xNAbySyGS
@@ -179,6 +182,18 @@ Class xNAbySyGS
 	public static $RequetteToIgnoreInLOG=[] ;
 
 	/**
+	 * Si Vrai toutes les requettes seront loggées
+	 * @var bool
+	 */
+	public static bool $LOG_ALL_SQL_REQUETE = false ;
+
+	/**
+	 * Si Vrai Seulement les requettes échouée seront loggées
+	 * @var bool
+	 */
+	public static bool $LOG_FAILED_SQL_REQUETE = false ;
+
+	/**
 	 * Si vrai, le module 'authentification de NAbySyGS enverra la reponse d'authentification
 	 * @var bool
 	 */
@@ -247,6 +262,23 @@ Class xNAbySyGS
 	 */
 	public static bool $NO_AUTH = false;
 
+	/**
+	 * Si true, le cache de la base de donnée sera créé au chargement de la classe. Sinon, il sera créé à la première requette SQL.
+	 * @var bool
+	 */
+	public static bool $CREATE_DBCACHE_ON_LOAD = true ;
+
+	public static bool $CanUseDBStateFullSet = false ; //Indique si la classe de cache de la structure de la base de donnée est opérationnelle et peut être utilisée. Si false, les vérifications de l'existence des bases de données, tables et champs se feront en temps réel via des requettes SQL directes.
+
+	private string $dbcache_file = __DIR__.DIRECTORY_SEPARATOR."dbcache_schema.php";
+
+	/**
+	 * Retourne le dossier d'installation du Module
+	 * @var string
+	 */
+	public static string $NABYSY_DIRECTORY = __DIR__.DIRECTORY_SEPARATOR ;
+
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true)
 	{ 
@@ -281,6 +313,7 @@ Class xNAbySyGS
 		self::$RequetteToIgnoreInLOG = [];
 		self::$RequetteToIgnoreInLOG[]='SELECT';
 		self::$RequetteToIgnoreInLOG[]='ALTER TABLE';
+		
 				
 		$this->OS_NAME=PHP_OS;
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -365,6 +398,15 @@ Class xNAbySyGS
 					}
 				}
 			}
+			self::$CREATE_DBCACHE_ON_LOAD = false ;
+
+			if(!file_exists($this->dbcache_file)){
+				self::$CREATE_DBCACHE_ON_LOAD = true ;
+			}
+			self::$LOG_FAILED_SQL_REQUETE = false ;
+			self::$LOG_ALL_SQL_REQUETE = false ;
+			xDBStateFullSet::init($this, $this->dbcache_file, self::$LOG_ALL_SQL_REQUETE, self::$LOG_FAILED_SQL_REQUETE);
+			self::$CanUseDBStateFullSet = xDBStateFullSet::Ready();
 
 			self::LoadModuleLib();
 						
@@ -828,7 +870,9 @@ Class xNAbySyGS
 			}
 			if ($DEBUG){	
 				$ignoreRequete=self::$RequetteToIgnoreInLOG;
-				$ignoreRequete[]='ALTER TABLE';
+				if(self::$LOG_ALL_SQL_REQUETE){
+					$ignoreRequete=array();
+				}
 				$CanLog=true;
 				foreach($ignoreRequete as $ignore){
 					$ignore = strtolower($ignore." ");
@@ -2038,6 +2082,13 @@ Class xNAbySyGS
 		string $AdresseClient="Dakar Zack Mbao", string $TelClt="+221 33 836 14 77", string $Database="nabysygs", 
 		string $MasterDataBase="nabysygs", string $Server="127.0.0.1", string $DBUser="root", string $DBPwd="", int $DBPort=3306,
 		?string $baseDir = null, ?bool $DesableTokenAuth=true):xNAbySyGS{
+		
+		if(isset($baseDir)){
+			if( $baseDir !==''){
+				self::$BASEDIR = $baseDir ;
+			}
+		}
+
 		$InfoClientMCP = new ModuleMCP();
 		$InfoClientMCP->Nom = $AppName ;
 		$InfoClientMCP->MCP_CLIENT = $NomClient;
@@ -2051,7 +2102,6 @@ Class xNAbySyGS
 		$Connexion->DBUser= $DBUser;
 		$Connexion->DBPwd= $DBPwd;
 		$Connexion->Port= $DBPort;
-		self::$BASEDIR = $baseDir ;
 
 		$StartInfo = new xStartUpInfo($InfoClientMCP, $Connexion);
 		$StartInfo->DesableTokenAuth = $DesableTokenAuth ;
@@ -2374,7 +2424,7 @@ Class xNAbySyGS
 									//self::$Log->Write("CltDataBase: ".$CltDataBase." BD=".$BoutiqueCible->DataBase);
 									//self::$Log->Write("Boutique précédente: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DBName);
 									//self::$Log->Write( "Future DataBase: ". $BoutiqueCible->DBName." dafinit dans ".$BoutiqueCible->FullTableName()) ;
-									if($BoutiqueCible->DBname ==''){
+									if($BoutiqueCible->DBName ==''){
 										//var_dump(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
 										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": BoutiqueCible->DBname ='' !!!");
 										$BoutiqueCible->DBname = $CltDataBase ;

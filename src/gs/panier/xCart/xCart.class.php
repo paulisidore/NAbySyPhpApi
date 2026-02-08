@@ -89,7 +89,7 @@ class xCart{
 		if (isset($Bou->Main->User)){
 			if ($Bou->Main->User->Id>0){
 				$this->IdCaissier=$Bou->Main->User->Id;
-				$this->Caissier=$Bou->Main->User->Login; 
+				$this->Caissier=$Bou->Main->User->LOGIN; 
 			}
 		}
 	}

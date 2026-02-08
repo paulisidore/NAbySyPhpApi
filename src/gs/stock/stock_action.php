@@ -343,8 +343,9 @@ use NAbySy\xNotification;
                 $Pdt=new xProduit($nabysy,$IdPdt);
                 $Repo=$Pdt->SavePhoto($ChampFichier);
                 $TypeReponse=get_class($Repo) ;
-                if ( $TypeReponse=='xErreur'){
+                if ( $TypeReponse=='xErreur' || $TypeReponse=='NAbySy\xErreur' || $TypeReponse=='NAbySy\xNotification'){
                     $Reponse=json_encode($Repo) ;
+                    //$Pdt->AddToLog("Reponse de SavePhoto: ".$Reponse);
                 }else{
                     $Reponse=new xErreur ;
                     $Reponse->OK=1;
