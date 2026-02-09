@@ -7,8 +7,35 @@
 use NAbySy\xNAbySyGS;
 
 define('XNABYSY_LOADED', true);
+$base = "";
+if (defined('__BASEDIR__') ){
+	$base = __BASEDIR__  ;
+}
+
+$Rep = $_SERVER['DOCUMENT_ROOT'] ;
+if(isset($base) && $base !==''){
+	$PrecRep = $Rep ;
+	$Rep .= DIRECTORY_SEPARATOR.$base ;
+	if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+		echo "Creation du dossier ".$Rep." dans ". $PrecRep ." !</br>";
+		try {
+			mkdir($Rep,0777,true);
+		} catch (\Throwable $th) {
+				throw $th;
+		}
+	}
+	if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+		throw new Exception("Basedir ".$Rep." introuvable !", 1);
+	}
+}
+$Rep=str_replace('/',DIRECTORY_SEPARATOR,$Rep)  ;
+$host_directory = $Rep ;
+//echo "Repertoir de Travail ".__FILE__." = ". $host_directory."</br>" ;
 
 include_once 'nabysy.php' ;
+
+//define('__BASEDIR__', $base) ;
+//echo "Maitenant __BASEDIR__ = ". $base."</br>" ;
 
 if (!class_exists('N')) {
 	/**
@@ -30,6 +57,8 @@ if (!class_exists('N')) {
 		}
 	}
 }
+N::$BASEDIR = $base ;
+//echo "__BASEDIR__ = ".N::$BASEDIR."</br>" ; exit;
 
 $fichierStart = N::CurrentFolder(true).'appinfos.php';
 $outputDir =  N::CurrentFolder(true) ;
