@@ -7,6 +7,7 @@ use NAbySy\GS\Panier\xCart;
 use NAbySy\GS\Panier\xPanier;
 use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\Lib\BonAchat\xBonAchatManager;
+use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
@@ -68,9 +69,16 @@ Class xVente extends xORMHelper
 		//Permet de lire une vente par son Id ou IdDetail
 		$OK=false;
 		$NbLigne=0;
+		$HistMethodePaie=new xORMHelper($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'methodepaiehistorique');
+		$TxJointure="" ;
+		if($HistMethodePaie->TableExiste()){
+			$TxJointure=" LEFT OUTER JOIN ".$HistMethodePaie->FullTableName()." h ON h.IdFacture = v.ID " ;
+		}
+
 		$sql  ="SELECT v.*, c.Nom as 'NomClt',c.Prenom as 'PrenomClt', U.Login as 'Caissier' from ".$this->FullTableName()." v 
 				left outer join ".$this->Client->FullTableName()." c on c.id=v.IdClient
-				left outer join ".$this->DataBase.".utilisateur U on U.id=v.IdCaissier
+				left outer join ".$this->DataBase.".utilisateur U on U.id=v.IdCaissier 
+				".$TxJointure."
 				WHERE v.id > 0 ";
 		$crit="" ;
 		if (isset($DateDu)){

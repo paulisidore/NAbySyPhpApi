@@ -57,6 +57,7 @@ include_once 'xNAbySyApiProxy.class.php';
 include_once 'xCacheFileMGR.class.php';
 include_once 'xDBStateFullSet.class.php' ; //Gestionnaire de cache de la structure de la base de donnée pour éviter les requettes SHOW TABLES et DESC TABLE à répétition
 
+include_once 'xMediaRessource.class.php'; //Gestionnaire de Média pour NAbySyGSApi
 
 include_once 'startupinfo.php' ;
 
@@ -73,6 +74,7 @@ use NAbySy\Lib\ModuleExterne\TechnoWEB\ITechnoWEB;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\PaiementModuleLoader;
 use NAbySy\Lib\Sms\xSMSEngine;
+use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\ModuleMCP;
 use NAbySy\ORM\xORMHelper;
@@ -263,6 +265,13 @@ Class xNAbySyGS
 	public static bool $NO_AUTH = false;
 
 	/**
+	 * Gestion des modules de paiements déclaré dans la Base de donnée
+	 * @var xMethodePaie
+	 */
+	public static xMethodePaie $DBModulePaieMgr ;
+
+
+	/**
 	 * Si true, le cache de la base de donnée sera créé au chargement de la classe. Sinon, il sera créé à la première requette SQL.
 	 * @var bool
 	 */
@@ -408,15 +417,14 @@ Class xNAbySyGS
 			xDBStateFullSet::init($this, $this->dbcache_file, self::$LOG_ALL_SQL_REQUETE, self::$LOG_FAILED_SQL_REQUETE);
 			self::$CanUseDBStateFullSet = xDBStateFullSet::Ready();
 
-			self::LoadModuleLib();
-						
-			self::LoadModuleGS();
-
-			$this->ChargeInfos() ;
-
-			self::LoadExternalModuleLib();
-
-			$PMLoader=new PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
+			if (!isset(self::$DBModulePaieMgr)){
+				self::LoadModuleGS();
+				self::$DBModulePaieMgr=new xMethodePaie($this);
+				self::LoadModuleLib(0);
+				$this->ChargeInfos() ;
+				self::LoadExternalModuleLib();
+				$PMLoader=new PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
+			}
 
 			/* Modification du jeu de résultats en utf8mb4 */
 			self::$db_link->set_charset("utf8mb4");
@@ -1111,6 +1119,26 @@ Class xNAbySyGS
 	}
 
 	/**
+	 * Convertir l'encodage d'une variable dans un format déterminé par targetEnconding
+	 * @param mixed $mixed 
+	 * @param string $targetEncoding 
+	 * @return array|string|false|mixed 
+	 */
+	public static function encodeTextTo($mixed, string $targetEncoding = 'ISO-8859-1') {
+		if (is_array($mixed)) {
+			foreach ($mixed as $key => $value) {
+				$mixed[$key] = self::encodeTextTo($value, $targetEncoding);
+			}
+		}else{
+			$currentEncoding = mb_detect_encoding($mixed, mb_detect_order(), true);
+			if ($currentEncoding !== $targetEncoding) {
+				return mb_convert_encoding($mixed, $targetEncoding, $currentEncoding);
+			}
+		}
+		return $mixed;
+	}
+
+	/**
 	 * Function Convertion SQLToJSON: Utilisé pour Convertir un resultat MySQLi en objet serialisé JSon
 	 * @param mysqli_result|object $RS
 	 * @return string JSON string
@@ -1287,7 +1315,7 @@ Class xNAbySyGS
 			$ListeR=[];
 			$ListeR[]="boutique" ;
 			$ListeR[]="stock" ;
-			// $ListeR[]="client" ;
+			$ListeR[]="client" ;
 			// $ListeR[]="fournisseur" ;
 			$ListeR[]="facture" ;
 			//$ListeR[]="bl" ;
@@ -1370,17 +1398,17 @@ Class xNAbySyGS
 	 * Charge les librairies partagées entre les modules
 	 */
 	public static function LoadModuleLib($DebugLevel=0){  
-			$rep="lib" ;
+			$rep=__DIR__ .DIRECTORY_SEPARATOR."lib" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
             
             $ListeDossier=[] ;
 			$NbModule=0;
             if ($DebugLevel>2){
-                self::$Log->AddToLog('Repertoire '.$rep.' Existe ? ') ;
+                self::$Log->AddToLog('Repertoire '.$rep.' Existe ? ',$DebugLevel) ;
             }            
             if(self::IsDirectory($rep)){  
                 if ($DebugLevel>2){
-                    self::$Log->AddToLog( 'OUI') ;
+                    self::$Log->AddToLog( 'OUI', $DebugLevel) ;
                 }
                 if($iteration = opendir($rep)){  
                     
@@ -1390,16 +1418,16 @@ Class xNAbySyGS
                         {  
                             $pathfile=$rep.DIRECTORY_SEPARATOR.$dos ;
                             if ($DebugLevel>2){
-                                self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ') ;
+                                self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ', $DebugLevel) ;
                             }
                             if (is_dir($pathfile)){
                                 $NbModule ++;
                                 if ($DebugLevel>2){
-                                    self::$Log->AddToLog( 'Librairie trouvé: '.$dos) ;
+                                    self::$Log->AddToLog( 'Librairie trouvé: '.$dos, $DebugLevel) ;
                                 }
                                 //Repertoir nom de module
                                 if ($DebugLevel>2){
-                                    self::$Log->AddToLog( 'OUI') ;
+                                    self::$Log->AddToLog( 'OUI', $DebugLevel) ;
                                 }
                                 $Mod=[];
                                 $Mod[0]=$dos ;
@@ -1407,7 +1435,7 @@ Class xNAbySyGS
                                 $ListeDossier[]=$Mod ;                                
                             }else{
                                 if ($DebugLevel>2){
-                                    self::$Log->AddToLog( 'NON') ;
+                                    self::$Log->AddToLog( 'NON', $DebugLevel) ;
                                 }
                             }
                         }
@@ -1416,7 +1444,7 @@ Class xNAbySyGS
                 }  
             }else{
                 if ($DebugLevel>2){
-                    self::$Log->AddToLog( 'NON') ;
+                    self::$Log->AddToLog( 'NON', $DebugLevel) ;
                 }
             }
             

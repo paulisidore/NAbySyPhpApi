@@ -31,7 +31,7 @@ use NAbySy\xNotification;
         /** Retoutrne le nom du module */
         public function Nom():string ;
 
-        /** Nom présenté sur l'interface de Vent */
+        /** Nom présenté sur l'interface de Vente */
         public function UIName():string ;
 
         /** l'Url du logo affiché sur l'interface utilisateur */

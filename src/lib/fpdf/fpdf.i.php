@@ -23,7 +23,7 @@ namespace NAbySy\Lib\Pdf ;
                 $this->javascript=$script;
             }
         function _putjavascript() {
-                $this->_newobj();
+/*                 $this->_newobj();
                 $this->n_js=$this->n;
                 $this->_out('<<');
                 $this->_out('/Names [(EmbeddedJS) '.($this->n+1).' 0 R ]');
@@ -34,7 +34,7 @@ namespace NAbySy\Lib\Pdf ;
                 $this->_out('/S /JavaScript');
                 $this->_out('/JS '.$this->_textstring($this->javascript));
                 $this->_out('>>');
-                $this->_out('endobj');
+                $this->_out('endobj'); */
             }
     
             function _putresources() {
@@ -47,7 +47,7 @@ namespace NAbySy\Lib\Pdf ;
             function _putcatalog() {
                 parent::_putcatalog();
                 if (isset($this->javascript)) {
-                    $this->_out('/Names <</JavaScript '.($this->n_js).' 0 R>>');
+                    //$this->_out('/Names <</JavaScript '.($this->n_js).' 0 R>>');
                 }
             }
                 function AutoPrint($dialog=false, $nb_impr=1)

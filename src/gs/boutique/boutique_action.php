@@ -24,6 +24,7 @@ switch ($action){
                     if(isset(N::$TechnoWEBMgr)){
                         $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
                         if($ClientTechnoWeb){
+                            //N::getInstance()::$Log->AddToLog("NAbySyGS Client IdTechnoWeb ".$PARAM['IDTECHNOWEB']." DB Trouvé: " . json_encode($ClientTechnoWeb)) ;
                             $IdBTrouve=null;
                             if($ClientTechnoWeb->ServiceDB == N::getInstance()->MaBoutique->DBName ){
                                 $IdBout=N::getInstance()->MaBoutique->Id;
@@ -65,7 +66,7 @@ switch ($action){
             $Reponse->OK=1;
             $rw = $Bout->ToArrayAssoc();
             //$rw['DBASE'] = $Bout->DBname;
-            N::getInstance()::$Log->AddToLog("Boutique trouvée: ".json_encode($rw));
+            //N::getInstance()::$Log->AddToLog("Boutique trouvée: ".json_encode($rw));
                     
             $rw['URL_ENTETE'] = $Bout->GetLogoEntete(true);
             $rw['ENTETE_TICKET'] =  $rw['URL_ENTETE'] ;
@@ -313,7 +314,7 @@ switch ($action){
                 exit ;
             }
             echo $json ;            
-
+            exit;
             break ;
         
         case "LISTE_PRODUIT":

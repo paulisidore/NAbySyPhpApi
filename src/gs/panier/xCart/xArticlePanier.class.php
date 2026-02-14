@@ -23,7 +23,7 @@ Class xArticlePanier
 	public $Main;
 	public $Boutique ;
 
-	public bool $IsPdtClown ;
+	public bool $IsPdtClown = false ;
 
 	public $CodeBar ;
 	

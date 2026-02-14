@@ -9,9 +9,10 @@
 
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\ORM\xORMHelper;
+use NAbySy\xNAbySyGS;
 
     class xCodeBarShema extends xORMHelper {
-        public function __construct(\xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='codebarshema', xBoutique $Boutique=null){
+        public function __construct(xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='codebarshema', xBoutique $Boutique=null){
 
             parent::__construct($NAbySy,$Id,$AutoCreateTable,$TableName);
 

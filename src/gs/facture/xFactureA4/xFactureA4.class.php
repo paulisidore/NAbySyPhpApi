@@ -6,7 +6,8 @@ use NAbySy\GS\Client\xClient;
 use NAbySy\GS\Facture\xVente;
 use NAbySy\xNAbySyGS;
 use NAbySy\Lib\Pdf\xPDF;
-use xFormat;
+use NAbySy\UI\xFormat;
+use NAbySy\xUser;
 
 /** Gestion des impressions de facture au Forma A4 */
 class xFactureA4 {
@@ -92,26 +93,26 @@ class xFactureA4 {
         }
         $this->Pdf->SetFont('Arial','I','11');
 
-        $this->Pdf->Text(22,'60',utf8_decode('Numéro Client: '.$Vente->Client->Id));
+        $this->Pdf->Text(22,'60',$this->Main->utf8ize('Numéro Client: '.$Vente->Client->Id));
         if ($Vente->IdClient>2){
-            $this->Pdf->Text(22,'68',utf8_decode("Nom Client: ".$Vente->Client->Prenom."   ".$Vente->Client->Nom));
-            $this->Pdf->Text(22,'74',utf8_decode("Adresse Client: ".$Vente->Client->Adresse."  Téléphone: ".$Vente->Client->Tel));
+            $this->Pdf->Text(22,'68',$this->Main->utf8ize("Nom Client: ".$Vente->Client->Prenom."   ".$Vente->Client->Nom));
+            $this->Pdf->Text(22,'74',$this->Main->utf8ize("Adresse Client: ".$Vente->Client->Adresse."  Téléphone: ".$Vente->Client->Tel));
         }else{
-            $this->Pdf->Text(22,'68',utf8_decode("Nom Client: ".$Vente->NomBeneficiaire));
-            //$this->Pdf->Text(22,'74',utf8_decode("Adresse Client: ".$Vente->Client->Adresse."  Téléphone: ".$Vente->Client->Tel));
+            $this->Pdf->Text(22,'68',$this->Main->utf8ize("Nom Client: ".$Vente->NomBeneficiaire));
+            //$this->Pdf->Text(22,'74',$this->Main->utf8ize("Adresse Client: ".$Vente->Client->Adresse."  Téléphone: ".$Vente->Client->Tel));
         }
        
-        //$this->Pdf->Text(22,'81',utf8_decode());
-        $this->Pdf->Text(140,'60',utf8_decode("Numéro: ".$Vente->Id));
-        $this->Pdf->Text(140,'66',utf8_decode('Facturé le '.$date." à ".$Vente->HeureFacture));
-        //$this->Pdf->Text(165,'75',utf8_decode("Doit"));
+        //$this->Pdf->Text(22,'81',$this->Main->utf8ize());
+        $this->Pdf->Text(140,'60',$this->Main->utf8ize("Numéro: ".$Vente->Id));
+        $this->Pdf->Text(140,'66',$this->Main->utf8ize('Facturé le '.$date." à ".$Vente->HeureFacture));
+        //$this->Pdf->Text(165,'75',$this->Main->utf8ize("Doit"));
         $this->Pdf->SetXY(5,80);
-        $str = utf8_decode('Désignation');
+        $str = $this->Main->utf8ize('Désignation');
         $this->Pdf->SetFont('Arial','B','11');
-        $this->Pdf->Cell(30,6,utf8_decode("Quantité"),1,0,'C');
+        $this->Pdf->Cell(30,6,$this->Main->utf8ize("Quantité"),1,0,'C');
         $this->Pdf->Cell(102,6,$str,1,0,'C');
         $this->Pdf->Cell(30,6,"Prix Unitaire",1,0,'C');
-        $this->Pdf->Cell(40,6," ".utf8_decode("Total"),1,0,'L');
+        $this->Pdf->Cell(40,6," ".$this->Main->utf8ize("Total"),1,0,'L');
         $this->Pdf->SetFont('Arial','','10');
         $this->Pdf->SetLineWidth(0.2);
         $this->Pdf->SetXY(5,90);        
@@ -131,7 +132,7 @@ class xFactureA4 {
             if($taille_result % 30)
                 $nb_page++;
         }
-        $this->Pdf->Text(90,285,utf8_decode("Page ".$c_page)." / ".$nb_page);
+        $this->Pdf->Text(90,285,$this->Main->utf8ize("Page ".$c_page)." / ".$nb_page);
 
         foreach ($Vente->DetailVente->ListeProduits as $art1)
         {
@@ -140,7 +141,7 @@ class xFactureA4 {
                 $this->SendEntete($Vente);
                 $this->i=80;
                 $c_page++;
-                $this->Pdf->Text(90,285,utf8_decode("Page ".$c_page)." / ".$nb_page);
+                $this->Pdf->Text(90,285,$this->Main->utf8ize("Page ".$c_page)." / ".$nb_page);
             }
 
             $this->i +=6;
@@ -159,10 +160,10 @@ class xFactureA4 {
             $qte="0".$qte;
 
             if($art1['VenteDetaillee']=="NON"){
-                //$qte=utf8_decode($qte." ".$art1['unitec']);
+                //$qte=$this->Main->utf8ize($qte." ".$art1['unitec']);
             }                
             else{
-                //$qte=utf8_decode($qte." ".$art1['united']);
+                //$qte=$this->Main->utf8ize($qte." ".$art1['united']);
             }            
             //$pin=$art1['pin'];
             $pin="";
@@ -170,7 +171,7 @@ class xFactureA4 {
                 $pin="ID: ".$pin;
 
             $this->Pdf->SetXY(5,$this->i);
-            $str = " ".utf8_decode($nomart);
+            $str = " ".$this->Main->utf8ize($nomart);
             $this->Pdf->SetFont('Arial','','10');
             $this->Pdf->Cell(30,6,$qte,1,0,'C');
             //$this->Pdf->Cell(54,10,$str,1,0,'C');
@@ -206,15 +207,15 @@ class xFactureA4 {
         $this->Pdf->Cell(70,10,$total,1,0,'C');
         $this->Pdf->SetFont('Arial','BU','11');
         $this->i=$this->i+15;
-        $this->Pdf->Text('18',"$this->i",utf8_decode("Arrêtée la présente facture à la somme de:"));
+        $this->Pdf->Text('18',"$this->i",$this->Main->utf8ize("Arrêtée la présente facture à la somme de:"));
         $this->Pdf->SetFont('Arial','I','12');
-        $this->Pdf->Text('18',($this->i+6),utf8_decode($lettre));
+        $this->Pdf->Text('18',($this->i+6),$this->Main->utf8ize($lettre));
         $NbCarton=$Vente->DetailVente->NbCarton();
         if ($NbCarton>0){
             $this->i=$this->i+15;
             $this->Pdf->SetFont('Arial','B','10');
-            $this->Pdf->Text('18',"$this->i",utf8_decode("Nombre de Carton: "));
-            $this->Pdf->Text('65',$this->i,utf8_decode($NbCarton));
+            $this->Pdf->Text('18',"$this->i",$this->Main->utf8ize("Nombre de Carton: "));
+            $this->Pdf->Text('65',$this->i,$this->Main->utf8ize($NbCarton));
         }
         
         /* Prise en charge de la Signature */
@@ -226,7 +227,7 @@ class xFactureA4 {
                 if ($Vente->DejaImprimee==0){
                     // Si la facture ná jamais étée signée alors on peut ra jouter la signature
                     $TxSignature='Signé par Id Utilisateur '.$Vente->IdSignataire ;
-                    $Signataire=new \xUser ($this->Main,$Vente->IdSignataire) ;
+                    $Signataire=new xUser ($this->Main,$Vente->IdSignataire) ;
                     if($Signataire->Id>0){
                         $TxSignature=$Signataire->Signature();
                         if ($TxSignature==''){
@@ -237,9 +238,9 @@ class xFactureA4 {
                         }
                     }
                     $this->Pdf->SetFont('Arial','U','12');
-                    $this->Pdf->Text('160',"$this->i",utf8_decode("Signature"));
+                    $this->Pdf->Text('160',"$this->i",$this->Main->utf8ize("Signature"));
                     $this->Pdf->SetFont('Arial','B','12');
-                    $this->Pdf->Text('160',($this->i+6),utf8_decode($TxSignature));
+                    $this->Pdf->Text('160',($this->i+6),$this->Main->utf8ize($TxSignature));
                 }
             }
         }
@@ -251,8 +252,8 @@ class xFactureA4 {
             }else{
                 $this->i +=15 ;
             }
-            $this->Pdf->Text('18',"$this->i",utf8_decode("Nombre de Pièce: "));
-            $this->Pdf->Text('65',$this->i,utf8_decode($NbDetail));
+            $this->Pdf->Text('18',"$this->i",$this->Main->utf8ize("Nombre de Pièce: "));
+            $this->Pdf->Text('65',$this->i,$this->Main->utf8ize($NbDetail));
         }
 
         $this->Pdf->SetFont('Arial','I','6');

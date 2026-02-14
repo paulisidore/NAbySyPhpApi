@@ -67,7 +67,7 @@ use NAbySy\xNotification;
                                 //$vMd['INDEX']=$Index;
                                 $Ind++;
                             }
-                            
+                            $vMd['Activer']=$Mod->IsReady()?1:0 ;
                             $vMd['ID']=$Index ;
                             $vMd['Nom'] = $Mod->Nom();
                             $vMd['Description'] = $Mod->Description();

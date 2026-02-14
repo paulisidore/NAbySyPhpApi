@@ -450,7 +450,7 @@ Class xBoutique extends xORMHelper  {
 				$Col=array(0,0,128);
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text(87,'14',utf8_decode($Text));
+				$pdf->Text(87,'14',$this->Main->utf8ize($Text));
 			}
 			
 			if ($i==1){
@@ -459,13 +459,13 @@ Class xBoutique extends xORMHelper  {
 				$Tail=13 ;
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text(71,'19',utf8_decode($Text));
+				$pdf->Text(71,'19',$this->Main->utf8ize($Text));
 			}
 
 			if ($i==2){
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text(79,'24',utf8_decode($Text));
+				$pdf->Text(79,'24',$this->Main->utf8ize($Text));
 			}
 
 			if ($i==3){
@@ -473,21 +473,21 @@ Class xBoutique extends xORMHelper  {
 				$Italic="I" ;
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text('68','30',utf8_decode($Text));
+				$pdf->Text('68','30',$this->Main->utf8ize($Text));
 			}
 			if ($i==4){
 				//Entete K.S.S.V
 				$Italic="I" ;
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text('45','36',utf8_decode($Text));
+				$pdf->Text('45','36',$this->Main->utf8ize($Text));
 			}	
 			if ($i==5){
 				//Entete K.S.S.V
 				$Italic="I" ;
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text('60','42',utf8_decode($Text));
+				$pdf->Text('60','42',$this->Main->utf8ize($Text));
 			}	
 			$PosX=60;
 			$PosY=42+6;
@@ -495,7 +495,7 @@ Class xBoutique extends xORMHelper  {
 				//$Italic="I" ;
 				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
 				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text($PosX,$PosY,utf8_decode($Text));
+				$pdf->Text($PosX,$PosY,$this->Main->utf8ize($Text));
 			}
 			
 		}
@@ -538,7 +538,7 @@ Class xBoutique extends xORMHelper  {
 	 */
 	public function SaveLogoEntete($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
         $NomFichier=$this->Id."logo.png" ;
-		$DossierPhoto='entete-logo_'.$this->Id;
+		$DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -551,7 +551,7 @@ Class xBoutique extends xORMHelper  {
      * @return true|string 
      */
     public function GetLogoEntete($NoSendToClient=false,string $baseUrlPhoto=null){
-        $DossierPhoto='logos/entete-logo_'.$this->Id;
+        $DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$FileName=$this->Id.'logo.png' ;
 		$vFileName=$this->Id.'logo.png' ;
@@ -635,7 +635,7 @@ Class xBoutique extends xORMHelper  {
 	 * @return true|string 
 	 */
 	public function GetEnteteA4($NoSendToClient=false,string $baseUrlPhoto=null){
-        $DossierPhoto='logos/enteteA4_'.$this->Id;
+        $DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$this->Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$FileName=$this->Id.'-enteteA4.png' ;
 		$vFileName=$this->Id.'-enteteA4.png' ;
@@ -713,7 +713,7 @@ Class xBoutique extends xORMHelper  {
 	}
 
 	public function SaveEnteteA4($ChampFichier="fichier"):xNotification|xErreur{
-		$DossierPhoto='logos/enteteA4_'.$this->Id;
+		$DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$this->Id;
 		$NomFichier=$this->Id."-enteteA4.png" ;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
@@ -725,7 +725,7 @@ Class xBoutique extends xORMHelper  {
 	 */
 	public function SaveLogoTicket($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
         $NomFichier=$this->Id."logoticket.png" ;
-		$DossierPhoto='logos/entete-logo_'.$this->Id;
+		$DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -738,7 +738,7 @@ Class xBoutique extends xORMHelper  {
 	 * @return true|string 
 	 */
 	public function GetLogoTicket($NoSendToClient=false,string $baseUrlPhoto=null){
-        $DossierPhoto='logos/entete-logo_'.$this->Id;
+        $DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$FileName=$this->Id.'logoticket.png' ;
 		$vFileName=$this->Id.'logoticket.png' ;

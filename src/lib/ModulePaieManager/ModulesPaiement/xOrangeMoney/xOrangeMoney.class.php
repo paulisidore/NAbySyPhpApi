@@ -5,6 +5,8 @@ use NAbySy\GS\Facture\xVente;
 use NAbySy\xNAbySyGS;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\GS\Panier\xCart;
+use NAbySy\Media\xMediaRessource;
+use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xNotification;
 
@@ -26,6 +28,7 @@ class xOrangeMoney implements IModulePaieManager {
     private static string $myDesc = "Module de paiement sur le réseau Orange MOney pour les applications PAM sarl." ;
     private bool $ready ;
     private static string $myModuleHandleName = "xOrangeMoney" ;
+    private static string $my_log_name = "OrangeMoney.png";
 
     //public static xApiNAbySyWaveConnect $WaveApi ;
     public xORMHelper $HistTranct ;
@@ -80,7 +83,12 @@ class xOrangeMoney implements IModulePaieManager {
         $this->API_AUTH_USER ="";
         $this->API_AUTH_PWD ="";
         $this->WAIT_API_RESPONSE = 0;
-        $this->API_REFCLIENT ="";        
+        $this->API_REFCLIENT ="";
+
+        //Copie du logo dans les médias de NAbySyGS s'il n'existe pas.
+        $MediaR=new xMediaRessource($this->Main);
+        $MediaR->SaveMedia(__DIR__.DIRECTORY_SEPARATOR.self::$my_log_name,self::$my_log_name);
+
     }
 
     public function UpDateTransaction(int $IdTransaction, array $MethodePaie): bool { 
@@ -106,16 +114,9 @@ class xOrangeMoney implements IModulePaieManager {
 
     public function LogoURL(): string
     {   
-        $Url ="";
-        $httpX='http://' ;
-		if (isset($_SERVER['HTTPS'])){
-			$httpX='https://';
-		}
-		//print_r($_SERVER);
-		$DosTmp=$_SERVER['DOCUMENT_ROOT'].'/tmp' ;
-		$sitePrefix=$httpX.$_SERVER['HTTP_HOST'] ;
-        $Url=$sitePrefix."/lib/ModulePaieManager/ModulesPaiement/xOrangeMoney/OrangeMoney.png" ;
-        return $Url ;
+        $MediaR=new xMediaRessource($this->Main);
+        $Url = $MediaR->GetMediaURL(self::$my_log_name,true);
+        return $Url;
     }
 
     public function HandleModuleName(): string{
@@ -165,32 +166,31 @@ class xOrangeMoney implements IModulePaieManager {
     }
 
     public function UpDateFacture(int $IdFacture, xCart $Panier, array $MethodePaie): bool
-    {   //Mise de la Table de l'historique des paiements wave
+    {   //Mise de la Table de l'historique des paiements
+        $IdMethode=xMethodePaie::GetMethodeIDinDB($this->UIName());
+        if($IdMethode == false){
+            $IdMethode=array_search($this,$this->Main::$ListeModulePaiement);
+        }
         $HistP=new xORMHelper($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,$this->TableHistPaiement);
         if (!$HistP->TableIsEmpty()){
-            $oMethode=new xORMHelper($this->Main,null,false,"methodepaie");
-            $Lst=$oMethode->ChargeListe("Nom like '".$this->UIName()."'");
-            if($Lst){
-                if($Lst->num_rows){
-                    $rw=$Lst->fetch_assoc();
-                    $Ret=$HistP->ChargeListe("IdFacture = '".$IdFacture."' and IdMethode = '".$rw['ID']."' ");
-                    if ($Ret->num_rows){
-                        $rw=$Ret->fetch_assoc();
-                        $HistP=new xORMHelper($this->Main,$rw['ID'],$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,$this->TableHistPaiement);
-                    }
-                }
+            $Ret=$HistP->ChargeListe("IdFacture = '".$IdFacture."' and IdMethode = '".$IdMethode."' ");
+            if ($Ret->num_rows){
+                $rw=$Ret->fetch_assoc();
+                $HistP=new xORMHelper($this->Main,$rw['ID'],$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,$this->TableHistPaiement);
             }
         }
         $HistP->IdFacture=$IdFacture;
-        
         $HistP->NomMethode = $this->UIName();
-        $IdMod=array_search($this,$this->Main::$ListeModulePaiement);
-        $HistP->IdMethode=$IdMod ;
+        $HistP->IdMethode=$IdMethode ;
         $Facture=new xVente($this->Main,$IdFacture);
         if ($Facture->Id>0){
             $HistP->DateFacture=$Facture->DateFacture;
             $HistP->HeureFacture=$Facture->HeureFacture;
             $HistP->Montant = $MethodePaie['MONTANT'];
+            //On met à jour la table facture pour être conforme aux app desktop PAM
+            $Facture->PaymentModule_METHODE = $this->UIName();
+            $Facture->IDPaymentModule_METHODE = $IdMethode;
+            $Facture->Enregistrer();
             return $HistP->Enregistrer();
         }else{
             $this->MyLastError="Facture ".$IdFacture." introuvable !";

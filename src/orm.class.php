@@ -1048,13 +1048,17 @@ class xORMHelper implements IORM , JsonSerializable{
         }
         
         if (isset($Critere)){
-            if (substr(strtolower($Critere),0,strlen('where '))=='where '){
-                $Critere=substr($Critere,0,strlen('where ')) ;
+            $Critere=trim($Critere);
+            $vCritere=$Critere;
+            //echo "vCritere=".$Critere."</br>" ;
+            if (substr(strtolower($vCritere),0,strlen('where '))=='where '){
+                $vCritere=substr($vCritere,strlen('where ')) ;
             }
-            if (substr(strtolower($Critere),0,strlen('and '))=='and '){
-                $Critere=substr($Critere,0,strlen('and ')) ;
+            if (substr(strtolower($vCritere),0,strlen('and '))=='and '){
+                $vCritere=substr($vCritere,strlen('and ')) ;
+                //echo "vCritere=".$vCritere."</br>" ;exit;
             }
-            $TxSQL .=" AND ".$Critere ;
+            $TxSQL .=" AND ".$vCritere ;
         }
 
         if (isset($GroupBy)){
@@ -1631,7 +1635,7 @@ class xORMHelper implements IORM , JsonSerializable{
         $resultat = null;
         try {
             $TxSQL = $this->ChargeListeNoExecute($Critere,$Ordre,$SelectChamp, $GroupBy, $Limit);
-            //var_dump($TxSQL);
+            //echo $TxSQL;exit;
             try{
                 $resultat = $this->Main->ReadWrite($TxSQL) ;
                 //On vide la jointure

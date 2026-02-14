@@ -1,7 +1,7 @@
 <?php
 namespace NAbySy\Lib\Http ;
 
-use xErreur;
+use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
 
 /**

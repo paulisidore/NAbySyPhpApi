@@ -240,7 +240,13 @@ use NAbySy\xNotification;
                             $NbTrouv=1;
                             $AvecCritere=true ;
                             $Trouv=null ;
-						}					
+						}else{
+                            $Reponse=$nabysy->EncodeReponseSQL($Trouv);
+                            //$Reponse=$nabysy->SQLToJSON($Trouv) ;
+                            $Reponse=json_encode($Reponse) ;
+                            echo $Reponse ;
+                            exit;
+                        }
 					}
 				}
                 							
@@ -394,6 +400,19 @@ use NAbySy\xNotification;
             }
             exit;
             
+        case 'PRODUITS_STATS': //Retourne les statistiques des produits du stock
+            $Reponse = new xNotification();
+            $Reponse->OK=1;
+            $Pdt=new xProduit(N::getInstance());
+            $Reponse->Contenue['TOTAL']=xProduit::TotalLines($Pdt->Table, $Pdt->DataBase);
+            $Reponse->Contenue['RUPTURE']=xProduit::getIdRuptures()?->num_rows;
+            $Reponse->Contenue['CRITIQUE']=xProduit::getIdCritiques()?->num_rows;
+            $Reponse->Contenue['NORMAL']=xProduit::getIdStockNormal()?->num_rows;
+            $Reponse->Contenue['PERIMES']=xProduit::getIdPerimes()?->num_rows;
+
+            echo $Reponse->ToJSON();
+            exit;
+            break;
 
 		default:
 			

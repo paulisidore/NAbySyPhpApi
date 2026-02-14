@@ -8,13 +8,14 @@
 
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\ORM\xChampDB;
+use NAbySy\xNAbySyGS;
 
     class xProduitNC extends xProduit {
         public xCodeBarShema $CodeBarShema;
 
         private array $MaListeChamp;
         public bool $IsReady;
-        public function __construct(\xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='produitsnc', 
+        public function __construct(xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='produitsnc', 
             xBoutique $Boutique=null, $CodeBar=null){
             if (!isset($TableName)){
                 $TableName="produitsnc";

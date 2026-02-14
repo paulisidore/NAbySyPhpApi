@@ -49,7 +49,8 @@ use NAbySy\xNotification;
 	if ($IsProforma){
         $Panier=new  xCartProForma($nabysy->MaBoutique,$IdPanier);
 	}
-    //var_dump($action);
+    $nabysy=N::getInstance();
+
     switch ($action){
 		case "GET_FACTURE":
 			$IdFacture=null ;
@@ -72,8 +73,8 @@ use NAbySy\xNotification;
 				}
 				exit;
 			}
-			$DateDeb=null;
-			$DateFin=null;
+			$DateDeb=date('Y-m-d');
+			$DateFin=$DateDeb;
 			$Critere="" ;
 			if (isset($_REQUEST['DATEDEBUT'])){
 				$DateDeb=$_REQUEST['DATEDEBUT'] ;
@@ -87,18 +88,36 @@ use NAbySy\xNotification;
 				}elseif ($DateD !== false ){
 					$Critere .=" DATEFACTURE ='".$DateD->format('Y-m-d')."' ";
 				}
+			}else{
+				$Critere .=" DATEFACTURE ='".$DateD."' ";
 			}
+
+			if(isset($_REQUEST['CAISSIER']) && trim($_REQUEST['CAISSIER']) !== ''){
+				$Critere .=" AND NOMCAISSIER like '".$_REQUEST['CAISSIER']."%'" ;
+			}
+			if(isset($_REQUEST['NOMCAISSE']) && trim($_REQUEST['NOMCAISSE']) !== ''){
+				$Critere .=" AND NOMCAISSE like '".$_REQUEST['CAISSE']."%'" ;
+			}
+			if(isset($_REQUEST['METHODEPAIE']) && trim($_REQUEST['METHODEPAIE']) !== ''){
+				$Critere .=" AND PaymentModule_METHODE like '".$_REQUEST['METHODEPAIE']."%'" ;
+			}
+			if(isset($_REQUEST['IDMETHODE']) && (int)$_REQUEST['IDMETHODE'] >0){
+				$Critere .=" AND IDPaymentModule_METHODE = '".(int)$_REQUEST['IDMETHODE']."'" ;
+			}
+			
+			$Reponse = new xNotification();
+			$Reponse->OK=1;
+			$Reponse->Contenue = [];
 			$Vente=new xVente($nabysy) ;
 			$Lst=$Vente->ChargeListe($Critere);
-			$Reponse="";
 			if ($Lst){
 				$Rep=[];
 				while ($row=$Lst->fetch_assoc()){
 					$Rep[]=$row ;
 				}
-				$Reponse=json_encode($Rep);
+				$Reponse->Contenue = $Rep ;
 			}
-			echo $Reponse ;			
+			$Reponse->SendAsJSON() ;
 
 			exit;
 		
@@ -129,7 +148,7 @@ use NAbySy\xNotification;
 					$httpX='https://';
 				}
 				//var_dump($_SERVER['SERVER_NAME']);
-				$Lien=$httpX.$_SERVER['SERVER_NAME'].'/gs_api.php?Action=PRINT_FACTA4&Id='.$IdFacture.'&Token='.$nabysy->UserToken ;
+				$Lien=$httpX.$_SERVER['SERVER_NAME'].'/gs_api.php?Action=PRINT_FACTA4&Id='.$IdFacture.'&Token='.$nabysy->User->GetToken() ;
 				echo $Lien ;
 
 			}else{
@@ -165,7 +184,7 @@ use NAbySy\xNotification;
 			if (isset($_REQUEST['IdClient'])){				
 				if ($_REQUEST['IdClient']>0){
 					$IdClient=$_REQUEST['IdClient'] ;					
-					$Client=new xClient($Boutique,$IdClient) ;
+					$Client=new xClient(N::getInstance(),$IdClient) ;
 					$Panier->Client=$Client ;
 					$Panier->IdClient=$IdClient;
 					//var_dump($Panier->Client->Id);
@@ -243,6 +262,9 @@ use NAbySy\xNotification;
 			$TxJournal="";
 
 			foreach ($ListeArticle as $xArt){
+				if(!isset($xArt->CodeBar)){
+					$xArt->CodeBar=null ;
+				}
 				$VenteDet=0;
 				$TypeVenteParDefaut=1 ;
 				if($xArt->VENTEDETAILLEE == 'false' || $xArt->VENTEDETAILLEE == 'False' || $xArt->VENTEDETAILLEE== 'FALSE' || $xArt->VENTEDETAILLEE== '0' || $xArt->VENTEDETAILLEE== 0 || $xArt->VENTEDETAILLEE == false){
@@ -437,7 +459,10 @@ use NAbySy\xNotification;
 								//var_dump($Module);
 								$ListeMethodePaie[]=$Module ;
 								$ListeMobilePaieCheckOut[]=$xMethP;
-							}						
+							}
+							if($Panier->ModePaiement !== "VIREMENT / CARTE"){
+								$Panier->ModePaiement="VIREMENT / CARTE";
+							}
 						}
 					}
 					
@@ -521,12 +546,28 @@ use NAbySy\xNotification;
 										//On annule la facture ou bien ?
 										$Err->TxErreur .=$MethP->Nom().": ".$MethP->LastError()."#";
 									}
+								}else{
+									if ($MethP->UpDateFacture($IdFacture,$Panier,[]) == false){
+										//On annule la facture ou bien ?
+										$Err->TxErreur .=$MethP->Nom().": ".$MethP->LastError()."#";
+									}
 								}
 								//exit;
 							}catch(Exception $ex){
 
 							}
 							
+						}
+						if($IdFacture && $ListeMethodePaie && count($ListeMethodePaie)>1){
+							//Méthode de paiement multiple:
+							$MethP = $ListeMethodePaie[0];
+							$NbRest=count($ListeMethodePaie)-1 ;
+							$TxMeth=$MethP->UIName()." et ".$NbRest." autre(s)";
+							$IdMethoMulti = -10;
+							$Facture=new xVente($Vente->Main, $IdFacture);
+							$Facture->PaymentModule_METHODE = $TxMeth;
+							$Facture->IDPaymentModule_METHODE = $IdMethoMulti;
+							$Facture->Enregistrer();
 						}
 					}
 

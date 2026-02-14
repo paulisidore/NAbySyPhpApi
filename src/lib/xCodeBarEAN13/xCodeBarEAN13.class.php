@@ -3,7 +3,7 @@
 
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xProduit;
-use xDB;
+use NAbySy\xDB;
 use xNAbySyLabelPrinter;
 
     //require_once 'xNAbySyLabelPrinter.class.php' ;

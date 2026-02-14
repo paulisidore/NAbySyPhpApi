@@ -8,6 +8,8 @@ use NAbySy\GS\Panier\xCart;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\Wave\xApiNAbySyWaveConnect;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
+use NAbySy\Media\xMediaRessource;
+use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
@@ -28,6 +30,7 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
     private static string $myDesc = "Module de paiement sur le réseau Wave pour les applications compatibles NAbySy et TechnoPharm." ;
     private bool $ready ;
     private static string $myModuleHandleName = "xNAbySyWaveNetwork" ;
+    private static string $my_log_name = "Wave.png";
 
     public static xApiNAbySyWaveConnect $WaveApi ;
     public xORMHelper $HistTranct ;
@@ -82,7 +85,11 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
         $this->API_AUTH_USER ="";
         $this->API_AUTH_PWD ="";
         $this->WAIT_API_RESPONSE = 0;
-        $this->API_REFCLIENT =""; //API Token Auth        
+        $this->API_REFCLIENT =""; //API Token Auth
+        //Copie du logo dans les médias de NAbySyGS s'il n'existe pas.
+        $MediaR=new xMediaRessource($this->Main);
+        $MediaR->SaveMedia(__DIR__.DIRECTORY_SEPARATOR.self::$my_log_name,self::$my_log_name);
+
     }
 
     public function UpDateTransaction(int $IdTransaction, array $MethodePaie): bool { 
@@ -108,6 +115,10 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
 
     public function LogoURL(): string
     {   
+        $MediaR=new xMediaRessource($this->Main);
+        $Url = $MediaR->GetMediaURL(self::$my_log_name,true);
+        return $Url;
+
         $Url ="";
         $httpX='http://' ;
 		if (isset($_SERVER['HTTPS'])){
@@ -156,14 +167,9 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
     public function UpDateFacture(int $IdFacture, xCart $Panier, array $MethodePaie): bool
     {   //Mise de la Table de l'historique des paiements wave
         $HistP=new xORMHelper($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,$this->TableHistPaiement);
-        $oMethode=new xORMHelper($this->Main,null,false,"methodepaie");
-        $Lst=$oMethode->ChargeListe("Nom like '".$this->UIName()."'");
-        $IdMethode=0;
-        if($Lst){
-            if($Lst->num_rows){
-                $rw=$Lst->fetch_assoc();
-                $IdMethode = (int)$rw['ID'];
-            }
+        $IdMethode=xMethodePaie::GetMethodeIDinDB($this->UIName());
+        if($IdMethode == false){
+            $IdMethode=array_search($this,$this->Main::$ListeModulePaiement);
         }
         if (!$HistP->TableIsEmpty()){           
             if($IdMethode){                    
@@ -183,6 +189,10 @@ class xNAbySyWaveNetwork implements IModulePaieManager {
             $HistP->DateFacture=$Facture->DateFacture;
             $HistP->HeureFacture=$Facture->HeureFacture;
             $HistP->Montant = $MethodePaie['MONTANT'];
+            //On met à jour la table facture pour être conforme aux app desktop PAM
+            $Facture->PaymentModule_METHODE = $this->UIName();
+            $Facture->IDPaymentModule_METHODE = $IdMethode;
+            $Facture->Enregistrer();
             return $HistP->Enregistrer();
         }else{
             $this->MyLastError="Facture ".$IdFacture." introuvable !";

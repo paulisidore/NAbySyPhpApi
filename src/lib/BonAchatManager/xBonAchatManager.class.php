@@ -5,8 +5,7 @@ use Exception;
 use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Panier\xCart;
 use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
-use NAbySy\ORM\xORMHelper;
-use xErreur;
+use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
 
     /**
@@ -434,8 +433,11 @@ use NAbySy\xNAbySyGS;
                 }catch(Exception $ex){
 
                 }
+                if(is_array($Rep)){
+                    return $Rep;
+                }
                 echo $Reponse;                
-                return $Reponse;
+                return $Rep;
             }
 
             $Rep=[];
@@ -451,7 +453,7 @@ use NAbySy\xNAbySyGS;
         public function LoadApiConfigFromFile(){
             if (!isset(self::$RemoteNAbySy)){
                 //On Récupère la configuration dans un fichier s'il existe
-                $FichierConfig=self::MODULE_NAME.'-parametre.json';
+                $FichierConfig=$this->Main->CurrentFolder(true).self::MODULE_NAME.'-parametre.json';
                 if (!file_exists($FichierConfig)){
                     //On le crée
                     $Config='{

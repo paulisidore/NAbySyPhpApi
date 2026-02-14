@@ -1,7 +1,7 @@
 <?php
 namespace NAbySy\Lib\Pdf ;
 //require_once 'fpdf/fpdf.php';
-require_once './lib/fpdf/fpdf.php';
+require_once __DIR__.DIRECTORY_SEPARATOR.'fpdf.php';
 
 class PDF_Rotate extends FPDF
 {

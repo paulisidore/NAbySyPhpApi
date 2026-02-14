@@ -123,7 +123,7 @@ Class xDetailVente extends xORMHelper{
         $ReponseListeProduits=[];
 
         $sql="select E.*, D.Id as 'IdFacture', D.Designation,D.PrixVente,D.PRIXCESSION,
-        D.Qte,D.VenteDetaillee, D.TVA, D.StockSuivant, D.IdProduit,
+        D.Qte,D.VenteDetaillee, D.TVA,D.StockPrec, D.StockSuiv, D.IdProduit,
         C.Prenom as 'PrenomClt', C.Nom as 'NomClt',D.IdProduit,u.Login as 'Caissier',
         C.Tel,C.Solde, C.Avoir ";
         $sql .=" from ".$this->Table." D left outer join ".$Facture->Table." E on D.IdFacture=E.ID "; 

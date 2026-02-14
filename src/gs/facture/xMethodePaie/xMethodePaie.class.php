@@ -109,6 +109,30 @@ use NAbySy\xNAbySyGS;
             }
             return $nMethode;
         }
+
+        /**
+         * Retourne l'ID de la Méthode tel qu'enregistré dans la base de donnée.
+         * Retourne false si aucune méthode ne correspond
+         * @param string $NomMethode 
+         * @return int 
+         */
+        public static function GetMethodeIDinDB(string $NomMethode):int|false{
+            if ($NomMethode==''){
+                return false;
+            }
+            $Meth = new xMethodePaie(self::$xMain);
+            if($Meth->TableIsEmpty()){
+                return false;
+            }
+            $Lst=$Meth->ChargeListe("Nom like '".$NomMethode."' ");
+            if ($Lst){
+                if ($Lst->num_rows>0){
+                    $rw=$Lst->fetch_assoc();
+                   return (int)$rw['ID'];
+                }
+            }
+            return false;
+        }
     }
 
 ?>
