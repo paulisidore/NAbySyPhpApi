@@ -7,7 +7,6 @@ use NAbySy\ORM\IORM;
 use Exception;
 use JsonSerializable;
 use mysqli_result;
-use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\xDB;
 use NAbySy\xNAbySyGS;
@@ -29,8 +28,6 @@ class xORMHelper implements IORM , JsonSerializable{
     private array $RS ;
     public xNAbySyGS $Main ;
     public static xNAbySyGS $xMain;
-
-    public xBoutique $MaBoutique ;
 
     /**
      * Liste interne des champs de la Table
@@ -92,7 +89,6 @@ class xORMHelper implements IORM , JsonSerializable{
         $this->DataBase = $this->Main->MainDataBase ;
         if (isset($NAbySy->MaBoutique)){
             $this->DataBase = $NAbySy->MaBoutique->DBase;
-            $this->MaBoutique = $NAbySy->MaBoutique;
         }
         $this->AutoCreate=$CreationChampAuto ;
         $this->DebugMode=false ;
@@ -108,16 +104,8 @@ class xORMHelper implements IORM , JsonSerializable{
         if (isset($DBName)){
             $this->DataBase=$DBName;
         }
-
         if ($this->DataBase==''){
             $this->DataBase=$this->Main->MainDataBase ;
-        }elseif($this->DataBase !== $NAbySy->MasterDataBase && $this->DataBase !== $NAbySy->MainDataBase) {
-            $PossibleBoutique=$NAbySy::GetBoutiqueByDataBase($this->DataBase);
-            if($PossibleBoutique && $PossibleBoutique->Id !== $this->MaBoutique->Id){
-                $BoutPrec=$this->MaBoutique->DBName ;
-                $this->MaBoutique = $PossibleBoutique;
-                $this->AddToLog("La base de donnée dans ".__CLASS__." est passé de ".$BoutPrec." à ".$PossibleBoutique->DBName." suite à une recherche par DBName");
-            }
         }
 
         self::$dataBaseName = $this->DataBase;
@@ -1023,8 +1011,15 @@ class xORMHelper implements IORM , JsonSerializable{
         $joinSql = "";
         if(isset($this->joins) && count($this->joins)){
             foreach ($this->joins as $j) {
+                $localKey=$j->localKey;
+                $vJoin = $mainAlias.".".$localKey ;
+                //Si la clée contient déjà une alias, on l'enleve
+                $lkey = explode(".", $localKey,2);
+                if(count($lkey)>1){
+                    $vJoin=$localKey;
+                }
                 // Syntaxe SQL : LEFT JOIN table AS alias ON t1.ID = alias.foreign_key
-                $joinSql .= " {$j->type} {$j->table} AS {$j->alias} ON {$mainAlias}.{$j->localKey} = {$j->alias}.{$j->foreignKey}";
+                $joinSql .= " {$j->type} {$j->table} AS {$j->alias} ON {$vJoin} = {$j->alias}.{$j->foreignKey}";
             }
         }
 
@@ -1048,17 +1043,13 @@ class xORMHelper implements IORM , JsonSerializable{
         }
         
         if (isset($Critere)){
-            $Critere=trim($Critere);
-            $vCritere=$Critere;
-            //echo "vCritere=".$Critere."</br>" ;
-            if (substr(strtolower($vCritere),0,strlen('where '))=='where '){
-                $vCritere=substr($vCritere,strlen('where ')) ;
+            if (substr(strtolower($Critere),0,strlen('where '))=='where '){
+                $Critere=substr($Critere,0,strlen('where ')) ;
             }
-            if (substr(strtolower($vCritere),0,strlen('and '))=='and '){
-                $vCritere=substr($vCritere,strlen('and ')) ;
-                //echo "vCritere=".$vCritere."</br>" ;exit;
+            if (substr(strtolower($Critere),0,strlen('and '))=='and '){
+                $Critere=substr($Critere,0,strlen('and ')) ;
             }
-            $TxSQL .=" AND ".$vCritere ;
+            $TxSQL .=" AND ".$Critere ;
         }
 
         if (isset($GroupBy)){
@@ -1132,7 +1123,7 @@ class xORMHelper implements IORM , JsonSerializable{
         if (!isset($UserN)){
             $UserN='SYS_ORM';
         }
-        $this->Main->AddToJournal($UserN,$IdU,$Tache,$Note, $this->MaBoutique);
+        $this->Main->AddToJournal($UserN,$IdU,$Tache,$Note);
         return true;        
     }
 
@@ -1585,13 +1576,32 @@ class xORMHelper implements IORM , JsonSerializable{
             }
         }
         if(!$this->ChampIsPresent($cleJointeSrc)){
-            $TxErreur="Absence de la clé de jointure source ".$cleJointeSrc." sur ".$this->FullTableName();
-            if($this->DebugMode){
-                header('Content-Type: application/json');
-                echo json_encode(["error" => $TxErreur]);
-                exit;
-            }else {
-                self::$xMain::$Log->AddToLog($TxErreur);
+            //On vérifie dans les tables précédemments jointes
+            $ChampTrouve=false;
+            if(count($this->joins)){
+                foreach ($this->joins as $TJoin) {
+                    $vChamp=$cleJointeSrc;
+                    //Si il y a deja un alias, on l'enleve
+                    $lChamp=explode(".",$cleJointeSrc,2);
+                    if(count($lChamp)>0){
+                        $vChamp=$lChamp[1];
+                    }
+                    if($TJoin->targetObjet && $TJoin->targetObjet->ChampIsPresent($vChamp)){
+                        $ChampTrouve=true;
+                        break;
+                    }
+                }
+            }
+            if(!$ChampTrouve){
+                $TxErreur="Absence de la clé de jointure source ".$cleJointeSrc." sur ".$this->FullTableName();
+                if($this->DebugMode){
+                    header('Content-Type: application/json');
+                    echo json_encode(["error" => $TxErreur]);
+                    exit;
+                }else {
+                    self::$xMain::$Log->AddToLog($TxErreur);
+                    exit;
+                }
             }
         }
         if(!$TargetOrm->ChampsExisteInTable($cleJointeEtrangere)){
@@ -1602,6 +1612,7 @@ class xORMHelper implements IORM , JsonSerializable{
                 exit;
             }else {
                 self::$xMain::$Log->AddToLog($TxErreur);
+                exit;
             }
         }
         $TxAlias='';
@@ -1626,6 +1637,7 @@ class xORMHelper implements IORM , JsonSerializable{
         $nJoin->on = "{$this->FullTableName()}.{$cleJointeSrc} = {$TargetOrm->FullTableName()}.{$cleJointeEtrangere}" ;
         $nJoin->table = $TargetOrm->FullTableName();
         $nJoin->type = $type ;
+        $nJoin->targetObjet = $TargetOrm ;
 
         $this->joins[] = $nJoin;
         return $this;
@@ -1635,7 +1647,7 @@ class xORMHelper implements IORM , JsonSerializable{
         $resultat = null;
         try {
             $TxSQL = $this->ChargeListeNoExecute($Critere,$Ordre,$SelectChamp, $GroupBy, $Limit);
-            //echo $TxSQL;exit;
+            //var_dump($TxSQL);
             try{
                 $resultat = $this->Main->ReadWrite($TxSQL) ;
                 //On vide la jointure
@@ -1693,6 +1705,7 @@ class xORMJoinTableSpec {
     public string $foreignKey;
     public string $alias;
     public string $on;
+    public xORMHelper $targetObjet;
 }
 
 ?>
