@@ -950,6 +950,12 @@ class xORMHelper implements IORM , JsonSerializable{
         if(!isset($SelectChamp)){
             $SelectChamp="*";
         }
+        if($this->TableIsEmpty()){
+            /**Pour éviter des bug de table inexistant ou vide */
+            $TxSQL ="select 1 from  ".$this->Main->MainDataBase." where ID=0" ;
+            $nullresultat = $this->Main->ReadWrite($TxSQL) ;
+            return $nullresultat ;
+        }
         $TxSQL ="select ".$SelectChamp." from ".$Tabl." where Id>0 " ;
         if (isset($Critere)){
             if (substr(strtolower($Critere),0,strlen('where '))=='where '){
