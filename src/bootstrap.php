@@ -89,6 +89,8 @@ if (file_exists($fichierStart)) {
 			file_put_contents($fichier_sortie, $updated);
 
 		} catch (\Throwable $th) {
+			N::$Log->AddToLog("ERREUR d'ecriture das le dossier ".$outputDir,4);
+			N::$Log->AddToLog("Repertoir racine: ".N::CurrentFolder(true) );
 			throw $th;
 		}
 		include $fichierStart;
@@ -165,4 +167,39 @@ if(!file_exists($htaccess_tmpfile)){
 		//throw $th;
 		N::$Log->AddToLog("Error on reading ".$templatePath." file: ".$th->getMessage());
 	}
+}
+
+/**
+ * Installation du 1er fichier index.php
+ */
+$main_entry_file = $outputDir . 'index.php';
+if (!file_exists($main_entry_file)) {
+	$templatePath = N::CurrentFolder().'templates/template_index.php';
+	$fichier_sortie = $main_entry_file ;
+	try {
+		$template = file_get_contents($templatePath);
+		// Remplacer dynamiquement des morceaux
+		$updated = str_replace([
+			'{DATE}',
+		], [
+			date('d/M/Y H:i:s'),
+		], $template);
+
+		// Créer le dossier si nécessaire
+		if (!is_dir($outputDir)) {
+			mkdir($outputDir, 0777, true);
+		}
+		try {
+			// Écrire dans un nouveau fichier
+			file_put_contents($fichier_sortie, $updated);
+
+		} catch (\Throwable $th) {
+			N::$Log->AddToLog("ERREUR d'ecriture das le dossier ".$outputDir,4);
+			N::$Log->AddToLog("Repertoir racine: ".N::CurrentFolder(true) );
+			throw $th;
+		}
+	 } catch (\Throwable $th) {
+		throw $th;
+	 }
+	
 }
