@@ -6,6 +6,8 @@
  * Mail: 
  * Date: {DATE}
  * Version: 1.0.0
+ * 
+ * REMARK: URL parameter must avoid use of underscore character. So instend of $id_pdt, please use $idpdt
  */
 
 use NAbySy\Router\Url\xNAbySyUrlRouterHelper;
