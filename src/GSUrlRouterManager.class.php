@@ -1324,7 +1324,7 @@ class xGSUrlRouterManager{
                     <div class="login-body">
                         ' . $errorMessage . '
                         
-                        <form method="POST" action="./doauth" id="loginForm">
+                        <form method="POST" action="./describe/doauth" id="loginForm">
                             <div class="form-group">
                                 <label class="form-label" for="login">Identifiant</label>
                                 <input 
