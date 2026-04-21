@@ -356,7 +356,18 @@ Class xNAbySyGS
 			if($port <= 0){
 				$port=3306;
 			}
-			
+			if(!self::instanceDBExist()){
+				try {
+					self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
+					self::createMasterDB();
+				} catch (\Throwable $th) {
+					echo "Erreur de connexion à la base de donnée : " . $th->getMessage();
+					echo "<td><div align='center'><a href=./ />Retourner à l'acceuil SVP !</a></div></td>";
+					$this->Erreur = $th->getMessage();
+					$this->ISCONNECTED = false;
+					return;
+				}
+			}
 			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
 			if (!self::$db_link){
 				echo $this->MODULE->Nom."Connexion impossible a la base de donnée sur ".$Myserveur." :user=".$Myuser."\n";
