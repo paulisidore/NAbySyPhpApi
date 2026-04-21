@@ -356,6 +356,7 @@ Class xNAbySyGS
 			if($port <= 0){
 				$port=3306;
 			}
+			
 			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
 			if (!self::$db_link){
 				echo $this->MODULE->Nom."Connexion impossible a la base de donnée sur ".$Myserveur." :user=".$Myuser."\n";
@@ -508,6 +509,202 @@ Class xNAbySyGS
 			}
 		}
     }
+
+	/**
+	 * Vérifie si la Base de donnée master existe
+	 */
+	public static function masterDBExist(): bool {
+		$DBExist=false ;
+		$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->MasterDataBase."'";
+		$Res=self::getInstance()->ReadWrite($TxSQL);
+		if ($Res->num_rows>0){
+			$DBExist=true ;
+		}
+		return $DBExist ;
+	}
+
+	/**
+	 * Vérifie si la base de donnée de l'instance en cour existe
+	 * @return bool 
+	 */
+	public static function instanceDBExist(): bool {
+		$DBExist=false ;
+		$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->DataBase."'";
+		$Res=self::getInstance()->ReadWrite($TxSQL);
+		if ($Res->num_rows>0){
+			$DBExist=true ;
+		}
+		return $DBExist ;
+	}
+
+	/**
+	 * Permet de créer la base de donnée master si elle n'existe pas
+	 * @return bool
+	 */
+	public static function createMasterDB(): bool {
+		$Created=false ;
+		if (!self::masterDBExist()){
+			$TxSQL="CREATE DATABASE `".self::getInstance()->MasterDataBase."` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
+			$Res=self::getInstance()->ReadWrite($TxSQL);
+			if ($Res){
+				$Created=true ;
+			}
+		}else{
+			$Created=true ;
+		}
+
+		if ($Created){
+			//On crée les tables de la base de donnée master
+			//Table boutique
+			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`boutique` (
+				`id` int(11) NOT NULL AUTO_INCREMENT,
+				`IdCompteClient` int(11) NOT NULL DEFAULT 0,
+				`Nom` varchar(255) NOT NULL DEFAULT '',
+				`Serveur` varchar(255) NOT NULL DEFAULT '127.0.0.1',
+				`DBName` varchar(255) NOT NULL DEFAULT 'nabysygs',
+				`PdtTable` varchar(255) NOT NULL DEFAULT 'pdtdepot1',
+				`TablePrefix` varchar(255) NOT NULL DEFAULT '',
+				`DBUser` varchar(255) NOT NULL DEFAULT 'pharmcp',
+				`DBPassword` varchar(255) NOT NULL DEFAULT '',
+				`ConnexionString` varchar(255) NOT NULL DEFAULT '',
+				`ACTIF` int(11) NOT NULL DEFAULT 0,
+				`Solde` double NOT NULL DEFAULT 0,
+				`IMP_LIGNE` text NOT NULL DEFAULT '',
+				`IMP_POLICE` text NOT NULL DEFAULT '',
+				`Visible` int(1) NOT NULL DEFAULT 1,
+				`URLCALL` varchar(255) NOT NULL DEFAULT '',
+				`AutoCalculPV` int(11) NOT NULL DEFAULT 0,
+				`TauxPrixVente` int(11) NOT NULL DEFAULT 15,
+				`CaissierCanEditFacture` int(11) NOT NULL DEFAULT 0,
+				`AdminCanEditFacture` int(11) NOT NULL DEFAULT 1,
+				`TicketTxPiedPage` text NOT NULL DEFAULT 'NB: Nous n`acceptons pas les retours ou les Ã©changes de produit. VÃ©rifier les articles avant de partir svp.',
+				`UtilisateurInterdit` text NOT NULL DEFAULT '[]',
+				`IsBoutique` int(11) NOT NULL DEFAULT 1,
+				`DBase` varchar(255) NOT NULL DEFAULT '',
+				`MasterDataBase` varchar(255) NOT NULL DEFAULT '',
+				`ListePanier` varchar(255) NOT NULL DEFAULT '',
+				`IMP_LGNE` varchar(255) NOT NULL DEFAULT '',
+				`LOGO_TICKET` varchar(255) NOT NULL DEFAULT '',
+				`MODEINVENTAIRE` int(11) NOT NULL DEFAULT 0,
+				`MODEINVENTAIREPWD` varchar(255) NOT NULL DEFAULT '',
+				PRIMARY KEY (`id`)
+			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL);
+
+			//Table paramètre
+			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`parametre` (
+				`ID` int(11) NOT NULL AUTO_INCREMENT,
+				`IMP_A4` varchar(255) NOT NULL DEFAULT '',
+				`IMP_TICKET` varchar(255) NOT NULL DEFAULT '',
+				`MONNAIES` varchar(10) NOT NULL DEFAULT '',
+				`MONNAIES2` varchar(255) NOT NULL DEFAULT '',
+				`ACTIVER_IMPTICKET` int(11) NOT NULL DEFAULT 0,
+				`ACTIVER_IMPA4` int(11) NOT NULL DEFAULT 0,
+				`LOGO_A4` varchar(255) NOT NULL DEFAULT '',
+				`LOGO_TICKET` varchar(255) NOT NULL DEFAULT '',
+				`PIED_A4` text NOT NULL,
+				`PIED_TICKET` text NOT NULL,
+				`PortImprimante` text NOT NULL,
+				`NOMMAQUIS` text NOT NULL,
+				`EnableOpenCaisse` char(3) NOT NULL DEFAULT 'OUI',
+				`VersionTechnoPharm` varchar(255) NOT NULL DEFAULT '',
+				`PharmaML_Debug` int(11) NOT NULL DEFAULT 0,
+				`CouleurFond` double NOT NULL DEFAULT 32768,
+				`CouleurTexte` double NOT NULL DEFAULT 16777215,
+				`DontChangeColor` int(11) NOT NULL DEFAULT 1,
+				`TechnoWEB_AdresseServeur` varchar(255) NOT NULL DEFAULT '',
+				`InfoVersion` text NOT NULL,
+				`FACT_SHOW_NEGATIVE_QTE` double NOT NULL DEFAULT 1,
+				`Pays` varchar(255) NOT NULL DEFAULT 'SENEGAL',
+				`IndicatifAppel` varchar(255) NOT NULL DEFAULT '221',
+				`IsForGrossistePharmacie` int(11) NOT NULL DEFAULT 0,
+				`MODEINVENTAIRE` double NOT NULL DEFAULT 0,
+				`MODEINVENTAIREPWD` varchar(255) NOT NULL DEFAULT '',
+				`IMPRESSION_CODEPDTDEFAUT` varchar(255) NOT NULL DEFAULT 'CODEBAR;CODEBAR2',
+				`Garde_Activee` double NOT NULL DEFAULT 0,
+				`GARDE_HEURE_OUVERTUREOFFICINE` varchar(10) NOT NULL DEFAULT '08:00:00',
+				`GARDE_HEURE_FERMETUREOFFICINE` varchar(10) NOT NULL DEFAULT '23:00:00',
+				`GARDE_ADRESSE_OFFICINE` varchar(255) NOT NULL DEFAULT '-DAKR',
+				`GARDE_TEL_OFFICINE` varchar(255) NOT NULL DEFAULT '',
+				`GARDE_REGION` varchar(255) NOT NULL DEFAULT '',
+				`GARDE_PAYS` varchar(255) NOT NULL DEFAULT 'Sénégal',
+				`GARDE_QUARTIER` varchar(255) NOT NULL DEFAULT '',
+				`GARDE_DATE_ACTIVATION` datetime NOT NULL DEFAULT '2010-01-01 00:00:00',
+				`GARDE_DUREE` int(11) NOT NULL DEFAULT 7,
+				`GARDE_NOTIFIEE` int(11) NOT NULL DEFAULT 0,
+				`GARDE_NOTIFIER_LOCALEMENT` int(11) NOT NULL DEFAULT 0,
+				`GARDE_DATE_NOTIFIEE` datetime NOT NULL DEFAULT '2010-01-01 00:00:00',
+				`GARDE_DATE_NOTIFIER_LOCALEMENT` datetime NOT NULL DEFAULT '2010-01-01 00:00:00',
+				`GARDE_IDTECHNOWEB` int(11) NOT NULL DEFAULT 0,
+				`GARDE_VILLE` varchar(255) NOT NULL DEFAULT '',
+				`GARDE_DUREERESTANT` int(11) NOT NULL DEFAULT 0,
+				`GARDE_IDCLIENT` int(11) NOT NULL DEFAULT 0,
+				`CouleurLibelleDetail` double NOT NULL DEFAULT 49344,
+				`PDTINACTIF_USEDATELIVRAISON` double NOT NULL DEFAULT 1,
+				`DB_VERSION` varchar(255) NOT NULL DEFAULT '',
+				`DB_UPDATE` double NOT NULL DEFAULT 0,
+				`DB_UPDATE_DATE` varchar(255) NOT NULL DEFAULT '23/01/2019:15:44:26',
+				`Active_Multi_Peremption` int(11) NOT NULL DEFAULT 1,
+				`Active_Remise_Multiple` int(11) NOT NULL DEFAULT 1,
+				`PERIODE_ACT_CAISSE` int(11) NOT NULL DEFAULT 0,
+				`HeureOuverture` varchar(8) NOT NULL DEFAULT '07:00:00',
+				`HeureFermeture` varchar(8) NOT NULL DEFAULT '18:00:00',
+				`SiteOuverture` varchar(255) DEFAULT 'kssv3',
+				`SiteFermeture` varchar(255) NOT NULL DEFAULT 'kssvx',
+				PRIMARY KEY (`ID`)
+			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL);
+			
+			//Table utilisateur
+			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`utilisateur` (
+				`ID` int(11) NOT NULL AUTO_INCREMENT,
+				`NOM` varchar(100) NOT NULL DEFAULT '',
+				`PRENOM` varchar(100) NOT NULL DEFAULT '',
+				`ADRESSE` text NOT NULL,
+				`TEL` varchar(100) NOT NULL DEFAULT '',
+				`LOGIN` varchar(100) NOT NULL DEFAULT '',
+				`PASSWORD` varchar(100) NOT NULL DEFAULT '',
+				`DATEENTREE` varchar(10) NOT NULL DEFAULT '',
+				`DATECREATION` varchar(10) NOT NULL DEFAULT '',
+				`HEURECREATION` varchar(10) NOT NULL DEFAULT '',
+				`NIVEAUACCES` int(11) NOT NULL DEFAULT 1,
+				`PROFILE` varchar(200) NOT NULL DEFAULT '',
+				`BLOQUE` char(3) NOT NULL DEFAULT 'NON',
+				`CHANGEDATE` int(11) NOT NULL DEFAULT 0,
+				`CHANGEFACTURE` int(11) NOT NULL DEFAULT 0,
+				`CHANGETOTALBON` int(11) NOT NULL DEFAULT 0,
+				`SHOWINVENTAITE_AV` int(11) NOT NULL DEFAULT 0,
+				`SHOWFACTURE` int(11) NOT NULL DEFAULT 0,
+				`UPDATEPASSWORD` int(11) NOT NULL DEFAULT 0,
+				`UPDATESTOCK` int(11) NOT NULL DEFAULT 0,
+				`CHANGELIVRAISONDATE` int(11) NOT NULL DEFAULT 0,
+				`ETAT` varchar(100) NOT NULL DEFAULT 'Actif',
+				`LocalLoginCode` double NOT NULL DEFAULT 0,
+				`SHOWCAISSE` double NOT NULL DEFAULT 0,
+				`SHOWMAGAZIN` double NOT NULL DEFAULT 0,
+				`OnlyLimiteFactToDay` int(11) NOT NULL DEFAULT 0,
+				`ShowStockVente` int(11) NOT NULL DEFAULT 0,
+				`SHOWMagasin` double NOT NULL DEFAULT 0,
+				`ShowFS` double NOT NULL DEFAULT 0,
+				`CAN_RETOUR_VENTE` double NOT NULL DEFAULT 1,
+				`CAN_RETOUR_BL` double NOT NULL DEFAULT 1,
+				`CAN_RETOUR_TRANSACTION` double NOT NULL DEFAULT 1,
+				`CAN_CANCEL_VENTE` double NOT NULL DEFAULT 1,
+				`CAN_CANCEL_BL` double NOT NULL DEFAULT 1,
+				`CAN_CANCEL_TRANSACTION` double NOT NULL DEFAULT 1,
+				`Signature` text NOT NULL,
+				`IdEmploye` int(11) NOT NULL DEFAULT 0,
+				`CompteEmploye` varchar(255) NOT NULL DEFAULT '',
+				`RS` varchar(255) NOT NULL DEFAULT '',
+				PRIMARY KEY (`ID`),
+				UNIQUE KEY `LOGIN` (`LOGIN`)
+
+			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL);
+
+		}
+		return $Created ;
+	}
 
 	/**
 	 * Convertit un texte en carmel case
