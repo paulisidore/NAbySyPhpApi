@@ -8,7 +8,7 @@ define('XNABYSY_LOADED', true);
 
 // ============================================================
 //  1. LOGGING BOOTSTRAP AUTONOME
-//  Disponible avant toute initialisation de N
+//  Disponible avant toute initialisation de l'instance static N
 // ============================================================
 
 function nabysyBootstrapLog(string $message, string $level = 'INFO'): void
