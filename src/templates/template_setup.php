@@ -6,10 +6,57 @@
      * By Paul Isidore A. NIAMIE
      */
 
-use NAbySy\xAuth;
-use NAbySy\xErreur;
-use NAbySy\xNotification;
-use NAbySy\xUser;
+// ============================================================
+//  Classes autonomes pour le contexte Setup
+//  Versions allégées sans dépendance à N — utilisées uniquement
+//  pendant la phase de configuration initiale.
+// ============================================================
+
+if (!class_exists('xErreur')) {
+    class xErreur
+    {
+        public int $OK = 0;
+        public string|null $TxErreur = null;
+        public $Source  = null;
+        public $Extra   = null;
+        public $Autres  = null;
+
+        public function ToJSON(): string|false {
+            return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        /**
+         * Version allégée pour le setup : pas de N::getInstance() requis
+         */
+        public function SendAsJSON(bool $SendAndExit = true): bool {
+            header('Content-Type: application/json');
+            // CORS minimal pour le setup local
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+            echo json_encode($this, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if ($SendAndExit) exit;
+            return true;
+        }
+    }
+}
+
+if (!class_exists('xNotification')) {
+    class xNotification extends xErreur
+    {
+        public $Contenue = null;
+
+        public function __construct($jsonData = null) {
+            $this->OK = 1;
+            if (isset($jsonData)) {
+                $js = is_string($jsonData) ? json_decode($jsonData) : $jsonData;
+                foreach ($js as $key => $value) $this->{$key} = $value;
+            }
+        }
+    }
+}
+
+// ============================================================
 
 $PARAM = $_REQUEST;
 
@@ -220,38 +267,41 @@ PHP;
         }
 
         // ── 7. Remplacement de index.php par la version finale ──
-        $log .= "Génération du fichier index.php définitif...\n";
+        $log .= "Mise en place du fichier index.php définitif...\n";
         try {
-            $indexFile    = N::CurrentFolder(true) . 'index.php';
-            $templatePath = N::CurrentFolder() . 'templates' . DIRECTORY_SEPARATOR . 'template_index.php';
-            $template     = file_get_contents($templatePath);
+            $hostRoot    = dirname(__FILE__) . DIRECTORY_SEPARATOR;
+            $indexNew    = $hostRoot . 'index_new.php';
+            $indexFile   = $hostRoot . 'index.php';
 
-            if ($template === false) {
-                throw new \RuntimeException("Impossible de lire template_index.php");
+            if (!file_exists($indexNew)) {
+                throw new \RuntimeException(
+                    "index_new.php introuvable — le bootstrap n'a pas pu le préparer."
+                );
             }
 
-            $indexContent = str_replace(
-                ['{DATE}', '{MODULE_NAME}'],
-                [date('d/M/Y H:i:s'), $appname],
-                $template
-            );
-
-            // Supprimer le fichier setup temporaire (index.php actuel)
-            // et le remplacer par le vrai index.php
-            // Note : on écrit d'abord le nouveau contenu AVANT de supprimer
-            // car __FILE__ est verrouillé pendant l'exécution
-            file_put_contents($indexFile, $indexContent);
+            // Sur Windows, on ne peut pas supprimer un fichier en cours d'exécution.
+            // On écrase donc index.php avec le contenu de index_new.php,
+            // puis on supprime index_new.php.
+            // Sur Linux/macOS, rename() est atomique et suffit.
+            if (PHP_OS_FAMILY === 'Windows') {
+                file_put_contents($indexFile, file_get_contents($indexNew));
+                @unlink($indexNew);
+            } else {
+                // Supprime index.php (= ce fichier) et renomme index_new.php en index.php
+                @unlink($indexFile);
+                rename($indexNew, $indexFile);
+            }
 
             $log .= "OK\n\n";
         } catch (\Throwable $e) {
             // Non bloquant : appinfos.php est déjà créé, l'essentiel est fait
             $log .= "⚠ Avertissement : impossible de régénérer index.php : "
                   . $e->getMessage() . "\n"
-                  . "Vous pouvez le recréer manuellement depuis template_index.php\n\n";
+                  . "Renommez manuellement index_new.php en index.php\n\n";
         }
 
         // ── 8. Suppression de setup.html ─────────────────────
-        $setupHtml = N::CurrentFolder(true) . 'setup.html';
+        $setupHtml = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'setup.html';
         if (file_exists($setupHtml)) {
             @unlink($setupHtml);
             $log .= "setup.html supprimé ✅\n";

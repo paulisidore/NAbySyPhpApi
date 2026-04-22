@@ -213,6 +213,31 @@ if (!file_exists($main_entry_file)) {
     }
 }
 
+// ── index_new.php ───────────────────────────────────────────
+// Copie anticipée du vrai template_index.php en index_new.php.
+// template_setup.php (chargé en index.php) le renommera en index.php
+// après un setup réussi, sans dépendance à N::CurrentFolder().
+$index_new_file = $host_directory . 'index_new.php';
+if (!file_exists($index_new_file) && !file_exists($host_directory . 'appinfos.php')) {
+    nabysyBootstrapLog("Copie de index_new.php dans {$host_directory}", 'INFO');
+    try {
+        $templateIndex = $templateDir . 'template_index.php';
+        if (!file_exists($templateIndex)) {
+            throw new \RuntimeException("template_index.php introuvable dans {$templateDir}");
+        }
+        $template = file_get_contents($templateIndex);
+        $updated  = str_replace(
+            ['{DATE}', '{MODULE_NAME}'],
+            [date('d/M/Y H:i:s'), 'Mon Application NAbySyGS'],
+            $template
+        );
+        file_put_contents($index_new_file, $updated);
+        nabysyBootstrapLog("index_new.php copié avec succès", 'INFO');
+    } catch (\Throwable $th) {
+        nabysyBootstrapLog("Erreur copie index_new.php : " . $th->getMessage(), 'ERROR');
+    }
+}
+
 // ── setup.html ─────────────────────────────────────────────
 // Copié uniquement si appinfos.php n'existe pas encore
 $appinfos_file = $host_directory . 'appinfos.php';
