@@ -6,3 +6,5 @@
 docs/
 documentation/
 log/
+vendor/
+composer.lock

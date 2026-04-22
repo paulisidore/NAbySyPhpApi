@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NAbySyGS — Initial Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #0a0f0d;
+    --surface:   #111a15;
+    --card:      #162019;
+    --border:    #1f3026;
+    --accent:    #3ddc84;
+    --accent2:   #f5a623;
+    --accent3:   #e8512a;
+    --text:      #e8f0eb;
+    --muted:     #6b8c74;
+    --error:     #ff5252;
+    --success:   #3ddc84;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --radius:    12px;
+    --glow:      0 0 40px rgba(61,220,132,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ── Background texture ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(61,220,132,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 100%, rgba(245,166,35,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* grid lines */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(61,220,132,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(61,220,132,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 56px;
+    animation: fadeDown .7s ease both;
+  }
+
+  .logo-wrap {
+    flex-shrink: 0;
+    width: 90px; height: 90px;
+    background: radial-gradient(ellipse at 40% 35%, #e8f5d0 0%, #c5e8a0 45%, #8ec96a 100%);
+    border: 2px solid #6aab3a;
+    border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 28px rgba(110,190,60,0.35), 0 4px 16px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-wrap::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+    border-radius: inherit;
+  }
+
+  /* ── Koro SVG Calao ── */
+  .koro-svg { width: 68px; height: 68px; position: relative; z-index: 1; }
+
+  .header-text h1 {
+    font-family: var(--font-head);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .header-text h1 span { color: var(--accent); }
+  .header-text p {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 10px;
+    background: rgba(61,220,132,0.08);
+    border: 1px solid rgba(61,220,132,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .badge::before { content: '●'; font-size: 0.5rem; animation: pulse 2s infinite; }
+
+  /* ── Step bar ── */
+  .steps {
+    display: flex; align-items: center;
+    gap: 0;
+    margin-bottom: 40px;
+    animation: fadeDown .7s .1s ease both;
+  }
+  .step {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 16px; left: 50%; right: -50%;
+    height: 1px;
+    background: var(--border);
+    transition: background .4s;
+  }
+  .step.done:not(:last-child)::after { background: var(--accent); }
+  .step-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 600;
+    color: var(--muted);
+    transition: all .3s;
+    position: relative; z-index: 1;
+  }
+  .step.active .step-dot {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(61,220,132,0.1);
+    box-shadow: 0 0 16px rgba(61,220,132,0.3);
+  }
+  .step.done .step-dot {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .step-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .step.active .step-label { color: var(--accent); }
+
+  /* ── Card sections ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 20px;
+    animation: fadeUp .5s ease both;
+    display: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .section::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .section.visible { display: block; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .section-icon {
+    width: 36px; height: 36px;
+    background: rgba(61,220,132,0.1);
+    border: 1px solid rgba(61,220,132,0.2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .section-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Fields ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .col-span-2 { grid-column: span 2; }
+  .col-span-3 { grid-column: span 3; }
+
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .field label span { color: var(--accent3); margin-left: 3px; }
+
+  .field input,
+  .field select {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
+  }
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(61,220,132,0.1);
+  }
+  .field input::placeholder { color: var(--muted); opacity: .6; }
+
+  .field input.error { border-color: var(--error); }
+
+  .field-hint {
+    font-size: 0.67rem;
+    color: var(--muted);
+    opacity: .8;
+  }
+
+  /* toggle row */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+  }
+  .toggle-row label { font-size: 0.8rem; color: var(--text); cursor: pointer; }
+  .toggle-row .hint { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  .toggle {
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: transform .2s, background .2s;
+  }
+  .toggle.on { background: rgba(61,220,132,0.25); }
+  .toggle.on::after { transform: translateX(18px); background: var(--accent); }
+
+  /* divider */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── Navigation buttons ── */
+  .nav-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 32px;
+  }
+  .btn {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex; align-items: center; gap: 8px;
+    text-transform: uppercase;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 4px 20px rgba(61,220,132,0.25);
+  }
+  .btn-primary:hover {
+    background: #5aeba0;
+    box-shadow: 0 4px 30px rgba(61,220,132,0.4);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled {
+    opacity: .5; cursor: not-allowed;
+    transform: none; box-shadow: none;
+  }
+
+  .btn-danger {
+    background: var(--accent3);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(232,81,42,0.25);
+  }
+  .btn-danger:hover { background: #ff6b42; transform: translateY(-1px); }
+
+  /* ── Review card ── */
+  .review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .review-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .review-item .rk {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .review-item .rv {
+    font-size: 0.82rem;
+    color: var(--accent);
+    word-break: break-all;
+  }
+  .review-item .rv.secret { color: var(--muted); letter-spacing: 0.2em; }
+
+  /* ── Result panel ── */
+  #result-panel {
+    display: none;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    animation: fadeUp .5s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  #result-panel.success { border-color: rgba(61,220,132,0.4); }
+  #result-panel.success::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--accent);
+  }
+  #result-panel.error-state { border-color: rgba(255,82,82,0.4); }
+  #result-panel.error-state::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--error);
+  }
+
+  .result-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .result-title {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+  .result-title.ok { color: var(--accent); }
+  .result-title.err { color: var(--error); }
+
+  .result-log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: pre-wrap;
+    line-height: 1.8;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .result-log .log-ok { color: var(--accent); }
+  .result-log .log-err { color: var(--error); }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(10,15,13,0.3);
+    border-top-color: var(--bg);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: none;
+  }
+  .loading .spinner { display: block; }
+  .loading .btn-text { display: none; }
+
+  /* ── Animations ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .3; }
+  }
+  @keyframes beak {
+    0%, 100% { transform: rotate(0deg); }
+    50%       { transform: rotate(-6deg); }
+  }
+
+  /* ── Password toggle ── */
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 40px; }
+  .pw-eye {
+    position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer; color: var(--muted);
+    font-size: 0.85rem; user-select: none;
+    transition: color .2s;
+  }
+  .pw-eye:hover { color: var(--accent); }
+
+  /* ── URL field ── */
+  .url-display {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 24px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .url-display span { color: var(--accent2); }
+
+  /* ── Server URL block ── */
+  .server-url-block {
+    background: rgba(245,166,35,0.05);
+    border: 1.5px solid rgba(245,166,35,0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 8px;
+  }
+  .status-ok  { color: var(--accent);  font-size: 0.78rem; display:flex; align-items:center; gap:6px; }
+  .status-err { color: var(--error);   font-size: 0.78rem; display:flex; align-items:center; gap:6px; }
+  .status-loading { color: var(--muted); font-size: 0.78rem; display:flex; align-items:center; gap:6px; }
+
+  /* ── Routing cards ── */
+  .routing-card {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    user-select: none;
+  }
+  .routing-card:hover { border-color: var(--muted); }
+  .routing-card.selected {
+    border-color: var(--accent);
+    background: rgba(61,220,132,0.06);
+  }
+  .rc-radio {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.55rem; color: transparent;
+    margin-top: 2px;
+    transition: all .2s;
+  }
+  .routing-card.selected .rc-radio {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .rc-title {
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--text); margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rc-badge {
+    font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 2px 7px; border-radius: 10px;
+    background: rgba(61,220,132,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(61,220,132,0.2);
+    font-weight: 400;
+  }
+  .rc-desc {
+    font-size: 0.72rem; color: var(--muted); line-height: 1.5;
+  }
+  .rc-desc code {
+    background: rgba(61,220,132,0.08);
+    color: var(--accent2);
+    padding: 1px 5px; border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+
+
+  @media (max-width: 600px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .col-span-2, .col-span-3 { grid-column: span 1; }
+    header { flex-direction: column; text-align: center; }
+    .review-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ══ HEADER ══ -->
+  <header>
+    <div class="logo-wrap">
+      <!-- Koro le Calao — SVG flat design -->
+      <svg class="koro-svg" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Corps -->
+        <ellipse cx="34" cy="42" rx="14" ry="17" fill="#1a2e20"/>
+        <!-- Ventre blanc -->
+        <ellipse cx="34" cy="46" rx="8" ry="10" fill="#e8f0eb" opacity=".9"/>
+        <!-- Aile gauche -->
+        <path d="M20 38 C12 34 10 48 18 52 L22 44 Z" fill="#0f1f14"/>
+        <!-- Aile droite -->
+        <path d="M48 38 C56 34 58 48 50 52 L46 44 Z" fill="#0f1f14"/>
+        <!-- Tête -->
+        <circle cx="34" cy="24" r="11" fill="#1a2e20"/>
+        <!-- Casque/Cimier caractéristique du Calao — orange/rouge -->
+        <path d="M25 18 C26 10 42 10 44 17 C46 14 48 11 46 8 C42 3 28 3 24 8 C22 11 23 16 25 18Z" fill="#e8512a"/>
+        <!-- Bec supérieur long -->
+        <path class="beak-anim" d="M23 26 C18 24 10 26 8 29 C10 31 18 30 23 29 Z" fill="#f5a623" style="transform-origin:23px 27px; animation: beak 3s ease-in-out infinite;"/>
+        <!-- Bec inférieur -->
+        <path d="M23 29 C18 30 12 31 11 33 C14 33 20 32 23 31 Z" fill="#d4881a"/>
+        <!-- Œil -->
+        <circle cx="30" cy="22" r="3.5" fill="#f5a623"/>
+        <circle cx="30" cy="22" r="2" fill="#0a0f0d"/>
+        <circle cx="31" cy="21" r=".7" fill="#fff"/>
+        <!-- Pattes -->
+        <line x1="29" y1="58" x2="27" y2="64" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="27" y1="64" x2="24" y2="65" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="27" y1="64" x2="26" y2="66" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="39" y1="58" x2="41" y2="64" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="41" y1="64" x2="44" y2="65" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="41" y1="64" x2="42" y2="66" stroke="#f5a623" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Plumes queue -->
+        <path d="M30 58 C28 62 25 67 22 68" stroke="#0f1f14" stroke-width="2" stroke-linecap="round"/>
+        <path d="M34 59 C34 64 33 68 32 70" stroke="#1a2e20" stroke-width="2" stroke-linecap="round"/>
+        <path d="M38 58 C40 62 43 67 46 68" stroke="#0f1f14" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>NAby<span>Sy</span>GS</h1>
+      <p>PHP Framework &amp; ORM — Initial Setup</p>
+      <div class="badge">Koro — First Bootstrap</div>
+    </div>
+  </header>
+
+  <!-- ══ STEP BAR ══ -->
+  <div class="steps" id="steps">
+    <div class="step active" id="step-ind-1">
+      <div class="step-dot">1</div>
+      <div class="step-label">Entreprise</div>
+    </div>
+    <div class="step" id="step-ind-2">
+      <div class="step-dot">2</div>
+      <div class="step-label">Base de données</div>
+    </div>
+    <div class="step" id="step-ind-3">
+      <div class="step-dot">3</div>
+      <div class="step-label">Configuration</div>
+    </div>
+    <div class="step" id="step-ind-4">
+      <div class="step-dot">4</div>
+      <div class="step-label">Révision</div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 1 — Infos Entreprise ══ -->
+  <div class="section visible" id="sec-1">
+    <div class="section-header">
+      <div class="section-icon">🏢</div>
+      <div>
+        <div class="section-title">Informations de l'application</div>
+        <div class="section-sub">Identité de votre application et de votre organisation</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field col-span-2">
+        <label>Nom de l'application <span>*</span></label>
+        <input type="text" id="f-appname" placeholder="My App API Service" value="PAM for My App API Service"/>
+        <div class="field-hint">Apparaîtra dans les en-têtes de réponse API</div>
+      </div>
+      <div class="field col-span-2">
+        <label>Version de l'API <span>*</span></label>
+        <input type="text" id="f-apiversion" placeholder="1.0.0" value="1.0.0"/>
+      </div>
+      <div class="field col-span-2">
+        <label>Nom du fournisseur / Société <span>*</span></label>
+        <input type="text" id="f-provider" placeholder="Ma Société SARL" value="PAM sarl API Service"/>
+      </div>
+      <div class="field">
+        <label>Adresse</label>
+        <input type="text" id="f-adr" placeholder="Ville, Pays" value="Dakar, Senegal"/>
+      </div>
+      <div class="field">
+        <label>Téléphone</label>
+        <input type="text" id="f-tel" placeholder="+221 XX XXX XX XX" value="+221 33 836 XX XX"/>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <div></div>
+      <button class="btn btn-primary" onclick="goStep(2)">
+        <span class="btn-text">Suivant →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 2 — Base de données ══ -->
+  <div class="section" id="sec-2">
+    <div class="section-header">
+      <div class="section-icon">🗄️</div>
+      <div>
+        <div class="section-title">Connexion à la base de données</div>
+        <div class="section-sub">Paramètres MySQL / MariaDB</div>
+      </div>
+    </div>
+
+    <!-- ── URL du serveur ── -->
+    <div class="server-url-block">
+      <div class="section-header" style="margin-bottom:12px;">
+        <div class="section-icon">🌐</div>
+        <div>
+          <div class="section-title">URL de votre serveur web</div>
+          <div class="section-sub">Nécessaire pour soumettre le formulaire vers l'API NAbySyGS</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>URL du serveur <span>*</span></label>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <div style="flex:1;">
+            <input type="text" id="f-serverurl" placeholder="http://monendpoint.com"/>
+            <div class="field-hint" id="serverurl-hint"></div>
+          </div>
+          <button class="btn btn-ghost" style="margin-top:0; padding:10px 16px; white-space:nowrap;"
+                  onclick="testServerUrl()" id="btn-test-url">
+            Tester ↗
+          </button>
+        </div>
+      </div>
+      <div id="serverurl-status" style="display:none; margin-top:10px;"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Base de données Master <span>*</span></label>
+        <input type="text" id="f-masterdb" placeholder="nabysygs" value="nabysygs"/>
+        <div class="field-hint">Base principale du framework</div>
+      </div>
+      <div class="field">
+        <label>Base de données applicative <span>*</span></label>
+        <input type="text" id="f-dbname" placeholder="monapp_db" value="nabysygs"/>
+        <div class="field-hint">Peut être identique à la Master</div>
+      </div>
+      <div class="field">
+        <label>Serveur <span>*</span></label>
+        <input type="text" id="f-dbserver" placeholder="127.0.0.1" value="127.0.0.1"/>
+      </div>
+      <div class="field">
+        <label>Port <span>*</span></label>
+        <input type="number" id="f-dbport" placeholder="3306" value="3306"/>
+      </div>
+      <div class="field">
+        <label>Utilisateur DB <span>*</span></label>
+        <input type="text" id="f-dbuser" placeholder="root" value="pharmcp"/>
+      </div>
+      <div class="field">
+        <label>Mot de passe DB</label>
+        <div class="pw-wrap">
+          <input type="password" id="f-dbpwd" placeholder="••••••••" value="microcp"/>
+          <span class="pw-eye" onclick="togglePw('f-dbpwd',this)">👁</span>
+        </div>
+      </div>
+      <div class="field col-span-2">
+        <label>Sous-dossier d'hébergement (BASEDIR)</label>
+        <input type="text" id="f-basedir" placeholder="Laisser vide si à la racine"/>
+        <div class="field-hint">Ex: /api  — laisser vide si le projet est à la racine</div>
+      </div>
+      <div class="field col-span-2">
+        <label>Version de la base de données</label>
+        <input type="text" id="f-dbversion" placeholder="1.0.0" value="1.0.0"/>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)">
+        <span class="btn-text">Suivant →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3 — Configuration avancée ══ -->
+  <div class="section" id="sec-3">
+    <div class="section-header">
+      <div class="section-icon">⚙️</div>
+      <div>
+        <div class="section-title">Configuration avancée</div>
+        <div class="section-sub">Debug, sessions et sécurité</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field col-span-2">
+        <label>Durée du token (secondes)</label>
+        <input type="number" id="f-token" placeholder="94608000" value="94608000"/>
+        <div class="field-hint">Valeur par défaut : 94 608 000 s = 3 ans</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ── Routage ── -->
+    <div class="section-header" style="margin-bottom:14px;">
+      <div class="section-icon">🔀</div>
+      <div>
+        <div class="section-title">Mode de routage</div>
+        <div class="section-sub">Choisissez comment NAbySyGS traite les requêtes entrantes</div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:8px;">
+
+      <label class="routing-card" id="rc-action" onclick="selectRouting('action')">
+        <div class="rc-radio" id="rr-action">●</div>
+        <div class="rc-body">
+          <div class="rc-title">Routage par Action <span class="rc-badge default">Défaut</span></div>
+          <div class="rc-desc"><code>N::ReadHttpRequest()</code> — Dispatch via le paramètre <code>Action=XXX</code>. Plus souple, lecture du code facilitée.</div>
+        </div>
+      </label>
+
+      <label class="routing-card" id="rc-url" onclick="selectRouting('url')">
+        <div class="rc-radio" id="rr-url"></div>
+        <div class="rc-body">
+          <div class="rc-title">Routage par URL</div>
+          <div class="rc-desc"><code>N::$UrlRouter::resolveUrlRoute(true)</code> — Routes RESTful style Laravel. <code>CanSendReponse</code> sera <code>true</code>.</div>
+        </div>
+      </label>
+
+      <label class="routing-card" id="rc-both" onclick="selectRouting('both')">
+        <div class="rc-radio" id="rr-both"></div>
+        <div class="rc-body">
+          <div class="rc-title">Les deux combinés</div>
+          <div class="rc-desc">URL Router d'abord <em>(CanSendReponse = false)</em>, puis <code>N::ReadHttpRequest()</code>. Traitez les routes NAbySyGS avant <code>resolveUrlRoute</code>.</div>
+        </div>
+      </label>
+
+    </div>
+    <input type="hidden" id="f-routing" value="action"/>
+
+    <div class="divider"></div>
+
+    <!-- ── Debug & Auth ── -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-row label">Mode Debug actif</div>
+          <div class="hint">Active l'affichage des erreurs PHP</div>
+        </div>
+        <div class="toggle on" id="tgl-debug" onclick="toggleSwitch(this,'f-debug')"></div>
+        <input type="hidden" id="f-debug" value="1"/>
+      </div>
+
+      <div class="field" style="margin-top:4px;">
+        <label>Niveau de debug</label>
+        <select id="f-debuglevel">
+          <option value="0">0 — Aucun</option>
+          <option value="1">1 — Erreurs</option>
+          <option value="2">2 — Avertissements</option>
+          <option value="3">3 — Informations</option>
+          <option value="4" selected>4 — Débogage détaillé</option>
+        </select>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-row label">Envoyer les réponses d'authentification</div>
+          <div class="hint">N::$SendAuthReponse</div>
+        </div>
+        <div class="toggle on" id="tgl-auth" onclick="toggleSwitch(this,'f-authresp')"></div>
+        <input type="hidden" id="f-authresp" value="1"/>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(4)">
+        <span class="btn-text">Réviser →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 4 — Révision ══ -->
+  <div class="section" id="sec-4">
+    <div class="section-header">
+      <div class="section-icon">✅</div>
+      <div>
+        <div class="section-title">Révision finale</div>
+        <div class="section-sub">Vérifiez vos informations avant de générer appinfos.php</div>
+      </div>
+    </div>
+
+    <div class="review-grid" id="review-content"></div>
+
+    <div class="url-display" id="url-display">
+      <span>POST</span> <span id="url-preview">/?Action=SETUP</span>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goStep(3)">← Modifier</button>
+      <button class="btn btn-danger" id="btn-setup" onclick="submitSetup()">
+        <span class="spinner" id="spin"></span>
+        <span class="btn-text" id="btn-setup-label">🚀 Générer appinfos.php</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ RESULT PANEL ══ -->
+  <div id="result-panel">
+    <div class="result-icon" id="res-icon"></div>
+    <div class="result-title" id="res-title"></div>
+    <pre class="result-log" id="res-log"></pre>
+    <div class="nav-row" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="resetResult()">← Recommencer</button>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+  let currentStep = 1;
+  const TOTAL = 4;
+
+  // ── Navigation ──
+  function goStep(n) {
+    if (n > currentStep && !validateStep(currentStep)) return;
+
+    document.getElementById('sec-' + currentStep).classList.remove('visible');
+    document.getElementById('step-ind-' + currentStep).classList.remove('active');
+    if (n > currentStep) {
+      document.getElementById('step-ind-' + currentStep).classList.add('done');
+      document.getElementById('step-ind-' + currentStep).querySelector('.step-dot').innerHTML = '✓';
+    } else {
+      document.getElementById('step-ind-' + (currentStep)).classList.remove('done');
+      document.getElementById('step-ind-' + (currentStep)).querySelector('.step-dot').innerHTML = currentStep;
+    }
+
+    currentStep = n;
+    document.getElementById('sec-' + n).classList.add('visible');
+    document.getElementById('step-ind-' + n).classList.add('active');
+    document.getElementById('step-ind-' + n).classList.remove('done');
+
+    if (n === 4) buildReview();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Validation ──
+  function validateStep(s) {
+    const required = {
+      1: ['f-appname','f-apiversion','f-provider'],
+      2: ['f-serverurl','f-masterdb','f-dbname','f-dbserver','f-dbport','f-dbuser'],
+      3: ['f-token']
+    };
+    let ok = true;
+    (required[s] || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.classList.add('error');
+        el.addEventListener('input', () => el.classList.remove('error'), { once: true });
+        ok = false;
+      }
+    });
+    if (!ok) {
+      const first = document.querySelector('.error');
+      if (first) first.focus();
+    }
+    return ok;
+  }
+
+  // ── Auto-détection URL serveur ──
+  function initServerUrl() {
+    const field = document.getElementById('f-serverurl');
+    const hint  = document.getElementById('serverurl-hint');
+
+    if (location.protocol === 'file:') {
+      // Ouvert via file:// — on ne peut pas déduire l'URL
+      field.value = '';
+      field.placeholder = 'http://monsite.com ou http://localhost';
+      hint.textContent  = '⚠ Page ouverte en local (file://). Saisissez l\'URL de votre serveur web.';
+      hint.style.color  = 'var(--accent2)';
+    } else {
+      // Ouvert via HTTP — on prend l'origine directement
+      field.value       = location.origin;
+      hint.textContent  = '✔ URL détectée automatiquement depuis votre navigateur.';
+      hint.style.color  = 'var(--accent)';
+    }
+  }
+
+  // ── Test de connectivité du serveur ──
+  async function testServerUrl() {
+    const field  = document.getElementById('f-serverurl');
+    const status = document.getElementById('serverurl-status');
+    const btn    = document.getElementById('btn-test-url');
+    const url    = field.value.trim();
+
+    if (!url) {
+      field.classList.add('error');
+      field.addEventListener('input', () => field.classList.remove('error'), { once: true });
+      return;
+    }
+
+    status.style.display = 'block';
+    status.innerHTML = '<div class="status-loading">⏳ Test de connexion en cours...</div>';
+    btn.disabled = true;
+
+    try {
+      // On tente un fetch sur /?Action=PING ou simplement la racine
+      // avec un timeout de 5s
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 5000);
+      const basedir    = document.getElementById('f-basedir')?.value.trim() || '';
+      const testUrl    = url.replace(/\/$/, '') + (basedir ? '/' + basedir.replace(/^\/|\/$/g, '') : '') + '/';
+
+      await fetch(testUrl, { method: 'HEAD', signal: controller.signal, mode: 'no-cors' });
+      clearTimeout(timeout);
+
+      status.innerHTML = '<div class="status-ok">✔ Serveur accessible — URL valide.</div>';
+      field.classList.remove('error');
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        status.innerHTML = '<div class="status-err">✘ Délai dépassé — serveur non accessible ou URL incorrecte.</div>';
+      } else {
+        // no-cors renvoie souvent une opaque response, ce qui est normal
+        status.innerHTML = '<div class="status-ok">✔ Serveur détecté (réponse opaque CORS — normal en local).</div>';
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── Routing selection ──
+  function selectRouting(val) {
+    ['action','url','both'].forEach(v => {
+      const card = document.getElementById('rc-' + v);
+      if (card) card.classList.toggle('selected', v === val);
+    });
+    document.getElementById('f-routing').value = val;
+  }
+
+  // Lancer la détection au chargement
+  document.addEventListener('DOMContentLoaded', () => {
+    initServerUrl();
+    selectRouting('action');
+  });
+
+  
+  function togglePw(id, eye) {
+    const el = document.getElementById(id);
+    if (el.type === 'password') { el.type = 'text'; eye.textContent = '🙈'; }
+    else { el.type = 'password'; eye.textContent = '👁'; }
+  }
+
+  // ── Toggle switch ──
+  function toggleSwitch(el, hiddenId) {
+    el.classList.toggle('on');
+    document.getElementById(hiddenId).value = el.classList.contains('on') ? '1' : '0';
+  }
+
+  // ── Build review ──
+  function buildReview() {
+    const vals = collectValues();
+    const items = [
+      { k: 'URL Serveur',    v: vals.serverurl },
+      { k: 'App Name',       v: vals.appname },
+      { k: 'API Version',    v: vals.apiversion },
+      { k: 'Provider',       v: vals.provider },
+      { k: 'Adresse',        v: vals.adr || '—' },
+      { k: 'Téléphone',      v: vals.tel || '—' },
+      { k: 'Master DB',      v: vals.masterdb },
+      { k: 'DB Applicative', v: vals.dbname },
+      { k: 'Serveur DB',     v: vals.dbserver + ':' + vals.dbport },
+      { k: 'Utilisateur DB', v: vals.dbuser },
+      { k: 'Mot de passe',   v: '••••••••', secret: true },
+      { k: 'BaseDIR',        v: vals.basedir || '/ (racine)' },
+      { k: 'Token (s)',      v: vals.token },
+      { k: 'Debug',          v: vals.debug === '1' ? 'Activé — Niveau ' + vals.debuglevel : 'Désactivé' },
+      { k: 'SendAuthResp',   v: vals.authresp === '1' ? 'true' : 'false' },
+      { k: 'Routage',        v: vals.routing === 'action' ? 'Par Action (ReadHttpRequest)' : vals.routing === 'url' ? 'Par URL (UrlRouter)' : 'Les deux combinés' },
+    ];
+    const html = items.map(i =>
+      `<div class="review-item"><div class="rk">${i.k}</div><div class="rv${i.secret?' secret':''}">${i.v}</div></div>`
+    ).join('');
+    document.getElementById('review-content').innerHTML = html;
+
+    // URL preview
+    const base = vals.basedir ? vals.basedir.replace(/\/$/, '') : '';
+    document.getElementById('url-preview').textContent = (base || '') + '/?Action=SETUP';
+  }
+
+  // ── Collect ──
+  function collectValues() {
+    return {
+      serverurl:  document.getElementById('f-serverurl').value.trim(),
+      appname:    document.getElementById('f-appname').value.trim(),
+      apiversion: document.getElementById('f-apiversion').value.trim(),
+      provider:   document.getElementById('f-provider').value.trim(),
+      adr:        document.getElementById('f-adr').value.trim(),
+      tel:        document.getElementById('f-tel').value.trim(),
+      masterdb:   document.getElementById('f-masterdb').value.trim(),
+      dbname:     document.getElementById('f-dbname').value.trim(),
+      dbserver:   document.getElementById('f-dbserver').value.trim(),
+      dbport:     document.getElementById('f-dbport').value.trim(),
+      dbuser:     document.getElementById('f-dbuser').value.trim(),
+      dbpwd:      document.getElementById('f-dbpwd').value,
+      basedir:    document.getElementById('f-basedir').value.trim(),
+      dbversion:  document.getElementById('f-dbversion').value.trim(),
+      token:      document.getElementById('f-token').value.trim(),
+      debug:      document.getElementById('f-debug').value,
+      debuglevel: document.getElementById('f-debuglevel').value,
+      authresp:   document.getElementById('f-authresp').value,
+      routing:    document.getElementById('f-routing').value,
+    };
+  }
+
+  // ── Submit ──
+  async function submitSetup() {
+    const btn = document.getElementById('btn-setup');
+    const spin = document.getElementById('spin');
+    const label = document.getElementById('btn-setup-label');
+
+    btn.disabled = true;
+    spin.style.display = 'block';
+    label.style.display = 'none';
+
+    const vals = collectValues();
+    const fd = new FormData();
+    Object.entries(vals).forEach(([k, v]) => fd.append(k, v));
+
+    // Construire l'URL API depuis le champ serverurl saisi par l'utilisateur
+    const serverUrl = vals.serverurl.replace(/\/$/, '');
+    const basedir   = vals.basedir ? '/' + vals.basedir.replace(/^\/|\/$/g, '') : '';
+    const apiUrl    = serverUrl + basedir + '/?Action=SETUP';
+
+    try {
+      const res = await fetch(apiUrl, { method: 'POST', body: fd });
+      const json = await res.json();
+      showResult(json);
+    } catch (err) {
+      showResult({ OK: 0, Contenue: 'Erreur de connexion à l\'API NAbySyGS.\n\n' + err.message });
+    } finally {
+      btn.disabled = false;
+      spin.style.display = 'none';
+      label.style.display = 'block';
+    }
+  }
+
+  // ── Show result ──
+  function showResult(json) {
+    // Hide form steps
+    document.getElementById('steps').style.display = 'none';
+    document.getElementById('sec-4').classList.remove('visible');
+
+    const panel = document.getElementById('result-panel');
+    panel.style.display = 'block';
+
+    const ok = json.OK === 1;
+    panel.className = ok ? 'success' : 'error-state';
+    document.getElementById('res-icon').textContent = ok ? '✅' : '❌';
+
+    const title = document.getElementById('res-title');
+    title.className = 'result-title ' + (ok ? 'ok' : 'err');
+    title.textContent = ok
+      ? 'Setup terminé — appinfos.php généré avec succès !'
+      : 'Échec du setup';
+
+    // Format log
+    const log = document.getElementById('res-log');
+    const raw = json.Contenue || '';
+    log.innerHTML = raw.split('\n').map(line => {
+      if (line.trim().toUpperCase() === 'OK') return `<span class="log-ok">${line}</span>`;
+      if (/erreur|error|fail|échec/i.test(line)) return `<span class="log-err">${line}</span>`;
+      return line;
+    }).join('\n');
+
+    panel.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── Reset ──
+  function resetResult() {
+    document.getElementById('result-panel').style.display = 'none';
+    document.getElementById('steps').style.display = 'flex';
+    goStep(1);
+  }
+</script>
+</body>
+</html>

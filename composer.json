@@ -5,9 +5,6 @@
     "require": {
         "php": ">=8.1.0"
     },
-    "require-dev": {
-        
-    },
     "license": "mit",
     "authors": [
         {
@@ -25,9 +22,22 @@
             "src/bootstrap.php"
         ]
     },
-    "config": {
-        "allow-plugins": {
-            "symfony/flex": true
+    "scripts": {
+        "post-install-cmd": [
+        "@composer dump-autoload",
+        "NAbySy\\xNAbySyGS\\NAbySySetup::postInstall"
+        ],
+        "post-update-cmd": [
+        "@composer dump-autoload",
+        "NAbySy\\xNAbySyGS\\NAbySySetup::postInstall"
+        ]
+    },
+    "extra": {
+        "nabysygs": {
+        "setup-file": "setup.html"
         }
+    },
+    "require-dev": {
+        "composer/composer": "^2.0"
     }
 }

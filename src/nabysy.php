@@ -361,19 +361,23 @@ Class xNAbySyGS
 					self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
 					self::createMasterDB();
 				} catch (\Throwable $th) {
-					echo "Erreur de connexion à la base de donnée : " . $th->getMessage();
-					echo "<td><div align='center'><a href=./ />Retourner à l'acceuil SVP !</a></div></td>";
-					$this->Erreur = $th->getMessage();
-					$this->ISCONNECTED = false;
+					$Err=new xErreur;
+					$Err->OK=0;
+					$Err->TxErreur = "Erreur de connexion à la base de donnée : " . $th->getMessage();
+					$this->Erreur=$Err->TxErreur ;
+					$this->ISCONNECTED=false ;
+					$Err->SendAsJSON(true);
 					return;
 				}
 			}
 			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
 			if (!self::$db_link){
-				echo $this->MODULE->Nom."Connexion impossible a la base de donnée sur ".$Myserveur." :user=".$Myuser."\n";
-				echo "<td><div align='center'><a href=./ />Retourner à l'acceuil SVP !</a></div></td>";
-				$this->Erreur=mysqli_error(self::$db_link ) ;
+				$Err=new xErreur;
+				$Err->OK=0;
+				$Err->TxErreur = "Erreur de connexion à la base de donnée : " . mysqli_error(self::$db_link);
+				$this->Erreur=$Err->TxErreur ;
 				$this->ISCONNECTED=false ;
+				$Err->SendAsJSON(true);				
 				return;
 			}
 			$this->db_port=$port ;
@@ -563,7 +567,6 @@ Class xNAbySyGS
 			$TxSQL="CREATE DATABASE `".self::getInstance()->MasterDataBase."` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
 			$Res=self::getInstance()->ReadWrite($TxSQL,true);
 			if ($Res){
-				echo "Base de donnée Master: \n ".self::getInstance()->MasterDataBase." crée correctement\n";
 				$Created=true ;
 			}
 		}else{
@@ -750,7 +753,7 @@ Class xNAbySyGS
 			self::getInstance()->ReadWrite($TxSQL,true);
 			$Tx[] = "OK\n";
 
-			$Tx[] = "Cr&ation de l'utilisateur par défaut : pharmcp / microcp ...";
+			$Tx[] = "Création de l'utilisateur par défaut : pharmcp / microcp ...";
 			//Création de l'utilisateur par défaut
 			$TxSQL="SELECT * FROM `".self::getInstance()->MasterDataBase."`.`utilisateur` WHERE LOGIN='pharmcp'";
 			$Res=self::getInstance()->ReadWrite($TxSQL);

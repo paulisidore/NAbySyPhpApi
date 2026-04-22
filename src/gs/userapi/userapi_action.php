@@ -33,6 +33,8 @@ use NAbySy\xUser;
         exit;	
 	}
 
+    include_once 'setup_action.php' ;
+
     $nabysy = N::getInstance();
     if (!$nabysy->ValideUser()){
         exit;
