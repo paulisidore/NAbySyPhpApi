@@ -1,25 +1,27 @@
 <?php
 // ============================================================
-//  NAbySyGS — Post-Install Setup Launcher
+//  NAbySyGS — Composer Plugin + Setup Launcher
 //  Fichier : src/NAbySySetup.php
 //
-//  Déclenché automatiquement par Composer après installation.
-//  - Détecte l'URL publique du projet hôte
-//  - Tente d'ouvrir le navigateur (si environnement graphique)
-//  - Sinon affiche le lien dans le terminal
+//  En tant que composer-plugin, ce fichier est automatiquement
+//  chargé par Composer lors de l'installation chez l'utilisateur.
 // ============================================================
 
 namespace NAbySy\xNAbySyGS;
 
+use Composer\Composer;
+use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\IO\IOInterface;
+use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
+use Composer\Script\ScriptEvents;
+use Composer\Package\PackageInterface;
+use Composer\Installer\PackageEvent;
+use Composer\Installer\PackageEvents;
 
-class NAbySySetup
+class NAbySySetup implements PluginInterface, EventSubscriberInterface
 {
-    // Chemin relatif public vers setup.html depuis la racine du projet hôte
-    // vendor/{vendor-name}/{package-name}/src/setup.html
-    private const SETUP_PUBLIC_PATH = 'vendor/nabysyphpapi/xnabysygs/src/setup.html';
-
-
+    // ── Couleurs ANSI pour le terminal ───────────────────────
     private const C_RESET  = "\033[0m";
     private const C_GREEN  = "\033[32m";
     private const C_YELLOW = "\033[33m";
@@ -27,147 +29,154 @@ class NAbySySetup
     private const C_BOLD   = "\033[1m";
     private const C_DIM    = "\033[2m";
 
-    /**
-     * Point d'entrée Composer post-install / post-update
-     */
-    public static function postInstall(Event $event): void
+    // Nom du package pour le filtrer dans les événements
+    private const PACKAGE_NAME = 'nabysyphpapi/xnabysygs';
+
+    // Chemin relatif public vers setup.html
+    private const SETUP_PUBLIC_PATH = 'vendor/nabysyphpapi/xnabysygs/src/setup.html';
+
+    private Composer $composer;
+    private IOInterface $io;
+
+    // ── PluginInterface ──────────────────────────────────────
+
+    public function activate(Composer $composer, IOInterface $io): void
     {
-        $io = $event->getIO();
+        $this->composer = $composer;
+        $this->io       = $io;
+    }
 
-        self::printBanner($io);
+    public function deactivate(Composer $composer, IOInterface $io): void {}
 
-        // Vérifier si appinfos.php existe déjà dans le projet hôte
-        $hostRoot    = self::getHostRoot($event);
-        $appinfos    = $hostRoot . 'appinfos.php';
-        // __DIR__ pointe vers le dossier src/ du package, où setup.html est aussi placé.
-        // Cette approche est robuste quel que soit le nom du vendor ou la structure du projet hôte.
-        $setupFile   = __DIR__ . DIRECTORY_SEPARATOR . 'setup.html';
+    public function uninstall(Composer $composer, IOInterface $io): void {}
 
+    // ── EventSubscriberInterface ─────────────────────────────
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            // Déclenché après l'installation d'un package individuel
+            PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
+        ];
+    }
+
+    /**
+     * Déclenché après l'installation de chaque package.
+     * On filtre pour n'agir que sur notre propre package.
+     */
+    public function onPostPackageInstall(PackageEvent $event): void
+    {
+        $package = $event->getOperation()->getPackage();
+
+        // On n'agit que si c'est notre propre package qui vient d'être installé
+        if ($package->getName() !== self::PACKAGE_NAME) {
+            return;
+        }
+
+        $this->runSetup();
+    }
+
+    // ── Setup ────────────────────────────────────────────────
+
+    private function runSetup(): void
+    {
+        $this->printBanner();
+
+        // Chemin racine du projet hôte
+        $vendorDir = $this->composer->getConfig()->get('vendor-dir');
+        $hostRoot  = dirname($vendorDir) . DIRECTORY_SEPARATOR;
+        $appinfos  = $hostRoot . 'appinfos.php';
+        $setupFile = __DIR__ . DIRECTORY_SEPARATOR . 'setup.html';
+
+        // Vérifier si déjà configuré
         if (file_exists($appinfos)) {
-            $io->write(
+            $this->io->write(
                 self::C_GREEN . "  ✔  NAbySyGS est déjà configuré (appinfos.php trouvé)." . self::C_RESET
             );
-            $io->write(
-                self::C_DIM   . "     Supprimez appinfos.php et relancez si vous souhaitez reconfigurer." . self::C_RESET
+            $this->io->write(
+                self::C_DIM . "     Supprimez appinfos.php et relancez si vous souhaitez reconfigurer." . self::C_RESET
             );
-            self::printSeparator($io);
+            $this->printSeparator();
             return;
         }
 
+        // Vérifier que setup.html est présent
         if (!file_exists($setupFile)) {
-            $io->writeError(
+            $this->io->writeError(
                 self::C_YELLOW . "  ⚠  setup.html introuvable dans le package. Installation incomplète ?" . self::C_RESET
             );
-            self::printSeparator($io);
+            $this->printSeparator();
             return;
         }
 
-        // Détecter l'URL publique
-        $setupUrl = self::detectSetupUrl($hostRoot);
+        // Construire l'URL file:///
+        $setupUrl = $this->buildFileUrl($setupFile);
 
-        $io->write(self::C_BOLD . self::C_YELLOW
+        $this->io->write(self::C_BOLD . self::C_YELLOW
             . "  ➜  Configuration initiale requise !" . self::C_RESET);
-        $io->write("");
+        $this->io->write("");
 
-        // Tenter d'ouvrir le navigateur si environnement graphique disponible
-        if (self::hasGraphicEnvironment()) {
-            $io->write("  Ouverture du navigateur pour la configuration...");
-            $opened = self::openBrowser($setupUrl);
+        // Ouvrir le navigateur ou afficher le lien
+        if ($this->hasGraphicEnvironment()) {
+            $this->io->write("  Ouverture du navigateur pour la configuration...");
+            $opened = $this->openBrowser($setupUrl);
 
             if ($opened) {
-                $io->write(self::C_GREEN
+                $this->io->write(self::C_GREEN
                     . "  ✔  Navigateur ouvert : " . $setupUrl . self::C_RESET);
             } else {
-                // Fallback : afficher le lien
-                self::printManualLink($io, $setupUrl);
+                $this->printManualLink($setupUrl);
             }
         } else {
-            // Pas d'environnement graphique (serveur headless)
-            self::printManualLink($io, $setupUrl);
+            $this->printManualLink($setupUrl);
         }
 
-        self::printSeparator($io);
+        $this->printSeparator();
     }
 
     // ────────────────────────────────────────────────────────
-    //  Détection du dossier racine du projet HÔTE
+    //  Construction URL file:///
     // ────────────────────────────────────────────────────────
-    private static function getHostRoot(Event $event): string
+    private function buildFileUrl(string $absolutePath): string
     {
-        $vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
-        // vendor-dir est dans la racine du projet hôte
-        $root = dirname($vendorDir) . DIRECTORY_SEPARATOR;
-        return $root;
+        $real = realpath($absolutePath);
+        if (!$real) $real = $absolutePath;
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $real = str_replace('\\', '/', $real);
+            return 'file:///' . $real;
+        }
+
+        return 'file://' . $real;
     }
 
     // ────────────────────────────────────────────────────────
-    //  Détection de l'URL publique du projet hôte
+    //  Détection environnement graphique
     // ────────────────────────────────────────────────────────
-    /**
-     * Construit l'URL file:/// vers setup.html pour ouverture directe dans le navigateur.
-     * Évite toute tentative de deviner le virtual host du projet hôte.
-     */
-    private static function detectSetupUrl(string $hostRoot): string
+    private function hasGraphicEnvironment(): bool
     {
-        // Chemin absolu vers setup.html dans le package
-        $absolutePath = realpath(__DIR__ . DIRECTORY_SEPARATOR . 'setup.html');
+        $os = PHP_OS_FAMILY;
 
-        if ($absolutePath) {
-            // Convertir en URL file:/// selon l'OS
-            if (PHP_OS_FAMILY === 'Windows') {
-                // Windows : C:\path\to\file → file:///C:/path/to/file
-                $absolutePath = str_replace('\\', '/', $absolutePath);
-                return 'file:///' . $absolutePath;
-            } else {
-                // Linux / macOS : /path/to/file → file:///path/to/file
-                return 'file://' . $absolutePath;
-            }
-        }
-
-        // Fallback : chemin HTTP avec le nom du dossier si realpath échoue
-        $folderName = basename(rtrim($hostRoot, DIRECTORY_SEPARATOR));
-        return 'http://' . $folderName . '/' . self::SETUP_PUBLIC_PATH;
-    }
-
-    // ────────────────────────────────────────────────────────
-    //  Détection d'un environnement graphique
-    // ────────────────────────────────────────────────────────
-    private static function hasGraphicEnvironment(): bool
-    {
-        $os = PHP_OS_FAMILY; // 'Windows', 'Linux', 'Darwin'
-
-        if ($os === 'Windows') {
-            return true; // Windows a toujours un bureau
-        }
-
-        if ($os === 'Darwin') {
-            return true; // macOS a toujours un bureau
-        }
+        if ($os === 'Windows') return true;
+        if ($os === 'Darwin')  return true;
 
         if ($os === 'Linux') {
-            // Vérifier la présence d'un serveur d'affichage X11 ou Wayland
-            $hasDisplay  = !empty(getenv('DISPLAY'));
-            $hasWayland  = !empty(getenv('WAYLAND_DISPLAY'));
-            // Certains environnements Desktop définissent XDG_CURRENT_DESKTOP
-            $hasDesktop  = !empty(getenv('XDG_CURRENT_DESKTOP'));
-            return $hasDisplay || $hasWayland || $hasDesktop;
+            return !empty(getenv('DISPLAY'))
+                || !empty(getenv('WAYLAND_DISPLAY'))
+                || !empty(getenv('XDG_CURRENT_DESKTOP'));
         }
 
         return false;
     }
 
     // ────────────────────────────────────────────────────────
-    //  Ouverture du navigateur selon l'OS
+    //  Ouverture navigateur
     // ────────────────────────────────────────────────────────
-    private static function openBrowser(string $url): bool
+    private function openBrowser(string $url): bool
     {
         $os = PHP_OS_FAMILY;
 
         if ($os === 'Windows') {
-            // Sur Windows on utilise cmd /c start pour éviter l'erreur
-            // "canal inexistant" causée par popen/pclose avec la commande start.
-            // escapeshellarg ajoute des guillemets simples incompatibles avec cmd.exe,
-            // on échappe donc manuellement les caractères dangereux.
             $safeUrl = str_replace(['"', '^', '&', '<', '>', '|'], '', $url);
             $cmd = 'cmd /c start "" "' . $safeUrl . '" > NUL 2>&1';
             @exec($cmd);
@@ -183,10 +192,10 @@ class NAbySySetup
         if ($os === 'Linux') {
             $safeUrl  = escapeshellarg($url);
             $commands = [
-                "xdg-open {$safeUrl}",         // Standard Linux Desktop
-                "gnome-open {$safeUrl}",        // GNOME fallback
-                "kde-open {$safeUrl}",          // KDE fallback
-                "sensible-browser {$safeUrl}",  // Debian/Ubuntu fallback
+                "xdg-open {$safeUrl}",
+                "gnome-open {$safeUrl}",
+                "kde-open {$safeUrl}",
+                "sensible-browser {$safeUrl}",
             ];
             foreach ($commands as $cmd) {
                 $result = -1;
@@ -199,22 +208,22 @@ class NAbySySetup
     }
 
     // ────────────────────────────────────────────────────────
-    //  Affichage du lien manuel dans le terminal
+    //  Affichage lien manuel
     // ────────────────────────────────────────────────────────
-    private static function printManualLink($io, string $url): void
+    private function printManualLink(string $url): void
     {
-        $io->write(
+        $this->io->write(
             "  " . self::C_DIM . "Environnement sans interface graphique détecté." . self::C_RESET
         );
-        $io->write(
+        $this->io->write(
             "  Copiez le chemin ci-dessous et ouvrez-le dans votre navigateur :"
         );
-        $io->write("");
-        $io->write(
+        $this->io->write("");
+        $this->io->write(
             "  " . self::C_BOLD . self::C_CYAN . "  ➜  " . $url . self::C_RESET
         );
-        $io->write("");
-        $io->write(
+        $this->io->write("");
+        $this->io->write(
             self::C_YELLOW
             . "  ⚠  Le formulaire s'ouvrira en local (file://).\n"
             . "     Assurez-vous que votre serveur web est démarré avant de soumettre\n"
@@ -224,12 +233,12 @@ class NAbySySetup
     }
 
     // ────────────────────────────────────────────────────────
-    //  Affichage de la bannière Koro
+    //  Bannière Koro
     // ────────────────────────────────────────────────────────
-    private static function printBanner($io): void
+    private function printBanner(): void
     {
-        $io->write("");
-        $io->write(self::C_GREEN . self::C_BOLD
+        $this->io->write("");
+        $this->io->write(self::C_GREEN . self::C_BOLD
 . "  ╔══════════════════════════════════════════════╗
   ║   _  _   _   _           _____        _____  ║
   ║  | \| | /_\ | |__ _  _ / __\ \  __  / ____|  ║
@@ -238,14 +247,14 @@ class NAbySySetup
   ║                   |__/        by Koro 🦅      ║
   ╚══════════════════════════════════════════════╝"
         . self::C_RESET);
-        $io->write("");
+        $this->io->write("");
     }
 
-    private static function printSeparator($io): void
+    private function printSeparator(): void
     {
-        $io->write(self::C_DIM
+        $this->io->write(self::C_DIM
             . "  ──────────────────────────────────────────────"
             . self::C_RESET);
-        $io->write("");
+        $this->io->write("");
     }
 }

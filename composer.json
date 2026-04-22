@@ -1,9 +1,13 @@
 {
     "name": "nabysyphpapi/xnabysygs",
     "description": "Framework de mise en place rapide d'API pour les plateformes d'application développé par PAM et MCP. (EN: Rapid API implementation framework for application platforms developed by PAM and MCP)",
-    "type": "package",
+    "type": "composer-plugin",
     "require": {
-        "php": ">=8.1.0"
+        "php": ">=8.1.0",
+        "composer-plugin-api": "^2.0"
+    },
+    "require-dev": {
+        "composer/composer": "^2.0"
     },
     "license": "mit",
     "authors": [
@@ -22,22 +26,10 @@
             "src/bootstrap.php"
         ]
     },
-    "scripts": {
-        "post-install-cmd": [
-        "@composer dump-autoload",
-        "NAbySy\\xNAbySyGS\\NAbySySetup::postInstall"
-        ],
-        "post-update-cmd": [
-        "@composer dump-autoload",
-        "NAbySy\\xNAbySyGS\\NAbySySetup::postInstall"
-        ]
-    },
     "extra": {
+        "class": "NAbySy\\xNAbySyGS\\NAbySySetup",
         "nabysygs": {
-        "setup-file": "setup.html"
+            "setup-file": "setup.html"
         }
-    },
-    "require-dev": {
-        "composer/composer": "^2.0"
     }
 }
