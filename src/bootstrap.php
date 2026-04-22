@@ -238,7 +238,7 @@ if (!file_exists($main_entry_file)) {
 
 $bootstrapLog = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
 
-if (class_exists('N')) {
+if (class_exists('N')  && isset(N::$Log)) {
     // ── N est disponible : transfert vers le système de log NAbySyGS ──
     if (file_exists($bootstrapLog)) {
         $lines = file($bootstrapLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
