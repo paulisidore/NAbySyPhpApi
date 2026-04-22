@@ -7,6 +7,22 @@
 use NAbySy\xNAbySyGS;
 
 define('XNABYSY_LOADED', true);
+// ── Logging bootstrap autonome ───────────────────────────
+function nabysyBootstrapLog(string $message, string $level = 'INFO'): void {
+    $logFile = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
+    $line    = date('d/m/Y H:i:s') . " [{$level}] " . $message . PHP_EOL;
+    error_log("[NAbySyGS] {$message}"); // → error.log Apache/WAMP
+    @file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+}
+
+// Capture les erreurs fatales non attrapables par try/catch
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR])) {
+        nabysyBootstrapLog("[FATAL] {$error['message']} dans {$error['file']} ligne {$error['line']}", 'FATAL');
+    }
+});
+
 $base = "";
 if (defined('__BASEDIR__') ){
 	$base = __BASEDIR__  ;
@@ -17,14 +33,17 @@ if(isset($base) && $base !==''){
 	$PrecRep = $Rep ;
 	$Rep .= DIRECTORY_SEPARATOR.$base ;
 	if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
-		echo "Creation du dossier ".$Rep." dans ". $PrecRep ." !</br>";
+		//echo "Creation du dossier ".$Rep." dans ". $PrecRep ." !</br>";
+		nabysyBootstrapLog("Creation du dossier ".$Rep." dans ". $PrecRep, 'INFO');
 		try {
 			mkdir($Rep,0777,true);
 		} catch (\Throwable $th) {
+				nabysyBootstrapLog($th->getMessage(), 'ERROR');
 				throw $th;
 		}
 	}
 	if(!is_dir(str_replace('/',DIRECTORY_SEPARATOR,$Rep))){
+		nabysyBootstrapLog("Basedir ".$Rep." introuvable !", 'ERROR');
 		throw new Exception("Basedir ".$Rep." introuvable !", 1);
 	}
 }
@@ -144,7 +163,8 @@ try {
 		mkdir($tmpDir, 0777, true);
 	}
 } catch (\Throwable $th) {
-	echo "Error on creating tmp directory: ".$th->getMessage();
+	nabysyBootstrapLog("Error on creating tmp directory: ".$th->getMessage(), 'ERROR');
+	
 }
 
 //$htaccess_tmpfile = N::CurrentFolder(true).'tmp/.htaccess' ;
@@ -173,6 +193,7 @@ if(!file_exists($htaccess_tmpfile)){
 			}
 		}
 	} catch (\Throwable $th) {
+		nabysyBootstrapLog("Error on reading ".$templatePath." file: ".$th->getMessage(), 'ERROR');
 		throw $th;
 		//N::$Log->AddToLog("Error on reading ".$templatePath." file: ".$th->getMessage());
 	}
@@ -208,7 +229,18 @@ if (!file_exists($main_entry_file)) {
 			throw $th;
 		}
 	 } catch (\Throwable $th) {
+		nabysyBootstrapLog($th->getMessage(), 'ERROR');
 		throw $th;
 	 }
 	
+}
+
+// En fin de bootstrap, une fois N disponible
+$bootstrapLog = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
+if (file_exists($bootstrapLog) && N::$Log !== null) {
+    $lines = file($bootstrapLog, FILE_IGNORE_NEW_LINES);
+    foreach ($lines as $line) {
+        N::$Log->AddToLog("[Bootstrap] " . $line);
+    }
+    @unlink($bootstrapLog); // Nettoyer après transfert
 }
