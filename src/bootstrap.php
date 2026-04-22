@@ -8,7 +8,7 @@ define('XNABYSY_LOADED', true);
 
 // ============================================================
 //  1. LOGGING BOOTSTRAP AUTONOME
-//  Disponible avant toute initialisation de l'instance static N
+//  Disponible avant toute initialisation de N
 // ============================================================
 
 function nabysyBootstrapLog(string $message, string $level = 'INFO'): void
@@ -192,7 +192,7 @@ N::$BASEDIR = $base;
 //  sont nécessaires même si appinfos.php n'existe pas encore.
 // ============================================================
 
-$templateDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
+$templateDir = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
 
 // ── index.php ──────────────────────────────────────────────
 $main_entry_file = $host_directory . 'index.php';
