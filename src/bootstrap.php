@@ -67,10 +67,11 @@ $fichier_sortie = $outputDir . 'appinfos.php';
 if (file_exists($fichierStart)) {
 	include $fichierStart;
 } else {
-	//Copie du fichier de démarrage par défaut
-	//echo "<br>Le fichier de démarrage ".$fichierStart." n'existe pas !<br>";
+	/**
+	 * On laisse l'UI et le script post installation de composer faire le travail d'installation et de configuration du fichier appinfos.php, mais on s'assure que si jamais il n'est pas là, on en crée un par défaut pour éviter les erreurs fatales et permettre à l'utilisateur de configurer manuellement si besoin.
+	 */
 	$templatePath = N::CurrentFolder().'templates/template_appinfos.php';
-	try {
+	/* try {
 		$template = file_get_contents($templatePath);
 		// Remplacer dynamiquement des morceaux
 		$updated = str_replace([
@@ -96,7 +97,7 @@ if (file_exists($fichierStart)) {
 		include $fichierStart;
 	 } catch (\Throwable $th) {
 		throw $th;
-	 }
+	 } */
 	
 }
 
