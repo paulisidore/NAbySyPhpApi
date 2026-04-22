@@ -554,10 +554,16 @@ Class xNAbySyGS
 	 */
 	public static function createMasterDB(): bool {
 		$Created=false ;
+		$Rep=new xNotification();
+		$Rep->OK=0;
+		$Tx=[];
+
 		if (!self::masterDBExist()){
+			$Tx[] = "Création de la Base de donnée Master: \n ".self::getInstance()->MasterDataBase."\n ";
 			$TxSQL="CREATE DATABASE `".self::getInstance()->MasterDataBase."` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
-			$Res=self::getInstance()->ReadWrite($TxSQL);
+			$Res=self::getInstance()->ReadWrite($TxSQL,true);
 			if ($Res){
+				echo "Base de donnée Master: \n ".self::getInstance()->MasterDataBase." crée correctement\n";
 				$Created=true ;
 			}
 		}else{
@@ -566,6 +572,33 @@ Class xNAbySyGS
 
 		if ($Created){
 			//On crée les tables de la base de donnée master
+			$Tx[] = "Création des tables : \n ";
+			$Tx[] = "Table journal ...";
+			//Table journal
+			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`journal` (
+				`ID` int(11) NOT NULL AUTO_INCREMENT,
+				`DATEENREG` date NOT NULL DEFAULT '2000-01-01',
+				`HEUREENREG` varchar(10) NOT NULL DEFAULT '',
+				`POSTE` varchar(255) NOT NULL DEFAULT '',
+				`IDUTILISATEUR` varchar(50) NOT NULL DEFAULT '',
+				`NOTE` text NOT NULL,
+				`OPERATION` varchar(255) NOT NULL DEFAULT '',
+				`DIFFSTOCK` double NOT NULL DEFAULT 0,
+				`VALEURDIFFSTOCKPC` double NOT NULL DEFAULT 0,
+				`VALEURDIFFSTOCKPV` double NOT NULL DEFAULT 0,
+				`IDPRODUIT` double NOT NULL DEFAULT 0,
+				`DIFFSTOCKDET` double NOT NULL DEFAULT 0,
+				`VALEURDIFFSTOCKDETPC` double NOT NULL DEFAULT 0,
+				`VALEURDIFFSTOCKDETPV` double DEFAULT NULL,
+				`IP` varchar(30) NOT NULL DEFAULT ' ',
+				`PortClient` int(11) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`ID`),
+				KEY `IndexAcceleration` (`DATEENREG`,`IDUTILISATEUR`)
+			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL, true);
+			$Tx[] = "OK\n";
+
+			$Tx[] = "Table boutique ...";
 			//Table boutique
 			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`boutique` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -599,9 +632,11 @@ Class xNAbySyGS
 				`MODEINVENTAIRE` int(11) NOT NULL DEFAULT 0,
 				`MODEINVENTAIREPWD` varchar(255) NOT NULL DEFAULT '',
 				PRIMARY KEY (`id`)
-			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL);
+			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL, true);
+			$Tx[] = "OK\n";
 
+			$Tx[] = "Table parametre ...";
 			//Table paramètre
 			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`parametre` (
 				`ID` int(11) NOT NULL AUTO_INCREMENT,
@@ -663,15 +698,17 @@ Class xNAbySyGS
 				`SiteOuverture` varchar(255) DEFAULT 'kssv3',
 				`SiteFermeture` varchar(255) NOT NULL DEFAULT 'kssvx',
 				PRIMARY KEY (`ID`)
-			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL);
-			
+			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL, true);
+			$Tx[] = "OK\n";
+
+			$Tx[] = "Table utilisateur ...";
 			//Table utilisateur
 			$TxSQL="CREATE TABLE IF NOT EXISTS `".self::getInstance()->MasterDataBase."`.`utilisateur` (
 				`ID` int(11) NOT NULL AUTO_INCREMENT,
 				`NOM` varchar(100) NOT NULL DEFAULT '',
 				`PRENOM` varchar(100) NOT NULL DEFAULT '',
-				`ADRESSE` text NOT NULL,
+				`ADRESSE` text NOT NULL DEFAULT '',
 				`TEL` varchar(100) NOT NULL DEFAULT '',
 				`LOGIN` varchar(100) NOT NULL DEFAULT '',
 				`PASSWORD` varchar(100) NOT NULL DEFAULT '',
@@ -703,15 +740,31 @@ Class xNAbySyGS
 				`CAN_CANCEL_VENTE` double NOT NULL DEFAULT 1,
 				`CAN_CANCEL_BL` double NOT NULL DEFAULT 1,
 				`CAN_CANCEL_TRANSACTION` double NOT NULL DEFAULT 1,
-				`Signature` text NOT NULL,
+				`Signature` text NOT NULL DEFAULT '',
 				`IdEmploye` int(11) NOT NULL DEFAULT 0,
 				`CompteEmploye` varchar(255) NOT NULL DEFAULT '',
-				`RS` varchar(255) NOT NULL DEFAULT '',
 				PRIMARY KEY (`ID`),
 				UNIQUE KEY `LOGIN` (`LOGIN`)
 
-			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL);
+			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+			self::getInstance()->ReadWrite($TxSQL,true);
+			$Tx[] = "OK\n";
+
+			$Tx[] = "Cr&ation de l'utilisateur par défaut : pharmcp / microcp ...";
+			//Création de l'utilisateur par défaut
+			$TxSQL="SELECT * FROM `".self::getInstance()->MasterDataBase."`.`utilisateur` WHERE LOGIN='pharmcp'";
+			$Res=self::getInstance()->ReadWrite($TxSQL);
+			if ($Res->num_rows==0){
+				$TxSQL="INSERT INTO `".self::getInstance()->MasterDataBase."`.`utilisateur` (NOM,PRENOM,ADRESSE,TEL,LOGIN,PASSWORD,DATEENTREE,DATECREATION,HEURECREATION,NIVEAUACCES,PROFILE) VALUES ('Admin','Admin','', '','pharmcp','microcp','".date('Y-m-d')."','".date('Y-m-d')."','".date('H:i:s')."',1,'Administrateur')";
+				self::getInstance()->ReadWrite($TxSQL,true);
+				$Tx[] = "OK\n";
+			}else{
+				$Tx[] = "L'utilisateur par défaut existe déjà\n";
+				//echo "OK\n";
+			}
+			$Rep->OK=$Created ? 1 : 0 ;
+			$Rep->Contenue = implode("\n",$Tx) ;
+			$Rep->SendAsJSON();
 
 		}
 		return $Created ;
