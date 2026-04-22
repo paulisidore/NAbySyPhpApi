@@ -173,8 +173,8 @@ if(!file_exists($htaccess_tmpfile)){
 			}
 		}
 	} catch (\Throwable $th) {
-		//throw $th;
-		N::$Log->AddToLog("Error on reading ".$templatePath." file: ".$th->getMessage());
+		throw $th;
+		//N::$Log->AddToLog("Error on reading ".$templatePath." file: ".$th->getMessage());
 	}
 }
 
@@ -203,8 +203,8 @@ if (!file_exists($main_entry_file)) {
 			file_put_contents($fichier_sortie, $updated);
 
 		} catch (\Throwable $th) {
-			N::$Log->AddToLog("ERREUR d'ecriture das le dossier ".$outputDir,4);
-			N::$Log->AddToLog("Repertoir racine: ".N::CurrentFolder(true) );
+			//N::$Log->AddToLog("ERREUR d'ecriture das le dossier ".$outputDir,4);
+			//N::$Log->AddToLog("Repertoir racine: ".N::CurrentFolder(true) );
 			throw $th;
 		}
 	 } catch (\Throwable $th) {
