@@ -236,12 +236,51 @@ if (!file_exists($main_entry_file)) {
 	
 }
 
-// En fin de bootstrap, une fois N disponible
 $bootstrapLog = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
-if (file_exists($bootstrapLog) && N::$Log !== null) {
-    $lines = file($bootstrapLog, FILE_IGNORE_NEW_LINES);
-    foreach ($lines as $line) {
-        N::$Log->AddToLog("[Bootstrap] " . $line);
+
+if (class_exists('N') && N::$Log !== null) {
+    // ── N est disponible : transfert vers le système de log NAbySyGS ──
+    if (file_exists($bootstrapLog)) {
+        $lines = file($bootstrapLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            N::$Log->AddToLog("[Bootstrap] " . $line);
+        }
+        @unlink($bootstrapLog); // Nettoyer après transfert
     }
-    @unlink($bootstrapLog); // Nettoyer après transfert
+} else {
+    // ── N non disponible : affichage HTML des logs dans le navigateur ──
+    if (file_exists($bootstrapLog)) {
+        $lines = file($bootstrapLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!empty($lines)) {
+            echo '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>';
+            echo '<title>NAbySyGS — Bootstrap Log</title>';
+            echo '<style>
+                body { background:#0a0f0d; color:#e8f0eb; font-family:monospace; padding:32px; }
+                h2   { color:#f5a623; margin-bottom:16px; }
+                .log { background:#111a15; border:1px solid #1f3026; border-radius:8px; padding:16px; }
+                .line { padding:4px 0; border-bottom:1px solid #1f3026; font-size:0.85rem; }
+                .line:last-child { border-bottom:none; }
+                .INFO  { color:#e8f0eb; }
+                .ERROR { color:#ff5252; }
+                .FATAL { color:#ff5252; font-weight:bold; }
+                .WARN  { color:#f5a623; }
+            </style></head><body>';
+            echo '<h2>🦅 NAbySyGS — Bootstrap Log</h2>';
+            echo '<div class="log">';
+            foreach ($lines as $line) {
+                // Détecter le niveau pour la colorisation
+                $level = 'INFO';
+                if (str_contains($line, '[FATAL]')) $level = 'FATAL';
+                elseif (str_contains($line, '[ERROR]')) $level = 'ERROR';
+                elseif (str_contains($line, '[WARN]'))  $level = 'WARN';
+                echo '<div class="line ' . $level . '">' . htmlspecialchars($line) . '</div>';
+            }
+            echo '</div>';
+            echo '<p style="margin-top:16px;color:#6b8c74;font-size:0.75rem;">';
+            echo 'Fichier log : ' . htmlspecialchars($bootstrapLog);
+            echo '</p></body></html>';
+            exit; // Stopper l'exécution pour que le HTML soit lisible
+        }
+    }
 }
+
