@@ -146,13 +146,14 @@ if(!file_exists($htaccess_file)){
 				// Écrire dans un nouveau fichier
 				file_put_contents($htaccess_file, $updated);
 			} catch (\Throwable $th) {
-				N::$Log->AddToLog("Error on writing new .htaccess file: ".$th->getMessage());
-				throw $th;
+				nabysyBootstrapLog("Error on writing new .htaccess file: ".$th->getMessage(), 'ERROR');
+				//throw $th;
 			}
 		}
 	} catch (\Throwable $th) {
 		//throw $th;
-		N::$Log->AddToLog("Error on reading .htaccess template file: ".$th->getMessage());
+		nabysyBootstrapLog("Error on reading .htaccess template file: ".$th->getMessage(), 'ERROR');
+		
 	}
 }
 
@@ -188,8 +189,8 @@ if(!file_exists($htaccess_tmpfile)){
 				// Écrire dans un nouveau fichier
 				file_put_contents($htaccess_tmpfile, $updated);
 			} catch (\Throwable $th) {
-				N::$Log->AddToLog("Error on writing new .htaccess file: ".$th->getMessage());
-				throw $th;
+				nabysyBootstrapLog("Error on writing to ".$htaccess_tmpfile." file: ".$th->getMessage(), 'ERROR');
+				//throw $th;
 			}
 		}
 	} catch (\Throwable $th) {
