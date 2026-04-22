@@ -1,8 +1,10 @@
 <?php
+namespace NAbySy\Lib\ModulePaie ;
+include_once "xApiNAbySyAmanaConnect.class.php";
 
 use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Panier\xCart;
-use NAbySy\Lib\ModulePaie\Amana\xApiNAbySyAmanaConnect;
+
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\Wave\xCheckOutParam;
 use NAbySy\Media\xMediaRessource;
@@ -28,7 +30,7 @@ class xNAbySyAmanaNetwork implements IModulePaieManager {
     private static string $myModuleHandleName = "xNAbySyAmanaNetwork" ;
     private static string $my_log_name = "Amana.png";
 
-    public static xApiNAbySyAmanaConnect $AmanaApi ;
+    public static \NAbySy\Lib\ModulePaie\Amana\xApiNAbySyAmanaConnect $AmanaApi ;
     public xORMHelper $HistTranct ;
 
     public string $TableHistPaiement;
@@ -38,7 +40,7 @@ class xNAbySyAmanaNetwork implements IModulePaieManager {
 
     public function __construct(xNAbySyGS $NAbySy) {
         $this->Main = $NAbySy;
-        self::$AmanaApi = new xApiNAbySyAmanaConnect($this->Main);
+        self::$AmanaApi = new \NAbySy\Lib\ModulePaie\Amana\xApiNAbySyAmanaConnect($this->Main);
 
         $this->TableHistPaiement="methodepaiehistorique";
 
@@ -135,7 +137,7 @@ class xNAbySyAmanaNetwork implements IModulePaieManager {
         $externalReference = $Demande->RefFacture    ?? self::$AmanaApi->GetUniqueReference();
         $description       = $Demande->DescriptionPaiement ?? 'Paiement ' . $externalReference;
         $telephonePayeur   = $Demande->TelephonePayeur      ?? '';
-        $fraisInclus       = $Demande->FraisInclus          ?? xApiNAbySyAmanaConnect::FRAIS_NON_INCLUS;
+        $fraisInclus       = $Demande->FraisInclus          ?? \NAbySy\Lib\ModulePaie\Amana\xApiNAbySyAmanaConnect::FRAIS_NON_INCLUS;
         $webhookUpdate     = $Demande->WebhookUpdate        ?? '';
 
         $Reponse = self::$AmanaApi->FairePaiement(

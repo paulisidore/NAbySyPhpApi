@@ -87,6 +87,10 @@ use xNAbySyCustomListOf;
 
 Class xNAbySyGS
 {
+	private static string $dbuser ="" ;
+	private static string $dbpass = "";
+	private static string $dbserver = "127.0.0.1";
+
 	public ModuleMCP $MODULE ;
 	public static mysqli $db_link ;
 	public string $dbase ="" ;
@@ -305,6 +309,11 @@ Class xNAbySyGS
 		if(isset($desableTokenAuth)){
 			$this->DesableTokenCheckingOnLoad = $desableTokenAuth ;
 		}
+
+		self::$dbuser = $Myuser ;
+		self::$dbpass = $Mypasswd ;
+		self::$dbserver = $Myserveur ;
+
 		$Chemin=explode("/",$_SERVER['REQUEST_URI']) ;
 		$this->RacineSite=$Chemin[1] ;
 		$this->BaseSite='/'.$Chemin[1].'/app/web/index.php' ;
@@ -356,10 +365,16 @@ Class xNAbySyGS
 			if($port <= 0){
 				$port=3306;
 			}
-			if(!self::instanceDBExist()){
+			if(!self::instanceDBExist($Myserveur, $Myuser, $Mypasswd, $port, $mod)){
 				try {
-					self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
-					self::createMasterDB();
+					if(!isset( self::$db_link )){
+						self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link ));
+					}
+					self::createMasterDB($mod);
+					if(isset( self::$db_link )){
+						//Fermeture de la connexion précédente
+						self::$db_link->close()  ;
+					}
 				} catch (\Throwable $th) {
 					$Err=new xErreur;
 					$Err->OK=0;
@@ -370,6 +385,7 @@ Class xNAbySyGS
 					return;
 				}
 			}
+			
 			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
 			if (!self::$db_link){
 				$Err=new xErreur;
@@ -542,9 +558,12 @@ Class xNAbySyGS
 	 * Vérifie si la base de donnée de l'instance en cour existe
 	 * @return bool 
 	 */
-	public static function instanceDBExist(): bool {
+	public static function instanceDBExist(string $serveur, string $user ,string $passwd, int $port, ModuleMCP $mod): bool {
 		$DBExist=false ;
 		$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->DataBase."'";
+		if(!isset( self::$db_link )){
+			self::$db_link = new mysqli($serveur, $user, $passwd,null ,$port) or die("Error ".mysqli_error(self::$db_link ));
+		}
 		$Res=self::getInstance()->ReadWrite($TxSQL);
 		if ($Res->num_rows>0){
 			$DBExist=true ;
@@ -556,7 +575,7 @@ Class xNAbySyGS
 	 * Permet de créer la base de donnée master si elle n'existe pas
 	 * @return bool
 	 */
-	public static function createMasterDB(): bool {
+	public static function createMasterDB(ModuleMCP $mod): bool {
 		$Created=false ;
 		$Rep=new xNotification();
 		$Rep->OK=0;
@@ -634,6 +653,7 @@ Class xNAbySyGS
 				`LOGO_TICKET` varchar(255) NOT NULL DEFAULT '',
 				`MODEINVENTAIRE` int(11) NOT NULL DEFAULT 0,
 				`MODEINVENTAIREPWD` varchar(255) NOT NULL DEFAULT '',
+				`IsDepot` int(11) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`)
 			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
 			self::getInstance()->ReadWrite($TxSQL, true);
@@ -765,6 +785,22 @@ Class xNAbySyGS
 				$Tx[] = "L'utilisateur par défaut existe déjà\n";
 				//echo "OK\n";
 			}
+
+			$Tx[] = "Création de la boutique par défaut : MasterDataBase ...";
+			//Création de la boutique/dépot par défaut
+			$TxSQL="SELECT * FROM `".self::getInstance()->MasterDataBase."`.`boutique` WHERE ID>0 ";
+			$Res=self::getInstance()->ReadWrite($TxSQL);
+			if ($Res->num_rows==0){
+				$db=self::getInstance()->MasterDataBase;
+				$TxSQL="INSERT INTO `".$db."`.`boutique` (NOM, Serveur, DBName,DBUser,DBPassword,IsBoutique,DBase,MasterDataBase,IsDepot,IdCompteClient,Visible) 
+																					VALUES ('SIEGE ".$mod->Nom."', '".self::$dbserver."', '".$db."', '".self::$dbuser."','".self::$dbpass."','0','".$db."','".$db."',1,0,1)";
+				self::getInstance()->ReadWrite($TxSQL,true);
+				$Tx[] = "OK\n";
+			}else{
+				$Tx[] = "Boutique par défaut existe déjà\n";
+				//echo "OK\n";
+			}
+
 			$Rep->OK=$Created ? 1 : 0 ;
 			$Rep->Contenue = implode("\n",$Tx) ;
 			$Rep->SendAsJSON();
@@ -2012,6 +2048,9 @@ Class xNAbySyGS
 	 */
 	public function ValideUser($SendReponse=true):bool{
 		$Err=new xErreur;
+		if(!isset($this->MaBoutique)){
+			$this->ChargeInfo();
+		}
 		if(!self::$NO_AUTH){
 			if (!isset($this->User)){
 				//Definition d'un utilisateur par défaut en mode NO_AUTH

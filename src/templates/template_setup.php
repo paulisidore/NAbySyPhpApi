@@ -90,7 +90,7 @@ switch ($action) {
         $log           = '';
 
         // ── 1. Vérifier que appinfos.php n'existe pas déjà ──
-        $targetFile = N::CurrentFolder(true) . 'appinfos.php';
+        $targetFile = 'appinfos.php';
 
         if (file_exists($targetFile)) {
             $notif->OK       = 0;
@@ -202,7 +202,10 @@ const __DBUSER__         = '{$dbuser}';
 const __DBPASSWORD__     = '{$dbpwd}';
 const __DBPORT__         = {$dbport} ;
 const __DUREE_TOKEN__    = {$token}; {$tokenComment}
-const __BASEDIR__        = "{$basedirSafe}"; // Sous dossier d'hebergement si applicable
+
+if(!defined('__BASEDIR__')){
+    define('__BASEDIR__', "{$basedirSafe}"); // Sous dossier d'hebergement si applicable
+}
 \$ACTIVE_DEBUG           = {$debugStr};
 \$DEBUG_LEVEL            = {$debuglevel}; // Niveau de debug (0: Aucun, 1: Erreurs, 2: Avertissements, 3: Informations, 4: Débogage détaillé)
 \$DUREE_SESSION_AUTH     = __DUREE_TOKEN__ ;
@@ -250,7 +253,7 @@ PHP;
         // ── 6. Initialisation NAbySyGS ───────────────────────
         $log .= "Initialisation de la base de données Master :\n {$masterdb}\n \n";
         try {
-            include_once $targetFile;
+            //include_once $targetFile;
             $log .= "OK\n\n";
             $log .= "Création des tables système NAbySyGS :\n \n";
             $log .= "OK\n\n";
