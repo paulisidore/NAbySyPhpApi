@@ -630,7 +630,7 @@
     <div class="grid-2">
       <div class="field col-span-2">
         <label>Nom de l'application <span>*</span></label>
-        <input type="text" id="f-appname" placeholder="My App API Service" value="PAM for My App API Service"/>
+        <input type="text" id="f-appname" placeholder="My App API Service" value="PAM for AmanaTa API Service"/>
         <div class="field-hint">Apparaîtra dans les en-têtes de réponse API</div>
       </div>
       <div class="field col-span-2">
@@ -639,7 +639,7 @@
       </div>
       <div class="field col-span-2">
         <label>Nom du fournisseur / Société <span>*</span></label>
-        <input type="text" id="f-provider" placeholder="Ma Société SARL" value="PAM sarl API Service"/>
+        <input type="text" id="f-provider" placeholder="Ma Société SARL" value="PAM sarl API"/>
       </div>
       <div class="field">
         <label>Adresse</label>
@@ -647,7 +647,7 @@
       </div>
       <div class="field">
         <label>Téléphone</label>
-        <input type="text" id="f-tel" placeholder="+221 XX XXX XX XX" value="+221 33 836 XX XX"/>
+        <input type="text" id="f-tel" placeholder="+221 XX XXX XX XX" value="+221 33 836 14 77"/>
       </div>
     </div>
 
@@ -682,7 +682,7 @@
         <label>URL du serveur <span>*</span></label>
         <div style="display:flex; gap:10px; align-items:flex-start;">
           <div style="flex:1;">
-            <input type="text" id="f-serverurl" placeholder="http://monendpoint.com"/>
+            <input type="text" id="f-serverurl" placeholder="http://monsite.com"/>
             <div class="field-hint" id="serverurl-hint"></div>
           </div>
           <button class="btn btn-ghost" style="margin-top:0; padding:10px 16px; white-space:nowrap;"
@@ -699,12 +699,12 @@
     <div class="grid-2">
       <div class="field">
         <label>Base de données Master <span>*</span></label>
-        <input type="text" id="f-masterdb" placeholder="nabysygs" value="nabysygs"/>
+        <input type="text" id="f-masterdb" placeholder="nabysygswave" value="nabysygswave"/>
         <div class="field-hint">Base principale du framework</div>
       </div>
       <div class="field">
         <label>Base de données applicative <span>*</span></label>
-        <input type="text" id="f-dbname" placeholder="monapp_db" value="nabysygs"/>
+        <input type="text" id="f-dbname" placeholder="monapp_db" value="nabysygswave"/>
         <div class="field-hint">Peut être identique à la Master</div>
       </div>
       <div class="field">
@@ -858,14 +858,31 @@
     <div class="review-grid" id="review-content"></div>
 
     <div class="url-display" id="url-display">
-      <span>POST</span> <span id="url-preview">/?Action=SETUP</span>
+      <span>GET</span> <span id="url-preview">/?Action=SETUP&...</span>
+    </div>
+
+    <!-- Lien généré affiché après clic sur le bouton -->
+    <div id="setup-link-wrap" style="display:none; margin-top:16px;">
+      <div style="font-size:0.72rem; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.07em;">
+        Cliquez sur le lien ci-dessous pour lancer la configuration :
+      </div>
+      <a id="setup-link" href="#" target="_blank"
+         style="display:flex; align-items:center; gap:10px; padding:14px 18px;
+                background:var(--surface); border:1.5px solid var(--accent);
+                border-radius:8px; color:var(--accent); font-size:0.78rem;
+                word-break:break-all; text-decoration:none; transition:background .2s;">
+        <span style="font-size:1.2rem; flex-shrink:0;">🚀</span>
+        <span id="setup-link-text"></span>
+      </a>
+      <div style="margin-top:8px; font-size:0.68rem; color:var(--muted);">
+        ⚠ Un nouvel onglet va s'ouvrir. Attendez le chargement complet avant de fermer cette page.
+      </div>
     </div>
 
     <div class="nav-row">
       <button class="btn btn-ghost" onclick="goStep(3)">← Modifier</button>
       <button class="btn btn-danger" id="btn-setup" onclick="submitSetup()">
-        <span class="spinner" id="spin"></span>
-        <span class="btn-text" id="btn-setup-label">🚀 Générer appinfos.php</span>
+        <span class="btn-text" id="btn-setup-label">🔗 Générer le lien de configuration</span>
       </button>
     </div>
   </div>
@@ -875,6 +892,9 @@
     <div class="result-icon" id="res-icon"></div>
     <div class="result-title" id="res-title"></div>
     <pre class="result-log" id="res-log"></pre>
+    <div style="margin-top:12px; font-size:0.72rem; color:var(--muted);">
+      💡 Vous pouvez maintenant supprimer <code style="color:var(--accent2);">setup.html</code> de votre projet.
+    </div>
     <div class="nav-row" style="margin-top:20px;">
       <button class="btn btn-ghost" onclick="resetResult()">← Recommencer</button>
     </div>
@@ -1006,6 +1026,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     initServerUrl();
     selectRouting('action');
+    checkApiResponse();
   });
 
   
@@ -1077,41 +1098,57 @@
     };
   }
 
-  // ── Submit ──
-  async function submitSetup() {
-    const btn = document.getElementById('btn-setup');
-    const spin = document.getElementById('spin');
-    const label = document.getElementById('btn-setup-label');
+  // ── Générer le lien GET et l'afficher ──
+  function submitSetup() {
+    const vals     = collectValues();
+    const server   = vals.serverurl.replace(/\/$/, '');
+    const base     = vals.basedir ? '/' + vals.basedir.replace(/^\/|\/$/g, '') : '';
 
-    btn.disabled = true;
-    spin.style.display = 'block';
-    label.style.display = 'none';
+    // Construire les paramètres GET
+    const params = new URLSearchParams();
+    params.set('Action', 'SETUP');
+    Object.entries(vals).forEach(([k, v]) => params.set(k, v));
 
-    const vals = collectValues();
-    const fd = new FormData();
-    Object.entries(vals).forEach(([k, v]) => fd.append(k, v));
+    const apiUrl = server + base + '/?' + params.toString();
 
-    // Construire l'URL API depuis le champ serverurl saisi par l'utilisateur
-    const serverUrl = vals.serverurl.replace(/\/$/, '');
-    const basedir   = vals.basedir ? '/' + vals.basedir.replace(/^\/|\/$/g, '') : '';
-    const apiUrl    = serverUrl + basedir + '/?Action=SETUP';
+    // Afficher le lien cliquable
+    showSetupLink(apiUrl);
+  }
 
-    try {
-      const res = await fetch(apiUrl, { method: 'POST', body: fd });
-      const json = await res.json();
-      showResult(json);
-    } catch (err) {
-      showResult({ OK: 0, Contenue: 'Erreur de connexion à l\'API NAbySyGS.\n\n' + err.message });
-    } finally {
-      btn.disabled = false;
-      spin.style.display = 'none';
-      label.style.display = 'block';
+  // ── Afficher le lien de configuration ──
+  function showSetupLink(url) {
+    const wrap = document.getElementById('setup-link-wrap');
+    const link = document.getElementById('setup-link');
+    const text = document.getElementById('setup-link-text');
+
+    // Tronquer l'affichage du texte du lien pour la lisibilité
+    const display = url.length > 80
+      ? url.substring(0, 80) + '...'
+      : url;
+
+    link.href      = url;
+    text.textContent = display;
+    link.title     = url; // URL complète au survol
+    wrap.style.display = 'block';
+
+    // Scroll vers le lien
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ── Vérifier si l'API a retourné un résultat dans l'URL courante ──
+  // (utile si la page est rechargée après le clic sur le lien)
+  function checkApiResponse() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('nabysygs_result')) {
+      try {
+        const json = JSON.parse(atob(params.get('nabysygs_result')));
+        showResult(json);
+      } catch(e) { /* ignorer */ }
     }
   }
 
   // ── Show result ──
   function showResult(json) {
-    // Hide form steps
     document.getElementById('steps').style.display = 'none';
     document.getElementById('sec-4').classList.remove('visible');
 
@@ -1128,7 +1165,6 @@
       ? 'Setup terminé — appinfos.php généré avec succès !'
       : 'Échec du setup';
 
-    // Format log
     const log = document.getElementById('res-log');
     const raw = json.Contenue || '';
     log.innerHTML = raw.split('\n').map(line => {
