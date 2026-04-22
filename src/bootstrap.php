@@ -195,21 +195,19 @@ N::$BASEDIR = $base;
 $templateDir = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
 
 // ── index.php ──────────────────────────────────────────────
+// Au premier démarrage, on copie template_setup.php comme index.php temporaire.
+// Ce fichier gère le setup initial (?Action=SETUP) puis se remplace lui-même
+// par le vrai template_index.php une fois appinfos.php généré.
 $main_entry_file = $host_directory . 'index.php';
 if (!file_exists($main_entry_file)) {
-    nabysyBootstrapLog("Génération de index.php dans {$host_directory}", 'INFO');
+    nabysyBootstrapLog("Génération de index.php (setup temporaire) dans {$host_directory}", 'INFO');
     try {
-        $template = file_get_contents($templateDir . 'template_index.php');
-        if ($template === false) {
-            throw new \RuntimeException("Impossible de lire template_index.php");
+        $templateSetup = $templateDir . 'template_setup.php';
+        if (!file_exists($templateSetup)) {
+            throw new \RuntimeException("template_setup.php introuvable dans {$templateDir}");
         }
-        $updated = str_replace(
-            ['{DATE}', '{MODULE_NAME}'],
-            [date('d/M/Y H:i:s'), 'Mon Application NAbySyGS'],
-            $template
-        );
-        file_put_contents($main_entry_file, $updated);
-        nabysyBootstrapLog("index.php généré avec succès", 'INFO');
+        copy($templateSetup, $main_entry_file);
+        nabysyBootstrapLog("index.php (setup) généré avec succès", 'INFO');
     } catch (\Throwable $th) {
         nabysyBootstrapLog("Erreur génération index.php : " . $th->getMessage(), 'ERROR');
     }
