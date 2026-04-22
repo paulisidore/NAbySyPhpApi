@@ -2049,7 +2049,7 @@ Class xNAbySyGS
 	public function ValideUser($SendReponse=true):bool{
 		$Err=new xErreur;
 		if(!isset($this->MaBoutique)){
-			$this->ChargeInfo();
+			$this->ChargeInfos();
 		}
 		if(!self::$NO_AUTH){
 			if (!isset($this->User)){
