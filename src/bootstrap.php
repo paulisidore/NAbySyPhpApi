@@ -60,9 +60,14 @@ if (!class_exists('N')) {
 N::$BASEDIR = $base ;
 //echo "__BASEDIR__ = ".N::$BASEDIR."</br>" ; exit;
 
-$fichierStart = N::CurrentFolder(true).'appinfos.php';
-$outputDir =  N::CurrentFolder(true) ;
-$fichier_sortie = $outputDir . 'appinfos.php';
+// $fichierStart = N::CurrentFolder(true).'appinfos.php';
+// $outputDir =  N::CurrentFolder(true) ;
+// $fichier_sortie = $outputDir . 'appinfos.php';
+
+$fichierStart    = $host_directory . DIRECTORY_SEPARATOR . 'appinfos.php';
+$outputDir       = $host_directory . DIRECTORY_SEPARATOR;
+$fichier_sortie  = $outputDir . 'appinfos.php';
+
 
 if (file_exists($fichierStart)) {
 	include $fichierStart;
@@ -101,7 +106,8 @@ if (file_exists($fichierStart)) {
 	
 }
 
-$htaccess_file = N::CurrentFolder(true).'.htaccess' ;
+//$htaccess_file = N::CurrentFolder(true).'.htaccess' ;
+$htaccess_file = $host_directory . DIRECTORY_SEPARATOR . '.htaccess';
 if(!file_exists($htaccess_file)){
 	//Création du fichier htaccess afin de rediriger les chemin inconnus vers le gestionnaire des appels api
 	$templatePath = N::CurrentFolder().'templates/template_htaccess';
@@ -132,15 +138,17 @@ if(!file_exists($htaccess_file)){
 }
 
 try {
-	$tmpDir = N::CurrentFolder(true).'tmp/';
+	//$tmpDir = N::CurrentFolder(true).'tmp/';
+	$tmpDir = $host_directory . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR;
 	if(!scandir($tmpDir)){
 		mkdir($tmpDir, 0777, true);
 	}
 } catch (\Throwable $th) {
-	N::$Log->AddToLog("Error on creating tmp directory: ".$th->getMessage());
+	echo "Error on creating tmp directory: ".$th->getMessage();
 }
 
-$htaccess_tmpfile = N::CurrentFolder(true).'tmp/.htaccess' ;
+//$htaccess_tmpfile = N::CurrentFolder(true).'tmp/.htaccess' ;
+$htaccess_tmpfile = $host_directory . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . '.htaccess';
 if(!file_exists($htaccess_tmpfile)){
 	//Création du fichier htaccess afin de rediriger les chemin inconnus vers le gestionnaire des appels api
 	$templatePath = N::CurrentFolder().'templates/templateimagetmp_htaccess';
