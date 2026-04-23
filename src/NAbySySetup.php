@@ -214,6 +214,58 @@ class NAbySySetup implements PluginInterface, EventSubscriberInterface
                 $this->io->write("  ✔  tmp/.htaccess généré");
             }
         }
+
+        // ── nsy.bat et koro.bat (Windows) ──────────────────────────
+        if (PHP_OS_FAMILY === 'Windows') {
+            $bats = [
+                'nsy.bat'  => 'nsy',
+                'koro.bat' => 'koro',
+            ];
+            foreach ($bats as $batFile => $bin) {
+                $batPath = $hostRoot . $batFile;
+                if (!file_exists($batPath)) {
+                    $content = '@echo off' . "\r\n"
+                        . 'php "%~dp0vendor\bin\\' . $bin . '" %*' . "\r\n";
+                    file_put_contents($batPath, $content);
+                    $this->io->write("  ✔  {$batFile} généré — vous pouvez utiliser '{$bin}' depuis la racine du projet");
+                }
+            }
+        } else {
+            // ── Linux / Mac : scripts shell ────────────────────────
+            $scripts = ['nsy', 'koro'];
+            foreach ($scripts as $bin) {
+                $scriptPath = $hostRoot . $bin;
+                if (!file_exists($scriptPath)) {
+                    $content = '#!/bin/sh' . "\n"
+                        . 'php "$(dirname "$0")/vendor/bin/' . $bin . '" "$@"' . "\n";
+                    file_put_contents($scriptPath, $content);
+                    chmod($scriptPath, 0755);
+                    $this->io->write("  ✔  {$bin} généré — vous pouvez utiliser './{$bin}' depuis la racine du projet");
+                }
+            }
+        }
+
+        // ── Injecter bootstrap.php dans l'autoload du projet hôte ──
+        $hostComposer = $hostRoot . 'composer.json';
+        if (file_exists($hostComposer)) {
+            $json = json_decode(file_get_contents($hostComposer), true);
+            $bootstrapPath = 'vendor/nabysyphpapi/xnabysygs/src/bootstrap.php';
+            
+            // Vérifier s'il n'est pas déjà injecté
+            $alreadyThere = in_array(
+                $bootstrapPath,
+                $json['autoload']['files'] ?? []
+            );
+            
+            if (!$alreadyThere) {
+                $json['autoload']['files'][] = $bootstrapPath;
+                file_put_contents(
+                    $hostComposer,
+                    json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                );
+                $this->io->write("  ✔  bootstrap.php enregistré dans l'autoload");
+            }
+        }
     }
 
     // ────────────────────────────────────────────────────────
