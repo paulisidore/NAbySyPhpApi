@@ -125,6 +125,7 @@ switch ($action) {
         $debuglevel = (int)_setupGet('debuglevel', '4');
         $authresp   = _setupGet('authresp',     '1') === '1';
         $routing    = _setupGet('routing',      'action');
+        $serverurl = _setupGet('serverurl',    'http://localhost');
 
         // ── 3. Validation des champs obligatoires ────────────
         $errors = [];
