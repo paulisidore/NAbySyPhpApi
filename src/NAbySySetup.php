@@ -230,6 +230,16 @@ class NAbySySetup implements PluginInterface, EventSubscriberInterface
                     $this->io->write("  ✔  {$batFile} généré — vous pouvez utiliser '{$bin}' depuis la racine du projet");
                 }
             }
+            // ── nsy.ps1 et koro.ps1 (PowerShell) ──────────────────────
+            $ps1s = ['nsy', 'koro'];
+            foreach ($ps1s as $bin) {
+                $ps1Path = $hostRoot . $bin . '.ps1';
+                if (!file_exists($ps1Path)) {
+                    $content = 'php "$PSScriptRoot\vendor\bin\\' . $bin . '" @args' . "\r\n";
+                    file_put_contents($ps1Path, $content);
+                    $this->io->write("  ✔  {$bin}.ps1 généré — vous pouvez utiliser '{$bin}' dans PowerShell");
+                }
+            }
         } else {
             // ── Linux / Mac : scripts shell ────────────────────────
             $scripts = ['nsy', 'koro'];
