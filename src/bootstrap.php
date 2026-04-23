@@ -2,6 +2,17 @@
 // src/bootstrap.php
 // Code exécuté automatiquement dès que le package est chargé par Composer
 
+// ============================================================
+//  GARDE : Ne pas s'exécuter dans le contexte Composer
+// ============================================================
+if (php_sapi_name() === 'cli' && (
+    class_exists('Composer\Factory') ||
+    getenv('COMPOSER_BINARY') !== false ||
+    getenv('COMPOSER') !== false
+)) {
+    return;
+}
+
 use NAbySy\xNAbySyGS;
 
 define('XNABYSY_LOADED', true);

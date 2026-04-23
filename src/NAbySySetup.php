@@ -73,6 +73,10 @@ class NAbySySetup implements PluginInterface, EventSubscriberInterface
             return;
         }
 
+        // Copier les fichiers de démarrage vers la racine hôte
+        $this->runBootstrapInstall();
+        
+        // Ouvrir le navigateur pour la config        
         $this->runSetup();
     }
 
@@ -132,6 +136,84 @@ class NAbySySetup implements PluginInterface, EventSubscriberInterface
         }
 
         $this->printSeparator();
+    }
+
+    private function runBootstrapInstall(): void
+    {
+        $vendorDir    = $this->composer->getConfig()->get('vendor-dir');
+        $hostRoot     = rtrim(dirname($vendorDir), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $templateDir  = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
+        $appinfosFile = $hostRoot . 'appinfos.php';
+
+        // Si déjà configuré, rien à copier
+        if (file_exists($appinfosFile)) {
+            return;
+        }
+
+        // ── index.php ──
+        $mainEntry = $hostRoot . 'index.php';
+        if (!file_exists($mainEntry)) {
+            $src = $templateDir . 'template_setup.php';
+            if (file_exists($src)) {
+                copy($src, $mainEntry);
+                $this->io->write("  ✔  index.php généré");
+            }
+        }
+
+        // ── index_new.php ──
+        $indexNew = $hostRoot . 'index_new.php';
+        if (!file_exists($indexNew)) {
+            $src = $templateDir . 'template_index.php';
+            if (file_exists($src)) {
+                $template = file_get_contents($src);
+                $updated  = str_replace(
+                    ['{DATE}', '{MODULE_NAME}'],
+                    [date('d/M/Y H:i:s'), 'Mon Application NAbySyGS'],
+                    $template
+                );
+                file_put_contents($indexNew, $updated);
+                $this->io->write("  ✔  index_new.php généré");
+            }
+        }
+
+        // ── setup.html ──
+        $setupDest = $hostRoot . 'setup.html';
+        $setupSrc  = __DIR__ . DIRECTORY_SEPARATOR . 'setup.html';
+        if (!file_exists($setupDest) && file_exists($setupSrc)) {
+            copy($setupSrc, $setupDest);
+            $this->io->write("  ✔  setup.html copié");
+        }
+
+        // ── .htaccess ──
+        $htaccess = $hostRoot . '.htaccess';
+        if (!file_exists($htaccess)) {
+            $src = $templateDir . 'template_htaccess';
+            if (file_exists($src)) {
+                $template = file_get_contents($src);
+                $updated  = str_replace('{NABYSYROOT}', $hostRoot, $template);
+                file_put_contents($htaccess, $updated);
+                $this->io->write("  ✔  .htaccess généré");
+            }
+        }
+
+        // ── tmp/ ──
+        $tmpDir = $hostRoot . 'tmp' . DIRECTORY_SEPARATOR;
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0777, true);
+            $this->io->write("  ✔  Dossier tmp/ créé");
+        }
+
+        // ── tmp/.htaccess ──
+        $htaccessTmp = $tmpDir . '.htaccess';
+        if (!file_exists($htaccessTmp)) {
+            $src = $templateDir . 'templateimagetmp_htaccess';
+            if (file_exists($src)) {
+                $template = file_get_contents($src);
+                $updated  = str_replace('{NABYSYROOT}', $hostRoot, $template);
+                file_put_contents($htaccessTmp, $updated);
+                $this->io->write("  ✔  tmp/.htaccess généré");
+            }
+        }
     }
 
     // ────────────────────────────────────────────────────────
