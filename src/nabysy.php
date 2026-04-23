@@ -2349,7 +2349,7 @@ Class xNAbySyGS
 	 * @return ?xNAbySyGS : Instance de l'application NAbySyGS 
 	 */
 	public static function Start(xStartUpInfo $StartInfo):?xNAbySyGS{
-		if (session_status() == PHP_SESSION_NONE) {
+		if (PHP_SAPI !== 'cli' && session_status() == PHP_SESSION_NONE) {
 			session_start();
 		}
 		if (!isset($StartInfo)){

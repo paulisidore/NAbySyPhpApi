@@ -48,7 +48,7 @@ class xCartGeneric{
 	}
 	
 
-    if (session_status() == PHP_SESSION_NONE) {
+    if (PHP_SAPI !== 'cli' && session_status() == PHP_SESSION_NONE) {
         session_start();
 	}
 	if (!isset($pref)){

@@ -35,7 +35,7 @@ class xCartCommande{
   */
   function __construct($Bou=null,$IdSession=1,$IsTemp=null){
     // Démarrage des sessions si pas déjà démarrées
-    if (session_status() == PHP_SESSION_NONE) {
+    if (PHP_SAPI !== 'cli' && session_status() == PHP_SESSION_NONE) {
         session_start();
     }
 	if (isset($Bou)){
