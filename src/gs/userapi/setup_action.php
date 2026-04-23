@@ -325,9 +325,5 @@ PHP;
     // ── FIN case SETUP ────────────────────────────────────────
 
     default:
-        $Err->OK       = 0;
-        $Err->TxErreur = "Action '{$action}' inconnue dans le setup.";
-        $Err->Source   = __FILE__;
-        echo json_encode($Err);
-        exit;
+        //On laisse les autre actions être traitées par le futur index.php après le setup réussi
 }
