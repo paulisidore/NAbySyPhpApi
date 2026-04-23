@@ -1,0 +1,5 @@
+#!/usr/bin/env php
+<?php
+// bin/koro — Alias de nsy (mascotte Koro le Calao 🦅)
+require_once __DIR__ . '/../src/NAbySyCLI.php';
+NAbySyCLI::run($argv);

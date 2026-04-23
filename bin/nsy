@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+// bin/nsy — CLI NAbySyGS
+// Alias: koro (voir bin/koro)
+require_once __DIR__ . '/../src/NAbySyCLI.php';
+NAbySyCLI::run($argv);

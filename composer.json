@@ -9,6 +9,7 @@
     "require-dev": {
         "composer/composer": "^2.0"
     },
+    "bin": ["bin/nsy", "bin/koro"],
     "license": "mit",
     "authors": [
         {
