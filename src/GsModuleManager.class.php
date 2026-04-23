@@ -132,6 +132,13 @@ use xNAbySyCustomListOf;
          }
       }
 
+      if($CreateORMClass && !isset($Table)){
+         $Table=trim($NomCategorie) ;
+         //On netoie le nom de la table
+         $Table = str_replace(" ", "_", $Table) ;
+         $Table = str_replace("-", "_", $Table) ;
+      }
+
       if($CreateORMClass && isset($Table) && trim($Table) !==''){
          $NomClass="x".strtoupper(substr($NomCategorie, 0, 1)).substr($NomCategorie, 1) ;
          if(self::$DebugToLog){

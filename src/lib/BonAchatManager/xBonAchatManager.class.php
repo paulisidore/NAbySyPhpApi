@@ -458,12 +458,12 @@ use NAbySy\xNAbySyGS;
                     //On le crée
                     $Config='{
                     "Connexion": {
-                        "Serveur":"'.'https://hypermarcheexclusive.com/bonachat/'.'",
+                        "Serveur":"'.'https://mon-endpoit/bonachat/'.'",
                         "bonachat_action":"'."bonachat_action.php".'",
-                        "api_user":"'."hypermar_pharmcp".'",
-                        "api_pwd":"'."pharmcp2022".'",
+                        "api_user":"'."bonachat_pharmcp".'",
+                        "api_pwd":"'."12345678".'",
                         "Active":"'."true".'",
-                        "MasterDB":"'."hypermar_nabysygs".'"
+                        "MasterDB":"'."nabysygs_bonachat".'"
                         },
                     "Module": {
                         "Nom":"'.self::MODULE_NAME." pour ".$this->Main->MODULE->Nom.'",
@@ -499,10 +499,10 @@ use NAbySy\xNAbySyGS;
                     //On est sur le serveur original de gestion des Bon d'Achat
                     $Config='{
                         "Connexion": {
-                            "Serveur":"'.'https://hypermarcheexclusive.com/bonachat/'.'",
+                            "Serveur":"'.'https://mon-endpoint/bonachat/'.'",
                             "bonachat_action":"'."bonachat_action.php".'",
-                            "api_user":"'."hypermar_pharmcp".'",
-                            "api_pwd":"'."pharmcp2022".'",
+                            "api_user":"'."bonachat_pharmcp".'",
+                            "api_pwd":"'."12345678".'",
                             "Active":"'."true".'",
                             "MasterDB":"'."hypermar_nabysygs".'"
                             },
