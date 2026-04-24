@@ -2550,11 +2550,12 @@ Class xNAbySyGS
 	public static function ModuleGSHostFolder():string{
 		$rep=self::CurrentFolder(true).'gs' ;
 		$nbFile=self::NbSubFoldersInFolder($rep) ;
-		self::$Log->AddToLog("ModuleGSHostFolder: ". $rep ." : Nb File = ".$nbFile);
+		
 		if(self::NbSubFoldersInFolder($rep) == 0){
 			self::$IsFirstSetup = true;
+			self::$Log->AddToLog("ModuleGSHostFolder: ". $rep ." : ".(self::$IsFirstSetup ? "First Setup":"Not First Setup") );
 		}
-		self::$Log->AddToLog("ModuleGSHostFolder: ". $rep ." : ".(self::$IsFirstSetup ? "First Setup":"Not First Setup") );
+		
 		return $rep ;
 	}
 
