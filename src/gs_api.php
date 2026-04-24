@@ -102,6 +102,7 @@ if (!class_exists('N')) {
     
     if($action == 'NABYSY_STRUCURE_UPDATE'){
         $PourAccesRobot=true ;
+        N::$ActiveUrlRouter = false; //Désactiver le routeur URL pour les actions de mise à jour de la structure de la base de données.
     }
 
     if(strtolower($action) == 'auth'){
