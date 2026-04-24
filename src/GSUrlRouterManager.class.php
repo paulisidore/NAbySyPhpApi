@@ -190,6 +190,21 @@ class xGSUrlRouterManager{
     public static function resolveUrlRoute(bool $CanSendReponse=false):xGSUrlRouterResponse{
         $Rep=new xGSUrlRouterResponse();
         $Rep->OK=0;
+
+        if(isset($_GET['Action'])){
+            $action = $_GET['Action'] ;
+            if($action == 'NABYSY_STRUCURE_UPDATE'){
+                $Rep->OK=1 ;
+                $Rep->Extra = "NABYSY_STRUCURE_UPDATE";
+                $Rep->Contenue="Mise à jour de la structure de la base de données effectuée avec succès.";
+                if(self::$Main::$IsFirstSetup){
+                    $Rep->Extra = "NABYSY_STRUCURE_INITIAL_SETUP" ;
+                    $Rep->Contenue="Configuration initiale. Effectuer un second Appel pour terminer la configuration.";
+                }        
+                $Rep->SendAsJSON();
+            }
+        }
+
         // Récupérer l'URL demandée
         $requestUri = $_SERVER['REQUEST_URI'];
         $scriptName = dirname($_SERVER['SCRIPT_NAME']);
