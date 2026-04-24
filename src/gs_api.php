@@ -26,14 +26,14 @@ if (!class_exists('N')) {
 		}
 	}
 }
+    $IsFirstRequest=N::$IsFirstSetup ;
+    
 
     if(!isset($nabysy)){
         $nabysy = N::getInstance() ;
     }
 
 	$PARAM=$_REQUEST;
-    
-    $IsFirstRequest=true ;
 
     $ChampAction='Action';
 	$action=null ;

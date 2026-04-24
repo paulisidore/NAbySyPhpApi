@@ -2538,6 +2538,9 @@ Class xNAbySyGS
 	 */
 	public static function ModuleGSFolder():string{
 		$rep=self::CurrentFolder().'gs' ;
+		if(self::NbSubFoldersInFolder($rep) == 0){
+			self::$IsFirstSetup = true;
+		}
 		return $rep ;
 	}
 
@@ -2546,11 +2549,32 @@ Class xNAbySyGS
 	 */
 	public static function ModuleGSHostFolder():string{
 		$rep=self::CurrentFolder(true).'gs' ;
-		if(!self::IsDirectory($rep)){
+		$nbFile=self::NbSubFoldersInFolder($rep) ;
+		self::$Log->AddToLog("ModuleGSHostFolder: ". $rep ." : Nb File = ".$nbFile);
+		if(self::NbSubFoldersInFolder($rep) == 0){
 			self::$IsFirstSetup = true;
 		}
+		self::$Log->AddToLog("ModuleGSHostFolder: ". $rep ." : ".(self::$IsFirstSetup ? "First Setup":"Not First Setup") );
 		return $rep ;
 	}
+
+	/**
+	 * Retourne le nombre de fichier dans un dossier
+	 * @param string $FolderPath 
+	 * @return int 
+	 */
+	public static function NbSubFoldersInFolder(string $FolderPath): int {
+		if (!is_dir($FolderPath)) return 0;
+		
+		$FolderPath = rtrim($FolderPath, DIRECTORY_SEPARATOR . '/');
+		$items      = scandir($FolderPath);
+		
+		return count(array_filter(
+			$items,
+			fn($f) => $f !== '.' && $f !== '..' && is_dir($FolderPath . DIRECTORY_SEPARATOR . $f)
+		));
+	}
+
 
 	/**
 	 * Retourne un objet Liste typée.
