@@ -366,6 +366,8 @@ Class xNAbySyGS
 				exit;
 			}
 		}
+
+		$userGSFolder = self::ModuleGSHostFolder() ; //Provoque la vérification de l'installation Initiale de NAbySyGS et la création du dossier de stockage des Modules GS
 		
 		if(!isset(self::$db_link) || $Myserveur !== $this->db_serveur ){
 			if($port <= 0){
@@ -2550,8 +2552,7 @@ Class xNAbySyGS
 	public static function ModuleGSHostFolder():string{
 		$rep=self::CurrentFolder(true).'gs' ;
 		$nbFile=self::NbSubFoldersInFolder($rep) ;
-		
-		if(self::NbSubFoldersInFolder($rep) == 0){
+		if($nbFile == 0){
 			self::$IsFirstSetup = true;
 			self::$Log->AddToLog("ModuleGSHostFolder: ". $rep ." : ".(self::$IsFirstSetup ? "First Setup":"Not First Setup") );
 		}
