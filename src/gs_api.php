@@ -33,6 +33,8 @@ if (!class_exists('N')) {
 
 	$PARAM=$_REQUEST;
     
+    $IsFirstRequest=true ;
+
     $ChampAction='Action';
 	$action=null ;
 	if (isset($PARAM[$ChampAction])){
@@ -98,6 +100,10 @@ if (!class_exists('N')) {
         }
     }
     
+    if($action == 'NABYSY_STRUCURE_UPDATE'){
+        $PourAccesRobot=true ;
+    }
+
     if(strtolower($action) == 'auth'){
         N::ReadHttpAuthRequest();
         return;
@@ -270,6 +276,19 @@ if (!class_exists('N')) {
                 
     //}
     
+    if($action == 'NABYSY_STRUCURE_UPDATE'){
+        $PourAccesRobot=true ;
+        $Rep=new xNotification();
+        $Rep->OK=1 ;
+        $Rep->Extra = "NABYSY_STRUCURE_UPDATE";
+         $Rep->Contenue="Mise à jour de la structure de la base de données effectuée avec succès.";
+        if(N::$IsFirstSetup){
+            $Rep->Extra = "NABYSY_STRUCURE_INITIAL_SETUP" ;
+             $Rep->Contenue="Configuration initiale. Effectuer un second Appel pour terminer la configuration.";
+        }        
+        $Rep->SendAsJSON();
+    }
+
     //Si on arrive ici c' est qu' aucun module n' a pus g'erer la requete
     if (isset($action)){
         $Err->TxErreur .= " ".$action." n'est pas définit." ;

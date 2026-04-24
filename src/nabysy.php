@@ -91,6 +91,12 @@ Class xNAbySyGS
 	private static string $dbpass = "";
 	private static string $dbserver = "127.0.0.1";
 
+	/**
+	 * Indique si c'est la première configuration de NAbySyGS. Utile pour le processus d'installation et de configuration initiale.
+	 * @var bool
+	 */
+	public static bool $IsFirstSetup = false ;
+
 	public ModuleMCP $MODULE ;
 	public static mysqli $db_link ;
 	public string $dbase ="" ;
@@ -2540,6 +2546,9 @@ Class xNAbySyGS
 	 */
 	public static function ModuleGSHostFolder():string{
 		$rep=self::CurrentFolder(true).'gs' ;
+		if(!self::IsDirectory($rep)){
+			self::$IsFirstSetup = true;
+		}
 		return $rep ;
 	}
 
