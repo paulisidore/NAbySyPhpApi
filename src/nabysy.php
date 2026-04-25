@@ -2400,6 +2400,9 @@ Class xNAbySyGS
 		}
 		$nabysy->MODULE->Actif=true;
 		$nabysy->ActiveDebug= boolval ($StartInfo->DebugMode) ;
+		if($StartInfo->LogLevel>4){
+			$nabysy->ActiveDebug=true ;
+		}
 		self::$LogLevel = $StartInfo->LogLevel ;
 
 		ini_set('display_errors', 0);
@@ -2457,6 +2460,10 @@ Class xNAbySyGS
 
 		$StartInfo = new xStartUpInfo($InfoClientMCP, $Connexion);
 		$StartInfo->DesableTokenAuth = $DesableTokenAuth ;
+		$StartInfo->LogLevel = 6 ;
+		$StartInfo->DebugMode = true ; //Pour le démarrage en mode debug, à changer selon les besoins
+		self::$LogLevel = 6;
+
 		return self::Start($StartInfo);
 		
 	}

@@ -193,8 +193,13 @@ use NAbySy\xNAbySyGS;
                 }
             }
         }
-        if(self::$Main::$IsFirstSetup || (self::$Main->ActiveDebug && self::$Main::$LogLevel>=3) ){
-            self::$Main::$Log->Write( count(self::$ListeModule) . " module(s) de paiement inscrit(s) sur la plate-forme. Dont ".$NbUserModTrouve." module(s) de paiement utilisateur chargé(s).");
+
+        // xNAbySyGS::$Log->Write( "IsFirstSetup: " . (xNAbySyGS::$IsFirstSetup ? 'true' : 'false') );
+        // xNAbySyGS::$Log->Write( "ActiveDebug: " . (self::$Main->ActiveDebug ? 'true' : 'false') );
+        // xNAbySyGS::$Log->Write( "LogLevel: " . xNAbySyGS::$LogLevel );
+
+        if(xNAbySyGS::$IsFirstSetup ){
+            xNAbySyGS::$Log->Write( count(self::$ListeModule) . " module(s) de paiement inscrit(s) sur la plate-forme. Dont ".$NbUserModTrouve." module(s) de paiement utilisateur chargé(s).");
         }
 
     }
