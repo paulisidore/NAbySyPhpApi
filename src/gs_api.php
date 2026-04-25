@@ -263,19 +263,13 @@ if (!class_exists('N')) {
 /** end region */
 
     //var_dump($dossier_action);
-    $Err->TxErreur='Aucun module ne peut traiter votre demande.';
-    $Err->Source=__FILE__;
+   $Err->TxErreur='Aucun module ne peut traiter votre demande.';
+    if($nabysy->ActiveDebug && N::$LogLevel>=3){
+        $Err->Source=__FILE__;
+    }
     if(isset($_REQUEST['TRACKERID'])){
         $Err->Source = $_REQUEST['TRACKERID'];
-     }
-     
-    //var_dump($dossier_action);
-    //foreach ($dossier_action as $fichier_action){
-        //echo __FILE__."LINE:".__LINE__." => Chargement du Fichier ".$fichier_action." ...</br>";
-       // include_once $fichier_action;
-        //echo __FILE__."LINE:".__LINE__." =>Action non trouvé Chargement du Fichier suivant ...</br>";
-                
-    //}
+    }
     
     if($action == 'NABYSY_STRUCURE_UPDATE'){
         $PourAccesRobot=true ;
