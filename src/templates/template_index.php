@@ -27,9 +27,6 @@
      * 
      *  define('__BASEDIR__', "test");
      */
-      if(!defined('__BASEDIR__')){
-          define('__BASEDIR__', ""); // Insert here your sub-directory
-      }
 
       /**
        * PLEASE ALLOW READWRITE ACCESS TO YOUR BASE URL BECAUSE NAbySyPhpApi WILL CREATE YOUR DECLARED ORM FILE,  WRITE LOGS AND SOME TEMPORARY FILES.
