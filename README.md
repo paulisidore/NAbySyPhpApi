@@ -5,25 +5,36 @@
 [![License](https://img.shields.io/packagist/l/nabysyphpapi/xnabysygs.svg)](https://packagist.org/packages/nabysyphpapi/xnabysygs)
 [![PHP Version](https://img.shields.io/packagist/php-v/nabysyphpapi/xnabysygs.svg)](https://packagist.org/packages/nabysyphpapi/xnabysygs)
 
-**NAbySyGS** est un framework PHP moderne conçu par **PAM & MCP** pour faciliter la création rapide d'API REST pour vos applications. Il intègre un ORM personnalisé avec création automatique de tables et champs, un système d'authentification JWT, et une architecture modulaire.
+**NAbySyGS** est un framework PHP moderne conçu par **PAM & MCP** pour faciliter la création rapide d'API REST pour vos applications. Il intègre un ORM personnalisé avec création automatique de tables et champs, un système d'authentification JWT, une architecture modulaire, et un double système de routage (Action classique + URL Laravel-style).
+
+---
 
 ## ✨ Fonctionnalités
 
-- 🚀 **ORM Automatique** - Création automatique des tables et champs MySQL/MariaDB
-- 🔐 **Authentification JWT** - Système de tokens sécurisés intégré
-- 📦 **Architecture Modulaire** - Organisation en modules avec auto-chargement
-- 🎯 **Type-Safe** - Détection automatique des types de données (INT, VARCHAR, DATE...)
-- 🔄 **Gestion d'Événements** - Pattern Observer pour réagir aux changements
-- 🛠️ **Modules Métier** - Gestion de boutiques, stocks, factures, clients...
-- 🌐 **CORS Ready** - Gestion automatique des requêtes cross-origin
-- 📝 **Logs Intégrés** - Journalisation système et débogage
+* 🚀 **ORM Automatique** — Création automatique des tables et champs MySQL/MariaDB
+* 🔗 **Jointures ORM Fluentes** — API de jointure chainable entre entités, sans écrire de SQL
+* 🔐 **Authentification JWT** — Système de tokens sécurisés intégré
+* 📦 **Architecture Modulaire** — Organisation en modules avec auto-chargement
+* 🎯 **Type-Safe** — Détection automatique des types de données (INT, VARCHAR, DATE…)
+* 🔄 **Gestion d'Événements** — Pattern Observer pour réagir aux changements
+* 🌐 **Double Routage** — Routage par Action classique **et** routage URL Laravel-style, simultanément
+* 🛡️ **Middlewares** — Appliqués automatiquement, personnalisables par le développeur
+* 📋 **Documentation des Routes Intégrée** — Endpoint `/api/describe` avec rendu web interactif, export JSON/PDF et import
+* 🛠️ **Modules Métier** — Gestion de boutiques, stocks, factures, clients…
+* 🌐 **CORS Ready** — Gestion automatique des requêtes cross-origin
+* 📝 **Logs Intégrés** — Journalisation système et débogage
+* 🎛️ **Setup HTML Interactif** — Configuration initiale via interface web, ouverte automatiquement au premier lancement
+
+---
 
 ## 📋 Prérequis
 
-- PHP >= 8.1.0
-- MySQL ou MariaDB
-- Extension PHP: `mysqli`, `mbstring`, `json`
-- Composer
+* PHP >= 8.1.0
+* MySQL ou MariaDB
+* Extensions PHP : `mysqli`, `mbstring`, `json`
+* Composer
+
+---
 
 ## 📦 Installation
 
@@ -33,17 +44,50 @@
 composer require nabysyphpapi/xnabysygs
 ```
 
+### Via la CLI NAbySyGS (`koro` / `nsy`)
+
+```bash
+# Installer la CLI globalement
+composer global require nabysyphpapi/xnabysygs-cli
+
+# Initialiser un nouveau projet dans le dossier courant
+koro init mon-projet-api
+```
+
+> Voir la documentation de la CLI pour le détail des commandes disponibles.
+
+### 🎛️ Setup Initial Automatique
+
+Lors de la **première installation** (via `composer require` ou via n'importe quelle commande `koro`), NAbySyGS ouvre automatiquement **`setup.html`** dans votre navigateur par défaut.
+
+Cette interface web vous permet de configurer :
+
+* La connexion à la base de données
+* L'URL du serveur
+* Le nom de l'application et les informations client
+
+Une fois le formulaire validé, **`appinfos.php`** est généré automatiquement à la racine de votre projet. Le setup ne s'ouvrira plus automatiquement par la suite.
+
+> ⚠️ Toute commande `koro` (sauf `koro version`) déclenche cette vérification et ouvre le setup si le projet n'est pas encore configuré.
+
 ### Structure Générée
 
 ```
 votre-projet/
 ├── vendor/
 │   └── nabysyphpapi/xnabysygs/
-├── gs/                    # Modules personnalisés (créés automatiquement)
-├── appinfos.php          # Configuration (créé automatiquement)
-├── .htaccess             # Redirection API (créé automatiquement)
-└── index.php             # Point d'entrée
+├── gs/                         # Modules personnalisés (créés automatiquement)
+│   └── client/
+│       ├── client_action.php   # Endpoints Action API
+│       └── xClient/
+│           └── xClient.class.php  # Classe ORM
+├── appinfos.php                # Configuration (généré par setup.html)
+├── db_structure.php            # Déclaration des modules et routes
+├── .htaccess                   # Redirection API (créé automatiquement)
+└── index.php                   # Point d'entrée
 ```
+
+---
 
 ## 🚀 Démarrage Rapide
 
@@ -57,18 +101,17 @@ require 'vendor/autoload.php';
 
 use NAbySy\xNAbySyGS as N;
 
-// Initialisation
 $nabysy = N::Init(
     "MonApp",              // Nom de l'application
     "Ma Société SARL",     // Nom du client
     "123 Rue Example",     // Adresse
     "+221 33 123 45 67",   // Téléphone
-    "ma_base",            // Base de données
-    "nabysygs",           // Base master
-    "localhost",          // Serveur MySQL
-    "root",               // Utilisateur
-    "",                   // Mot de passe
-    3306                  // Port
+    "ma_base",             // Base de données
+    "nabysygs",            // Base master
+    "localhost",           // Serveur MySQL
+    "root",                // Utilisateur
+    "",                    // Mot de passe
+    3306                   // Port
 );
 
 // Mode debug (développement uniquement)
@@ -78,7 +121,30 @@ N::SetShowDebug(true);
 N::ReadHttpRequest();
 ```
 
-### 2. Créer Votre Premier Module
+> En pratique, `appinfos.php` généré par le setup contient déjà cet appel `N::Init()` configuré pour votre environnement.
+
+### 2. Déclarer vos Modules — `db_structure.php`
+
+Tous les modules (catégories, ORM, routes URL) sont déclarés dans `db_structure.php`, inclus automatiquement dans `appinfos.php`. Ce fichier peut être généré et enrichi via la CLI ou manuellement.
+
+```php
+<?php
+// ── categorie: client ──────────────────────────────── 2026-04-25 00:44 ──
+N::$GSModManager::CreateCategorie("client", true, true, "clients");
+// ── end: client ────────────────────────────────────────────────────────
+
+// ── categorie: client_url ──────────────────────────── 2026-04-25 00:44 ──
+N::$GSModManager::GenerateUrlRouteController("client", "client");
+// ── end: client_url ────────────────────────────────────────────────────
+```
+
+Vous pouvez également avoir **plusieurs fichiers de structure** en les déclarant via la CLI avec `--struct` :
+
+```bash
+koro create categorie commande -a -o -t commandes --struct structure/commerce.php
+```
+
+### 3. Créer Votre Premier Module
 
 ```php
 <?php
@@ -86,18 +152,19 @@ use NAbySy\xNAbySyGS as N;
 
 // Créer un module "client" avec action API et classe ORM
 N::$GSModManager::CreateCategorie(
-    "client",        // Nom du module
-    true,           // Créer fichier action
-    true,           // Créer classe ORM
-    "clients"       // Nom de la table
+    "client",   // Nom du module
+    true,       // Créer fichier action
+    true,       // Créer classe ORM
+    "clients"   // Nom de la table
 );
 ```
 
 Cela génère automatiquement :
-- `gs/client/client_action.php` - Endpoints API
-- `gs/client/xClient/xClient.class.php` - Classe ORM
 
-### 3. Utiliser l'ORM
+* `gs/client/client_action.php` — Endpoints API
+* `gs/client/xClient/xClient.class.php` — Classe ORM
+
+### 4. Utiliser l'ORM
 
 ```php
 <?php
@@ -106,35 +173,215 @@ use NAbySy\ORM\xORMHelper;
 $nabysy = N::getInstance();
 
 // Créer un client
-$client = new xORMHelper($nabysy, null, true, "clients");
-$client->Nom = "Dupont";
-$client->Prenom = "Jean";
-$client->Email = "jean@example.com";
+$client            = new xORMHelper($nabysy, null, true, "clients");
+$client->Nom       = "Dupont";
+$client->Prenom    = "Jean";
+$client->Email     = "jean@example.com";
 $client->Telephone = "771234567";
-$client->Enregistrer(); // Sauvegarde
+$client->Enregistrer();
 
-echo "Client créé avec ID: " . $client->Id;
+echo "Client créé avec ID : " . $client->Id;
 ```
 
-## 📖 Documentation Complète
+---
 
-### ORM - Opérations CRUD
+## 🌐 Double Système de Routage
 
-#### Créer
+NAbySyGS supporte **deux modes de routage simultanément**. Vous pouvez utiliser l'un, l'autre, ou les deux dans le même projet.
+
+### Mode 1 — Routage par Action (classique)
+
+Le routage historique de NAbySyGS. Chaque requête transmet un paramètre `action` ou `Action`.
 
 ```php
-<?php
-$produit = new xORMHelper($nabysy, null, true, "produits");
-$produit->Nom = "Laptop Dell";
-$produit->Prix = 550000;
+// Appel
+GET /gs_api.php?action=CLIENT_LIST
+POST /gs_api.php  { "action": "CLIENT_CREATE", "nom": "Dupont" }
+```
+
+```php
+// gs/client/client_action.php
+switch ($action) {
+    case 'CLIENT_LIST':
+        $client = new xORMHelper($nabysy, null, true, "clients");
+        echo $nabysy->SQLToJSON($client->ChargeListe());
+        break;
+
+    case 'CLIENT_CREATE':
+        if (!$nabysy->ValideUser()) exit;
+        $client      = new xORMHelper($nabysy, null, true, "clients");
+        $client->Nom = $_REQUEST['nom'];
+        $client->Enregistrer();
+        break;
+}
+```
+
+### Mode 2 — Routage URL Laravel-style
+
+Routage expressif basé sur l'URL, avec paramètres dynamiques, contraintes et middlewares. Déclaré via `GenerateUrlRouteController()`.
+
+#### Déclaration d'un contrôleur de route
+
+```bash
+# Via CLI
+koro create route client client
+# ou avec le module complet
+koro create categorie client -a -o -t clients
+```
+
+```php
+// db_structure.php
+N::$GSModManager::GenerateUrlRouteController("client", "client");
+```
+
+#### Définir des routes dans le contrôleur
+
+```php
+// gs/client/ClientRouteController.php
+
+$router->get('/clients', 'CLIENT_LIST');
+$router->get('/clients/{id}', 'CLIENT_SHOW');
+$router->post('/clients', 'CLIENT_CREATE');
+$router->put('/clients/{id}', 'CLIENT_UPDATE');
+$router->delete('/clients/{id}', 'CLIENT_DELETE');
+
+// Avec contrainte sur le paramètre
+$router->get('/clients/{id}', 'CLIENT_SHOW')->where('id', '[0-9]+');
+
+// Route optionnelle
+$router->get('/clients/{id?}', 'CLIENT_LIST_OR_SHOW');
+
+// Groupe de routes avec préfixe
+$router->prefix('/api/v1')->group(function($router) {
+    $router->get('/clients', 'CLIENT_LIST');
+    $router->get('/produits', 'PRODUIT_LIST');
+});
+```
+
+#### Récupérer les paramètres d'URL dans l'action
+
+```php
+// gs/client/client_action.php
+case 'CLIENT_SHOW':
+    $id     = $nabysy->RouteParam('id');
+    $client = new xORMHelper($nabysy, $id, true, "clients");
+    echo json_encode($client->ToObject());
+    break;
+```
+
+### Middlewares
+
+Les middlewares sont appliqués **automatiquement** par défaut (authentification JWT, CORS, etc.). Le développeur peut les personnaliser :
+
+```php
+// Appliquer un middleware sur une route spécifique
+$router->get('/clients', 'CLIENT_LIST')->middleware('auth');
+
+// Appliquer sur un groupe
+$router->middleware('auth')->group(function($router) {
+    $router->post('/clients', 'CLIENT_CREATE');
+    $router->put('/clients/{id}', 'CLIENT_UPDATE');
+    $router->delete('/clients/{id}', 'CLIENT_DELETE');
+});
+
+// Route publique (sans middleware)
+$router->get('/clients/public', 'CLIENT_PUBLIC_LIST')->withoutMiddleware('auth');
+```
+
+### Coexistence des deux modes
+
+Les deux modes fonctionnent **simultanément** dans le même projet. Le framework détecte automatiquement le type de requête et dispatch vers le bon handler.
+
+```
+GET  /clients/5           → Routage URL    → CLIENT_SHOW
+GET  /?action=CLIENT_LIST → Routage Action → CLIENT_LIST
+```
+
+---
+
+## 📋 Documentation des Routes — `/api/describe`
+
+NAbySyGS génère automatiquement une **documentation interactive de vos routes URL** accessible via un endpoint dédié, sans aucune configuration supplémentaire.
+
+### Accès
+
+```
+# Version JSON brute (authentifiée)
+GET  ENDPOINT/api/describe
+
+# Version web interactive (authentifiée)
+GET  ENDPOINT/api/describe?HTML=1
+```
+
+L'endpoint est disponible **dès le premier lancement**, même si `db_structure.php` est vide. Les routes internes du framework y figurent toujours à titre de référence.
+
+> La documentation est pour l'instant limitée aux routes déclarées via le routage URL (`GenerateUrlRouteController`).
+
+### Authentification
+
+L'accès à `/api/describe` (JSON ou HTML) est protégé par les **credentials de la table utilisateur** créée automatiquement lors du setup initial. Des accès supplémentaires peuvent être ajoutés directement dans cette table.
+
+### Version Web Interactive (`?HTML=1`)
+
+La page web propose :
+
+* **Vue structurée** de toutes les routes enregistrées (méthode HTTP, chemin, action, middlewares)
+* **Ajout de titres et commentaires** par route, pour documenter le rôle de chaque endpoint
+* **Export JSON** — pour sauvegarder la description annotée sur votre support de stockage
+* **Export PDF** — pour produire une documentation imprimable, générée côté navigateur
+* **Import JSON** — pour recharger une description précédemment exportée et retrouver vos annotations
+
+> Les annotations (titres, commentaires) ne sont pas stockées côté serveur. C'est l'utilisateur qui gère ses exports/imports, garantissant une totale portabilité sans aucune dépendance serveur.
+
+### Exemple — Réponse JSON
+
+```json
+{
+    "routes": [
+        {
+            "method": "GET",
+            "path": "/clients",
+            "action": "CLIENT_LIST",
+            "middlewares": ["auth"]
+        },
+        {
+            "method": "GET",
+            "path": "/clients/{id}",
+            "action": "CLIENT_SHOW",
+            "middlewares": ["auth"],
+            "constraints": { "id": "[0-9]+" }
+        },
+        {
+            "method": "POST",
+            "path": "/clients",
+            "action": "CLIENT_CREATE",
+            "middlewares": ["auth"]
+        }
+    ]
+}
+```
+
+### Avantage par rapport aux autres solutions
+
+Doctrine et Eloquent ne fournissent aucune documentation d'API intégrée — il faut intégrer des outils tiers comme Swagger/OpenAPI, configurer des annotations et maintenir un fichier YAML séparé. Avec NAbySyGS, la documentation est **vivante, toujours à jour et disponible immédiatement**, avec une interface web prête à l'emploi et un système d'export/import sans infrastructure supplémentaire.
+
+---
+
+## 📖 ORM — Opérations CRUD
+
+### Créer
+
+```php
+$produit        = new xORMHelper($nabysy, null, true, "produits");
+$produit->Nom   = "Laptop Dell";
+$produit->Prix  = 550000;
 $produit->Stock = 10;
 $produit->Enregistrer();
 ```
 
-#### Lire
+### Lire
 
 ```php
-<?php
 // Par ID
 $produit = new xORMHelper($nabysy, 5, true, "produits");
 echo $produit->Nom;
@@ -153,19 +400,17 @@ while ($row = $liste->fetch_assoc()) {
 }
 ```
 
-#### Mettre à Jour
+### Mettre à Jour
 
 ```php
-<?php
-$produit = new xORMHelper($nabysy, 5, true, "produits");
+$produit       = new xORMHelper($nabysy, 5, true, "produits");
 $produit->Prix = 500000;
 $produit->Enregistrer();
 ```
 
-#### Supprimer
+### Supprimer
 
 ```php
-<?php
 $produit = new xORMHelper($nabysy, 5, true, "produits");
 $produit->Supprimer();
 ```
@@ -173,235 +418,14 @@ $produit->Supprimer();
 ### Conversions de Données
 
 ```php
-<?php
-// Vers JSON
-$json = $produit->ToJSON();
-
-// Vers Object PHP
-$obj = $produit->ToObject();
-
-// Vers Array
+$json  = $produit->ToJSON();
+$obj   = $produit->ToObject();
 $array = $produit->ToArrayAssoc();
-```
-
-### API REST
-
-#### Structure d'une Action
-
-Fichier `gs/client/client_action.php` :
-
-```php
-<?php
-use NAbySy\xNotification;
-use NAbySy\ORM\xORMHelper;
-
-$action = $_REQUEST['action'] ?? null;
-
-switch ($action) {
-    case 'CLIENT_CREATE':
-        // Vérification authentification
-        if (!$nabysy->ValideUser()) exit;
-        
-        $client = new xORMHelper($nabysy, null, true, "clients");
-        $client->Nom = $_REQUEST['nom'];
-        $client->Telephone = $_REQUEST['telephone'];
-        
-        if ($client->Enregistrer()) {
-            $rep = new xNotification();
-            $rep->Contenue = $client->ToObject();
-            echo json_encode($rep);
-        }
-        break;
-        
-    case 'CLIENT_LIST':
-        $client = new xORMHelper($nabysy, null, true, "clients");
-        $liste = $client->ChargeListe();
-        echo $nabysy->SQLToJSON($liste);
-        break;
-}
-```
-
-#### Appel API
-
-```bash
-# Créer un client
-curl -X POST https://votre-domaine.com/gs_api.php \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": "CLIENT_CREATE",
-    "nom": "Dupont",
-    "telephone": "771234567",
-    "Token": "votre_token_jwt"
-  }'
-```
-
-### Authentification JWT
-
-#### Connexion
-
-```php
-<?php
-use NAbySy\xUser;
-use NAbySy\xAuth;
-
-// Dans votre action auth
-$user = new xUser($nabysy, null, true, "utilisateur", $_REQUEST['Login']);
-
-if ($user->CheckPassword($_REQUEST['Password'])) {
-    $auth = new xAuth($nabysy, 3600); // Token valide 1h
-    $token = $auth->GetToken($user);
-    
-    echo json_encode([
-        'OK' => 1,
-        'Token' => $token,
-        'User' => $user->ToObject()
-    ]);
-}
-```
-
-#### Protection des Routes
-
-```php
-<?php
-// Au début de votre action
-if (!$nabysy->ValideUser()) {
-    // Retourne automatiquement une erreur 401
-    exit;
-}
-
-// Code protégé...
-```
-
-#### Configuration Session
-
-```php
-<?php
-// Définir une session de 24h (86400 secondes)
-N::SetAuthSessionTime(86400);
-```
-
-## 🛠️ Modules Intégrés
-
-### Module Boutique
-
-```php
-<?php
-use NAbySy\GS\Boutique\xBoutique;
-
-$boutique = new xBoutique($nabysy, 1);
-echo $boutique->Nom;
-$liste = $boutique->getListeBoutique();
-```
-
-### Module Stock
-
-```php
-<?php
-use NAbySy\GS\Stock\xProduit;
-
-$produit = new xProduit($nabysy, 10);
-$produit->Designation = "Smartphone";
-$produit->PrixVente = 150000;
-$produit->Enregistrer();
-```
-
-### Module Facture
-
-```php
-<?php
-use NAbySy\GS\Facture\xVente;
-
-$vente = new xVente($nabysy);
-$vente->IdClient = 5;
-$vente->MontantTotal = 500000;
-$vente->Enregistrer();
-```
-
-## 🔧 Configuration Avancée
-
-### Mode Debug
-
-```php
-<?php
-// Activer les logs SQL détaillés
-$nabysy->ActiveDebug = true;
-N::SetShowDebug(true, E_ALL);
-```
-
-### Ignorer Certaines Requêtes dans les Logs
-
-```php
-<?php
-N::$RequetteToIgnoreInLOG[] = 'SELECT';
-N::$RequetteToIgnoreInLOG[] = 'UPDATE';
-```
-
-### Personnalisation du Dossier Racine
-
-```php
-<?php
-$nabysy = N::Init(
-    "MonApp",
-    "Ma Société",
-    "Adresse",
-    "Téléphone",
-    "ma_base",
-    "nabysygs",
-    "localhost",
-    "root",
-    "",
-    3306,
-    "mon-dossier"  // Dossier racine personnalisé
-);
-```
-
-## 📚 Exemples Complets
-
-### API Gestion de Produits
-
-```php
-<?php
-// gs/produit/produit_action.php
-use NAbySy\ORM\xORMHelper;
-use NAbySy\xNotification;
-
-switch ($action) {
-    case 'PRODUIT_CREATE':
-        if (!$nabysy->ValideUser()) exit;
-        
-        $produit = new xORMHelper($nabysy, null, true, "produits");
-        $produit->Nom = $_REQUEST['nom'];
-        $produit->Prix = $_REQUEST['prix'];
-        $produit->Stock = $_REQUEST['stock'] ?? 0;
-        
-        if ($produit->Enregistrer()) {
-            $rep = new xNotification();
-            $rep->Contenue = $produit->ToObject();
-            echo json_encode($rep);
-        }
-        break;
-        
-    case 'PRODUIT_SEARCH':
-        $produit = new xORMHelper($nabysy, null, true, "produits");
-        $recherche = $_REQUEST['q'] ?? '';
-        
-        $liste = $produit->ChargeListe(
-            "Nom LIKE '%$recherche%'",
-            "Nom ASC",
-            "*",
-            null,
-            "20"
-        );
-        
-        echo $nabysy->SQLToJSON($liste);
-        break;
-}
 ```
 
 ### Clonage d'Enregistrements
 
 ```php
-<?php
 $produitOriginal = new xORMHelper($nabysy, 5, true, "produits");
 
 // Cloner dans la même base
@@ -411,28 +435,122 @@ $clone = $produitOriginal->Clone();
 $clone = $produitOriginal->Clone("autre_base");
 ```
 
-### 🎭 Système d'Événements Unique
+### Jointures entre Entités
+
+NAbySyGS propose une **API de jointure fluente et chainable** directement sur les classes ORM, sans écrire une seule ligne de SQL. Là où Doctrine exige des annotations de relation et Eloquent impose de déclarer `belongsTo` / `hasMany` dans chaque Model, NAbySyGS permet de joindre n'importe quelles deux entités à la volée, même créées dynamiquement.
+
+```php
+$nabysy = xNAbySyGS::getInstance();
+$Pays   = new xPays($nabysy);
+$Maison = new xMaison($nabysy);
+
+$Rep     = new xNotification();
+$Rep->OK = 1;
+
+$Lst = $Maison
+    ->JoinTable($Pays, null, "IdPays", "ID")  // Maison.IdPays = Pays.ID
+    ->JointureChargeListe();                   // exécution de la requête jointe
+
+$Rep->Contenue = $nabysy->SQLToJSON($Lst);
+echo json_encode($Rep);
+```
+
+**Signature de `JoinTable()` :**
+
+```
+JoinTable(
+    object  $EntiteJointe,  // Instance de l'entité à joindre
+    ?string $critere,       // Critère WHERE supplémentaire (null = aucun)
+    string  $champLocal,    // Champ de la table principale (clé étrangère)
+    string  $champJoint     // Champ de la table jointe (clé primaire cible)
+) : $this
+```
+
+La méthode retourne `$this`, permettant de **chaîner plusieurs jointures** successives :
+
+```php
+$liste = $Commande
+    ->JoinTable($Client,   null, "IdClient",  "ID")
+    ->JoinTable($Boutique, null, "IdBoutique", "ID")
+    ->JointureChargeListe();
+```
+
+#### Comparaison jointures avec autres ORM
+
+| Feature | NAbySyGS | Doctrine | Eloquent | RedBeanPHP |
+|---|---|---|---|---|
+| **Jointure sans config préalable** | ✅ À la volée | ❌ Annotations requises | ❌ Relations à déclarer | ⚠️ Partiel |
+| **Chainable** | ✅ Oui | ✅ DQL | ✅ Oui | ❌ Non |
+| **Tables dynamiques joignables** | ✅ Oui | ❌ Non | ❌ Non | ❌ Non |
+| **Sans écrire de SQL** | ✅ Oui | ⚠️ DQL nécessaire | ✅ Oui | ⚠️ Partiel |
+
+> Aucune relation ne doit être déclarée à l'avance : la jointure s'exprime directement là où vous en avez besoin, ce qui est particulièrement puissant sur des tables créées dynamiquement.
+
+---
+
+## 🔐 Authentification JWT
+
+### Connexion
+
+```php
+use NAbySy\xUser;
+use NAbySy\xAuth;
+
+$user = new xUser($nabysy, null, true, "utilisateur", $_REQUEST['Login']);
+
+if ($user->CheckPassword($_REQUEST['Password'])) {
+    $auth  = new xAuth($nabysy, 3600); // Token valide 1h
+    $token = $auth->GetToken($user);
+
+    echo json_encode([
+        'OK'    => 1,
+        'Token' => $token,
+        'User'  => $user->ToObject()
+    ]);
+}
+```
+
+### Protection des Routes
+
+```php
+// Au début de votre action
+if (!$nabysy->ValideUser()) {
+    // Retourne automatiquement une erreur 401
+    exit;
+}
+```
+
+### Configuration Session
+
+```php
+// Définir une session de 24h (86400 secondes)
+N::SetAuthSessionTime(86400);
+```
+
+---
+
+## 🎭 Système d'Événements Unique
 
 NAbySyGS intègre un système d'événements innovant qui se démarque des autres ORM PHP par sa **simplicité et sa puissance**.
 
-#### Comparaison des Événements avec Autres ORM
+### Comparaison des Événements avec Autres ORM
 
 | Feature | NAbySyGS | Doctrine | Eloquent | RedBeanPHP |
-|---------|----------|----------|----------|------------|
+|---|---|---|---|---|
 | **Events automatiques** | ✅ Sur toutes les tables | ⚠️ Si configuré | ⚠️ Si Model défini | ❌ Non |
 | **Observer centralisé** | ✅ Multi-tables | ❌ Un par Entity | ⚠️ Un par Model | ❌ Non |
 | **Tables dynamiques** | ✅ Événements auto | ❌ Non | ❌ Non | ❌ Non |
-| **Référence modifiable** | ✅ Oui (`&$EventArg`) | ✅ Oui | ✅ Oui | - |
+| **Référence modifiable** | ✅ Oui (`&$EventArg`) | ✅ Oui | ✅ Oui | — |
 | **Événements custom** | ✅ `RaiseEvent()` | ✅ EventManager | ⚠️ Limité | ❌ Non |
 | **Cross-table events** | ✅ Un observer pour tout | ⚠️ Config complexe | ⚠️ Difficile | ❌ Non |
 
-#### Avantages Clés du Système d'Événements NAbySyGS
+### Avantages Clés du Système d'Événements NAbySyGS
 
-##### 1. **Événements Automatiques sur TOUTES les Tables**
+#### 1. Événements Automatiques sur TOUTES les Tables
 
 ```php
 // Aucune configuration nécessaire !
-$produit = new xORMHelper($nabysy, null, true, "produits");
+$produit      = new xORMHelper($nabysy, null, true, "produits");
 $produit->Nom = "Laptop";
 $produit->Enregistrer(); // ✨ Déclenche automatiquement "xProduit_ADD"
 
@@ -447,21 +565,20 @@ class Produit extends Model {
 }
 ```
 
-##### 2. **Observer Centralisé Multi-Tables**
+#### 2. Observer Centralisé Multi-Tables
 
 ```php
 // Un seul observateur pour plusieurs entités !
 class xObservStock extends xObservGen {
     public function __construct($nabysy) {
         parent::__construct($nabysy, 'ObservStock', [
-            'xProduit_EDIT',    // Observer les produits
-            'xCommande_ADD',    // Observer les commandes
-            'xVente_ADD',       // Observer les ventes
+            'xProduit_EDIT',   // Observer les produits
+            'xCommande_ADD',   // Observer les commandes
+            'xVente_ADD',      // Observer les ventes
         ]);
     }
-    
+
     public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-        // Gérer tous les événements dans une seule classe
         switch ($EventType[0]) {
             case 'xProduit_EDIT':
                 $this->checkStock($EventType[1]);
@@ -474,15 +591,15 @@ class xObservStock extends xObservGen {
 }
 ```
 
-**Autres ORM** : Nécessitent un Observer/Subscriber par entité
+**Autres ORM** : Nécessitent un Observer/Subscriber par entité.
 
-##### 3. **Support des Tables Créées Dynamiquement**
+#### 3. Support des Tables Créées Dynamiquement
 
 ```php
-// Jour 1 : Créer une nouvelle table à la volée
-$nouvelleEntite = new xORMHelper($nabysy, null, true, "ma_nouvelle_table");
+// Créer une nouvelle table à la volée
+$nouvelleEntite         = new xORMHelper($nabysy, null, true, "ma_nouvelle_table");
 $nouvelleEntite->Champ1 = "Valeur";
-$nouvelleEntite->Enregistrer(); 
+$nouvelleEntite->Enregistrer();
 // ✨ Déclenche automatiquement "xMaNouvelleTable_ADD" !
 
 // Vos observateurs existants l'attrapent sans modification de code
@@ -490,26 +607,24 @@ $nouvelleEntite->Enregistrer();
 
 **Aucun autre ORM ne permet cela !** Doctrine et Eloquent nécessitent de créer Entity/Model, configurer les événements, puis redéployer.
 
-##### 4. **Observateur Global "Catch-All"**
+#### 4. Observateur Global "Catch-All"
 
 ```php
-// Observer TOUTES les créations, modifications et suppressions
 class xObservAudit extends xObservGen {
     public function __construct($nabysy) {
         parent::__construct($nabysy, 'AuditGlobal', [
-            '*_ADD',    // Toutes les créations
-            '*_EDIT',   // Toutes les modifications
-            '*_DEL',    // Toutes les suppressions
+            '*_ADD',   // Toutes les créations
+            '*_EDIT',  // Toutes les modifications
+            '*_DEL',   // Toutes les suppressions
         ]);
     }
-    
+
     public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-        // Audit trail automatique sur TOUTE l'application
-        $audit = new xORMHelper($this->Main, null, true, "audit_log");
-        $audit->Table = $ClassName;
-        $audit->Action = $EventType[0];
-        $audit->IdRecord = $EventType[1];
-        $audit->Date = date('Y-m-d H:i:s');
+        $audit              = new xORMHelper($this->Main, null, true, "audit_log");
+        $audit->Table       = $ClassName;
+        $audit->Action      = $EventType[0];
+        $audit->IdRecord    = $EventType[1];
+        $audit->Date        = date('Y-m-d H:i:s');
         $audit->Utilisateur = $this->Main->User->Login ?? 'SYSTEM';
         $audit->Enregistrer();
     }
@@ -518,19 +633,19 @@ class xObservAudit extends xObservGen {
 
 **Impossible avec cette simplicité sur Doctrine ou Eloquent !**
 
-##### 5. **Événements avec Contexte Complet et Modifiable**
+#### 5. Événements avec Contexte Complet et Modifiable
 
 ```php
 public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-    $action = $EventType[0];      // Type d'événement
-    $id = $EventType[1];          // ID de l'enregistrement
-    $objet = $EventType[2];       // ✨ Objet complet avec toutes les données
-    
+    $action = $EventType[0];  // Type d'événement
+    $id     = $EventType[1];  // ID de l'enregistrement
+    $objet  = $EventType[2];  // ✨ Objet complet avec toutes les données
+
     // Vous pouvez MODIFIER l'objet dans l'observateur !
     if ($objet->Prix < 0) {
         $objet->Prix = 0; // Correction automatique
     }
-    
+
     // Enrichir automatiquement les données
     if (empty($objet->DateCreation)) {
         $objet->DateCreation = date('Y-m-d H:i:s');
@@ -538,164 +653,7 @@ public function RaiseEvent($ClassName, $EventType, &$EventArg) {
 }
 ```
 
-**Utilisations pratiques :**
-- ✅ Validation automatique
-- ✅ Enrichissement de données
-- ✅ Normalisation
-- ✅ Calculs automatiques
-- ✅ Audit trail complet
-
-### Créer un Observateur
-
-#### Exemple Complet : Système de Notifications
-
-```php
-<?php
-namespace NAbySy\OBSERVGEN;
-
-use NAbySy\xNAbySyGS;
-use NAbySy\ORM\xORMHelper;
-
-class xObservCommande extends xObservGen {
-    
-    public function __construct(xNAbySyGS $NabySyGS) {
-        parent::__construct(
-            $NabySyGS,
-            'ObservateurCommande',
-            ['xCommande_ADD', 'xCommande_EDIT']
-        );
-    }
-    
-    public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-        $action = $EventType[0];
-        $idCommande = $EventType[1];
-        $commande = $EventType[2] ?? null;
-        
-        switch ($action) {
-            case 'xCommande_ADD':
-                $this->onNewOrder($idCommande);
-                break;
-                
-            case 'xCommande_EDIT':
-                if ($commande && $commande->Statut === 'Livrée') {
-                    $this->onOrderDelivered($commande);
-                }
-                break;
-        }
-    }
-    
-    private function onNewOrder($idCommande) {
-        $commande = new xORMHelper($this->Main, $idCommande, false, "commandes");
-        $client = new xORMHelper($this->Main, $commande->IdClient, false, "clients");
-        
-        // Notifier le client
-        $message = "Commande #{$commande->Id} enregistrée avec succès";
-        $this->Main::$SMSEngine->EnvoieSMS($client->Telephone, $message);
-        
-        // Journaliser
-        $this->Main->AddToJournal('COMMANDE', 0, 'NEW_ORDER', 
-            "Commande #{$idCommande} créée - Montant: {$commande->Montant}");
-    }
-    
-    private function onOrderDelivered($commande) {
-        // Envoyer confirmation de livraison
-        $this->Main::$Log->Write("Commande #{$commande->Id} livrée");
-    }
-}
-```
-
-### Événements Disponibles
-
-Le framework déclenche automatiquement :
-
-- **`{CLASS}_ADD`** - Après création d'un enregistrement
-- **`{CLASS}_EDIT`** - Après modification d'un enregistrement  
-- **`{CLASS}_DEL`** - Après suppression d'un enregistrement
-
-Où `{CLASS}` est le nom de votre table (ex: `xProduit_ADD`, `xClient_EDIT`)
-
-### Cas d'Usage Pratiques
-
-#### 1. Synchronisation Automatique avec API Externe
-
-```php
-private function onProduitCreated($idProduit) {
-    $produit = new xORMHelper($this->Main, $idProduit, false, "produits");
-    
-    // Synchroniser avec système externe
-    $curl = $this->Main::$CURL;
-    $response = $curl->Post('https://api-externe.com/products', [
-        'nom' => $produit->Nom,
-        'prix' => $produit->Prix
-    ]);
-    
-    if ($response['success']) {
-        $produit->IdExterne = $response['id'];
-        $produit->Enregistrer();
-    }
-}
-```
-
-#### 2. Alertes Automatiques de Stock Faible
-
-```php
-private function onProduitUpdated($produit) {
-    if ($produit->Stock < 10) {
-        $message = "ALERTE: Stock faible pour {$produit->Nom} (Stock: {$produit->Stock})";
-        
-        // Envoyer SMS aux responsables
-        $this->Main::$SMSEngine->EnvoieSMS('+221771234567', $message);
-        
-        // Logger
-        $this->Main::$Log->Write($message);
-    }
-}
-```
-
-#### 3. Mise à Jour Automatique de Statistiques
-
-```php
-private function onVenteCreated($idVente) {
-    $vente = new xORMHelper($this->Main, $idVente, false, "ventes");
-    
-    // Mettre à jour les stats du jour
-    $stats = new xORMHelper($this->Main, null, true, "stats_ventes");
-    $today = date('Y-m-d');
-    
-    $existing = $stats->ChargeListe("Date = '$today'");
-    
-    if ($existing->num_rows > 0) {
-        $row = $existing->fetch_assoc();
-        $stats = new xORMHelper($this->Main, $row['ID'], true, "stats_ventes");
-        $stats->NombreVentes += 1;
-        $stats->MontantTotal += $vente->Montant;
-    } else {
-        $stats->Date = $today;
-        $stats->NombreVentes = 1;
-        $stats->MontantTotal = $vente->Montant;
-    }
-    
-    $stats->Enregistrer();
-}
-```
-
-## 🎭 Gestion des Événements (Observer Pattern)
-
-NAbySyGS intègre un système d'événements puissant qui permet de réagir automatiquement aux changements dans votre application.
-
-### Événements Disponibles
-
-Le framework déclenche automatiquement des événements lors de certaines opérations :
-
-- **`{CLASS}_ADD`** - Déclenché après la création d'un enregistrement
-- **`{CLASS}_EDIT`** - Déclenché après la modification d'un enregistrement
-- **`{CLASS}_DEL`** - Déclenché après la suppression d'un enregistrement
-- **`DIRECTION_ADD`** - Ajout d'une direction
-- **`DIRECTION_EDIT`** - Modification d'une direction
-- **`SERVICE_ADD`** - Ajout d'un service
-- **`SERVICE_EDIT`** - Modification d'un service
-- **`MVT_AFFECTATION`** - Mouvement d'affectation
-- **`SIEGE_EDIT`** - Modification du siège
+**Utilisations pratiques :** validation automatique, enrichissement de données, normalisation, calculs automatiques, audit trail complet.
 
 ### Créer un Observateur
 
@@ -710,124 +668,60 @@ namespace NAbySy\OBSERVGEN;
 use NAbySy\xNAbySyGS;
 
 class xObservProduit extends xObservGen {
-    
+
     public function __construct(xNAbySyGS $NabySyGS) {
-        // Liste des événements à observer
         $listeObservable = [
-            'xProduit_ADD',    // Création de produit
-            'xProduit_EDIT',   // Modification de produit
-            'xProduit_DEL',    // Suppression de produit
+            'xProduit_ADD',
+            'xProduit_EDIT',
+            'xProduit_DEL',
         ];
-        
-        // Initialiser l'observateur
-        parent::__construct(
-            $NabySyGS,
-            'ObservateurProduit',  // Nom unique
-            $listeObservable
-        );
+
+        parent::__construct($NabySyGS, 'ObservateurProduit', $listeObservable);
     }
-    
-    /**
-     * Cette méthode est appelée automatiquement lors des événements
-     * 
-     * @param string $ClassName - Nom de la classe source
-     * @param array $EventType - Type d'événement et paramètres
-     * @param mixed $EventArg - Arguments supplémentaires
-     */
+
     public function RaiseEvent($ClassName, $EventType, &$EventArg) {
         $action = $EventType[0] ?? null;
-        
+
         switch ($action) {
             case 'xProduit_ADD':
-                $idProduit = $EventType[1];
-                $this->onProduitCreated($idProduit);
+                $this->onProduitCreated($EventType[1]);
                 break;
-                
             case 'xProduit_EDIT':
-                $idProduit = $EventType[1];
-                $produitObjet = $EventType[2] ?? null;
-                $this->onProduitUpdated($idProduit, $produitObjet);
+                $this->onProduitUpdated($EventType[1], $EventType[2] ?? null);
                 break;
-                
             case 'xProduit_DEL':
-                $idProduit = $EventType[1];
-                $produitObjet = $EventType[2] ?? null;
-                $this->onProduitDeleted($idProduit, $produitObjet);
+                $this->onProduitDeleted($EventType[1], $EventType[2] ?? null);
                 break;
         }
     }
-    
-    /**
-     * Gérer la création d'un produit
-     */
+
     private function onProduitCreated($idProduit) {
-        // Exemple : Envoyer une notification
         $this->Main::$Log->Write("Nouveau produit créé : ID $idProduit");
-        
-        // Exemple : Mettre à jour un cache
-        // $this->updateCache($idProduit);
-        
-        // Exemple : Déclencher une action externe
-        // $this->notifyExternalSystem($idProduit);
-        
-        // Journaliser dans la base
-        $this->Main->AddToJournal(
-            'SYSTEME',
-            0,
-            'PRODUIT_CREATED',
-            "Nouveau produit ajouté avec ID: $idProduit"
-        );
+        $this->Main->AddToJournal('SYSTEME', 0, 'PRODUIT_CREATED',
+            "Nouveau produit ajouté avec ID: $idProduit");
     }
-    
-    /**
-     * Gérer la modification d'un produit
-     */
+
     private function onProduitUpdated($idProduit, $produit) {
         if (!$produit) return;
-        
         $this->Main::$Log->Write("Produit modifié : {$produit->Nom} (ID: $idProduit)");
-        
-        // Exemple : Vérifier le stock
+
         if ($produit->Stock < 10) {
             $this->alertLowStock($produit);
         }
-        
-        // Journaliser
-        $this->Main->AddToJournal(
-            'SYSTEME',
-            0,
-            'PRODUIT_UPDATED',
-            "Produit {$produit->Nom} modifié"
-        );
+
+        $this->Main->AddToJournal('SYSTEME', 0, 'PRODUIT_UPDATED',
+            "Produit {$produit->Nom} modifié");
     }
-    
-    /**
-     * Gérer la suppression d'un produit
-     */
+
     private function onProduitDeleted($idProduit, $produit) {
         $this->Main::$Log->Write("Produit supprimé : ID $idProduit");
-        
-        // Exemple : Nettoyer les données associées
-        // $this->cleanupRelatedData($idProduit);
-        
-        // Journaliser
-        $this->Main->AddToJournal(
-            'SYSTEME',
-            0,
-            'PRODUIT_DELETED',
-            "Produit ID $idProduit supprimé"
-        );
+        $this->Main->AddToJournal('SYSTEME', 0, 'PRODUIT_DELETED',
+            "Produit ID $idProduit supprimé");
     }
-    
-    /**
-     * Alerte de stock faible
-     */
+
     private function alertLowStock($produit) {
-        // Envoyer un email ou SMS
         $message = "Alerte stock : {$produit->Nom} - Stock: {$produit->Stock}";
         $this->Main::$Log->Write($message);
-        
-        // Utiliser le module SMS si disponible
         // $this->Main::$SMSEngine->EnvoieSMS('+221771234567', $message);
     }
 }
@@ -836,13 +730,12 @@ class xObservProduit extends xObservGen {
 #### 2. Activer l'Observateur
 
 L'observateur est chargé automatiquement au démarrage de NAbySyGS. Assurez-vous que votre classe :
-- Hérite de `xObservGen`
-- Est dans un dossier `xObserv*` sous votre module
-- Implémente la méthode `RaiseEvent()`
 
-### Exemple Complet : Système de Notifications
+* Hérite de `xObservGen`
+* Est dans un dossier `xObserv*` sous votre module
+* Implémente la méthode `RaiseEvent()`
 
-#### Créer un Observateur pour les Commandes
+### Exemple Complet : Système de Notifications pour les Commandes
 
 ```php
 <?php
@@ -852,190 +745,125 @@ use NAbySy\xNAbySyGS;
 use NAbySy\ORM\xORMHelper;
 
 class xObservCommande extends xObservGen {
-    
+
     public function __construct(xNAbySyGS $NabySyGS) {
-        parent::__construct(
-            $NabySyGS,
-            'ObservateurCommande',
-            [
-                'xCommande_ADD',
-                'xCommande_EDIT',
-            ]
-        );
+        parent::__construct($NabySyGS, 'ObservateurCommande', [
+            'xCommande_ADD',
+            'xCommande_EDIT',
+        ]);
     }
-    
+
     public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-        $action = $EventType[0];
+        $action     = $EventType[0];
         $idCommande = $EventType[1];
-        
+        $commande   = $EventType[2] ?? null;
+
         switch ($action) {
             case 'xCommande_ADD':
                 $this->onNewOrder($idCommande);
                 break;
-                
             case 'xCommande_EDIT':
-                $commande = $EventType[2];
                 $this->onOrderStatusChanged($commande);
                 break;
         }
     }
-    
-    /**
-     * Nouvelle commande créée
-     */
+
     private function onNewOrder($idCommande) {
         $commande = new xORMHelper($this->Main, $idCommande, false, "commandes");
-        
-        // 1. Notifier le client
-        $this->notifyCustomer($commande);
-        
-        // 2. Notifier l'équipe
-        $this->notifyTeam($commande);
-        
-        // 3. Mettre à jour les statistiques
-        $this->updateStats($commande);
-        
-        // 4. Déclencher le workflow
-        $this->triggerWorkflow($commande);
-    }
-    
-    /**
-     * Statut de commande modifié
-     */
-    private function onOrderStatusChanged($commande) {
-        if ($commande->Statut === 'Livrée') {
-            // Envoyer email de confirmation
-            $this->sendDeliveryConfirmation($commande);
-            
-            // Demander un avis client
-            $this->requestReview($commande);
-        }
-        
-        if ($commande->Statut === 'Annulée') {
-            // Restaurer le stock
-            $this->restoreStock($commande);
-            
-            // Notifier le client
-            $this->sendCancellationNotice($commande);
-        }
-    }
-    
-    private function notifyCustomer($commande) {
-        $client = new xORMHelper($this->Main, $commande->IdClient, false, "clients");
-        
+        $client   = new xORMHelper($this->Main, $commande->IdClient, false, "clients");
+
+        // Notifier le client
         $message = "Bonjour {$client->Nom}, votre commande #{$commande->Id} a été enregistrée.";
-        
-        // Envoyer SMS
         if ($this->Main::$SMSEngine) {
             $this->Main::$SMSEngine->EnvoieSMS($client->Telephone, $message);
         }
-        
+
         $this->Main::$Log->Write("Notification client envoyée : Commande #{$commande->Id}");
+
+        // Mettre à jour les statistiques
+        $this->updateStats($commande);
+
+        // Déclencher le workflow
+        $this->triggerWorkflow($commande);
     }
-    
-    private function notifyTeam($commande) {
-        // Envoyer notification à l'équipe (email, Slack, etc.)
-        $this->Main::$Log->Write("Nouvelle commande #{$commande->Id} - Montant: {$commande->MontantTotal}");
+
+    private function onOrderStatusChanged($commande) {
+        if ($commande->Statut === 'Livrée') {
+            $this->sendDeliveryConfirmation($commande);
+            $this->requestReview($commande);
+        }
+
+        if ($commande->Statut === 'Annulée') {
+            $this->restoreStock($commande);
+        }
     }
-    
+
     private function updateStats($commande) {
-        // Mettre à jour les statistiques du jour
         $stats = new xORMHelper($this->Main, null, true, "statistiques_ventes");
         $today = date('Y-m-d');
-        
-        // Chercher ou créer l'entrée du jour
+
         $existing = $stats->ChargeListe("Date = '$today'");
-        
         if ($existing->num_rows > 0) {
-            $row = $existing->fetch_assoc();
+            $row   = $existing->fetch_assoc();
             $stats = new xORMHelper($this->Main, $row['ID'], true, "statistiques_ventes");
             $stats->NombreCommandes += 1;
-            $stats->MontantTotal += $commande->MontantTotal;
+            $stats->MontantTotal    += $commande->MontantTotal;
         } else {
-            $stats->Date = $today;
+            $stats->Date            = $today;
             $stats->NombreCommandes = 1;
-            $stats->MontantTotal = $commande->MontantTotal;
+            $stats->MontantTotal    = $commande->MontantTotal;
         }
-        
         $stats->Enregistrer();
     }
-    
+
     private function triggerWorkflow($commande) {
-        // Créer automatiquement une tâche pour la préparation
-        $tache = new xORMHelper($this->Main, null, true, "taches");
-        $tache->Titre = "Préparer commande #{$commande->Id}";
-        $tache->Type = "Préparation";
-        $tache->IdCommande = $commande->Id;
-        $tache->Statut = "En attente";
+        $tache               = new xORMHelper($this->Main, null, true, "taches");
+        $tache->Titre        = "Préparer commande #{$commande->Id}";
+        $tache->Type         = "Préparation";
+        $tache->IdCommande   = $commande->Id;
+        $tache->Statut       = "En attente";
         $tache->DateCreation = date('Y-m-d H:i:s');
         $tache->Enregistrer();
     }
-    
+
     private function restoreStock($commande) {
-        // Restaurer les quantités en stock
         $lignes = new xORMHelper($this->Main, null, false, "ligne_commande");
-        $liste = $lignes->ChargeListe("IdCommande = {$commande->Id}");
-        
+        $liste  = $lignes->ChargeListe("IdCommande = {$commande->Id}");
+
         while ($ligne = $liste->fetch_assoc()) {
-            $produit = new xORMHelper($this->Main, $ligne['IdProduit'], false, "produits");
+            $produit        = new xORMHelper($this->Main, $ligne['IdProduit'], false, "produits");
             $produit->Stock += $ligne['Quantite'];
             $produit->Enregistrer();
         }
-        
         $this->Main::$Log->Write("Stock restauré pour commande annulée #{$commande->Id}");
     }
 }
 ```
 
-### Déclencher Manuellement un Événement
+### Événements Disponibles
 
-Si vous créez une classe personnalisée qui n'hérite pas de `xORMHelper`, vous pouvez déclencher manuellement des événements :
+Le framework déclenche automatiquement :
 
-```php
-<?php
-use NAbySy\xNAbySyGS;
+* **`{CLASS}_ADD`** — Après création d'un enregistrement
+* **`{CLASS}_EDIT`** — Après modification d'un enregistrement
+* **`{CLASS}_DEL`** — Après suppression d'un enregistrement
 
-class MaClasseMetier {
-    private $nabysy;
-    
-    public function __construct(xNAbySyGS $nabysy) {
-        $this->nabysy = $nabysy;
-    }
-    
-    public function faireQuelqueChose() {
-        // ... votre logique ...
-        
-        // Déclencher un événement personnalisé
-        $eventArgs = [
-            'MonEvenement_CUSTOM',
-            123,  // ID ou données
-            'Information supplémentaire'
-        ];
-        
-        $this->nabysy::RaiseEvent('MaClasseMetier', $eventArgs);
-    }
-}
-```
+Où `{CLASS}` est le nom de votre table (ex : `xProduit_ADD`, `xClient_EDIT`).
 
 ### Cas d'Usage Pratiques
 
-#### 1. Synchronisation avec API Externe
+#### 1. Synchronisation Automatique avec API Externe
 
 ```php
-<?php
 private function onProduitCreated($idProduit) {
-    $produit = new xORMHelper($this->Main, $idProduit, false, "produits");
-    
-    // Synchroniser avec système externe
-    $curl = $this->Main::$CURL;
-    $data = [
-        'nom' => $produit->Nom,
-        'prix' => $produit->Prix,
-        'stock' => $produit->Stock
-    ];
-    
-    $response = $curl->Post('https://api-externe.com/products', $data);
-    
+    $produit  = new xORMHelper($this->Main, $idProduit, false, "produits");
+    $curl     = $this->Main::$CURL;
+    $response = $curl->Post('https://api-externe.com/products', [
+        'nom'   => $produit->Nom,
+        'prix'  => $produit->Prix,
+        'stock' => $produit->Stock,
+    ]);
+
     if ($response['success']) {
         $produit->IdExterne = $response['id'];
         $produit->Enregistrer();
@@ -1043,67 +871,89 @@ private function onProduitCreated($idProduit) {
 }
 ```
 
-#### 2. Audit Trail Automatique
+#### 2. Alertes Automatiques de Stock Faible
 
 ```php
-<?php
-public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-    $action = $EventType[0];
-    $id = $EventType[1];
-    $objet = $EventType[2] ?? null;
-    
-    // Créer automatiquement un journal d'audit
-    $audit = new xORMHelper($this->Main, null, true, "audit_log");
-    $audit->Action = $action;
-    $audit->TableCible = $ClassName;
-    $audit->IdEnregistrement = $id;
-    $audit->DateAction = date('Y-m-d H:i:s');
-    $audit->Utilisateur = $this->Main->User->Login ?? 'SYSTEM';
-    
-    if ($objet) {
-        $audit->DonneesAvant = json_encode($objet->ToObject());
+private function onProduitUpdated($produit) {
+    if ($produit->Stock < 10) {
+        $message = "ALERTE: Stock faible pour {$produit->Nom} (Stock: {$produit->Stock})";
+        $this->Main::$SMSEngine->EnvoieSMS('+221771234567', $message);
+        $this->Main::$Log->Write($message);
     }
-    
-    $audit->Enregistrer();
 }
 ```
 
-#### 3. Cache Invalidation
+#### 3. Mise à Jour Automatique de Statistiques
 
 ```php
-<?php
-private function onProduitUpdated($idProduit, $produit) {
-    // Invalider le cache
-    $cacheKey = "produit_$idProduit";
-    
-    if (function_exists('apcu_delete')) {
-        apcu_delete($cacheKey);
+private function onVenteCreated($idVente) {
+    $vente    = new xORMHelper($this->Main, $idVente, false, "ventes");
+    $stats    = new xORMHelper($this->Main, null, true, "stats_ventes");
+    $today    = date('Y-m-d');
+    $existing = $stats->ChargeListe("Date = '$today'");
+
+    if ($existing->num_rows > 0) {
+        $row   = $existing->fetch_assoc();
+        $stats = new xORMHelper($this->Main, $row['ID'], true, "stats_ventes");
+        $stats->NombreVentes += 1;
+        $stats->MontantTotal += $vente->Montant;
+    } else {
+        $stats->Date         = $today;
+        $stats->NombreVentes = 1;
+        $stats->MontantTotal = $vente->Montant;
     }
-    
-    // Ou avec Redis
-    // $redis->del($cacheKey);
-    
-    $this->Main::$Log->Write("Cache invalidé pour produit #$idProduit");
+    $stats->Enregistrer();
+}
+```
+
+### Déclencher Manuellement un Événement
+
+```php
+use NAbySy\xNAbySyGS;
+
+class MaClasseMetier {
+    private $nabysy;
+
+    public function __construct(xNAbySyGS $nabysy) {
+        $this->nabysy = $nabysy;
+    }
+
+    public function faireQuelqueChose() {
+        // ... votre logique ...
+
+        $this->nabysy::RaiseEvent('MaClasseMetier', [
+            'MonEvenement_CUSTOM',
+            123,
+            'Information supplémentaire'
+        ]);
+    }
 }
 ```
 
 ### Désactiver un Observateur
 
 ```php
-<?php
 // Dans votre observateur
 public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-    // Vérifier si l'observateur est actif
-    if (!$this->State()) {
-        return;
-    }
-    
+    if (!$this->State()) return;
     // ... logique normale ...
 }
 
-// Pour désactiver/activer
 $observateur->State(false); // Désactiver
 $observateur->State(true);  // Activer
+```
+
+### Debug des Événements
+
+```php
+$nabysy->ActiveDebug = true;
+
+public function RaiseEvent($ClassName, $EventType, &$EventArg) {
+    if ($this->Main->ActiveDebug) {
+        $this->Main::$Log->Write("Événement déclenché : " . json_encode($EventType));
+    }
+    // ... logique ...
+}
 ```
 
 ### Bonnes Pratiques avec les Événements
@@ -1115,223 +965,263 @@ $observateur->State(true);  // Activer
 5. **Test** : Créez des observateurs de test pour vérifier le déclenchement
 6. **Documentation** : Documentez les événements disponibles dans votre module
 
-### Debug des Événements
+---
+
+## 🛠️ Modules Intégrés
+
+### Module Boutique
 
 ```php
-<?php
-// Activer les logs détaillés
-$nabysy->ActiveDebug = true;
+use NAbySy\GS\Boutique\xBoutique;
 
-// Dans votre observateur
-public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-    if ($this->Main->ActiveDebug) {
-        $this->Main::$Log->Write("Événement déclenché : " . json_encode($EventType));
-    }
-    
-    // ... logique ...
+$boutique = new xBoutique($nabysy, 1);
+echo $boutique->Nom;
+$liste = $boutique->getListeBoutique();
+```
+
+### Module Stock
+
+```php
+use NAbySy\GS\Stock\xProduit;
+
+$produit              = new xProduit($nabysy, 10);
+$produit->Designation = "Smartphone";
+$produit->PrixVente   = 150000;
+$produit->Enregistrer();
+```
+
+### Module Facture
+
+```php
+use NAbySy\GS\Facture\xVente;
+
+$vente               = new xVente($nabysy);
+$vente->IdClient     = 5;
+$vente->MontantTotal = 500000;
+$vente->Enregistrer();
+```
+
+---
+
+## 📚 Exemples Complets
+
+### API Gestion de Produits
+
+```php
+// gs/produit/produit_action.php
+use NAbySy\ORM\xORMHelper;
+use NAbySy\xNotification;
+
+switch ($action) {
+    case 'PRODUIT_CREATE':
+        if (!$nabysy->ValideUser()) exit;
+
+        $produit        = new xORMHelper($nabysy, null, true, "produits");
+        $produit->Nom   = $_REQUEST['nom'];
+        $produit->Prix  = $_REQUEST['prix'];
+        $produit->Stock = $_REQUEST['stock'] ?? 0;
+
+        if ($produit->Enregistrer()) {
+            $rep           = new xNotification();
+            $rep->Contenue = $produit->ToObject();
+            echo json_encode($rep);
+        }
+        break;
+
+    case 'PRODUIT_SEARCH':
+        $produit   = new xORMHelper($nabysy, null, true, "produits");
+        $recherche = $_REQUEST['q'] ?? '';
+
+        $liste = $produit->ChargeListe(
+            "Nom LIKE '%$recherche%'",
+            "Nom ASC", "*", null, "20"
+        );
+        echo $nabysy->SQLToJSON($liste);
+        break;
 }
 ```
 
+### Appel API (curl)
+
+```bash
+# Créer un client
+curl -X POST https://votre-domaine.com/gs_api.php \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "CLIENT_CREATE",
+    "nom": "Dupont",
+    "telephone": "771234567",
+    "Token": "votre_token_jwt"
+  }'
+```
+
+---
+
+## 🔧 Configuration Avancée
+
+### Mode Debug
+
+```php
+$nabysy->ActiveDebug = true;
+N::SetShowDebug(true, E_ALL);
+```
+
+### Ignorer Certaines Requêtes dans les Logs
+
+```php
+N::$RequetteToIgnoreInLOG[] = 'SELECT';
+N::$RequetteToIgnoreInLOG[] = 'UPDATE';
+```
+
+### Personnalisation du Dossier Racine
+
+```php
+$nabysy = N::Init(
+    "MonApp", "Ma Société", "Adresse", "Téléphone",
+    "ma_base", "nabysygs", "localhost", "root", "", 3306,
+    "mon-dossier"
+);
+```
+
+---
+
+## 🔄 Mise à Jour de la Structure via `db update`
+
+La CLI NAbySyGS fournit une commande `db update` (alias `koro db u`) qui appelle l'API du projet pour synchroniser la structure de base de données avec `db_structure.php`.
+
+```bash
+koro db update
+# ou avec URL explicite
+koro db update --url http://monapi.local
+```
+
+Cette commande est appelée **automatiquement** après chaque `koro create`. Elle peut aussi être invoquée manuellement à tout moment pour forcer la synchronisation.
+
+> L'URL de l'API est lue automatiquement depuis `__SERVER_URL__` dans `appinfos.php`. Vous pouvez la surcharger avec `--url`.
+
+---
+
 ## ⚖️ Comparaison avec d'autres ORM PHP
 
-### NAbySyGS vs Doctrine, Eloquent, RedBeanPHP
+### ✅ Avantages de NAbySyGS
 
-#### ✅ Avantages de NAbySyGS
+#### 1. Simplicité et Rapidité de Développement
 
-##### 1. **Simplicité et Rapidité de Développement**
 ```php
-// NAbySyGS - 4 lignes
-$produit = new xORMHelper($nabysy, null, true, "produits");
-$produit->Nom = "Laptop";
+// NAbySyGS — 4 lignes
+$produit       = new xORMHelper($nabysy, null, true, "produits");
+$produit->Nom  = "Laptop";
 $produit->Prix = 550000;
 $produit->Enregistrer();
 
-// Doctrine - Configuration complexe nécessaire
-// - Entities avec annotations
-// - Mapping XML/YAML
+// Doctrine — Configuration complexe nécessaire
+// - Entities avec annotations / mapping XML/YAML
 // - Configuration du EntityManager
 // - Commandes doctrine:schema
 ```
 
-##### 2. **Auto-création de Tables et Champs**
-- 🚀 **Aucune migration nécessaire** - Les tables et champs se créent automatiquement
-- 🎯 **Zero configuration** - Pas besoin de définir des schémas
-- ⚡ **Prototypage ultra-rapide** - Concentrez-vous sur la logique métier
+#### 2. Auto-création de Tables et Champs
+
+* 🚀 **Aucune migration nécessaire** — Les tables et champs se créent automatiquement
+* 🎯 **Zero configuration** — Pas besoin de définir des schémas
+* ⚡ **Prototypage ultra-rapide** — Concentrez-vous sur la logique métier
 
 ```php
-// Ajoutez simplement un nouveau champ
-$user->DateNaissance = '1990-01-01';  // Champ créé automatiquement en base !
+$user->DateNaissance = '1990-01-01'; // Champ créé automatiquement en base !
 $user->Enregistrer();
 ```
 
-**Comparaison :**
-- **Doctrine** : Créer Entity, configurer mapping, `doctrine:schema:update`
-- **Eloquent** : Créer Migration, définir fillable/casts, `php artisan migrate`
-- **NAbySyGS** : Ajoutez le champ, c'est tout ! ✨
+#### 3. Jointures à la Volée
 
-##### 3. **Pas de Dépendances Complexes**
-- ✅ Fonctionne avec PHP 8.1+ et MySQLi natif
-- ✅ Pas besoin de Symfony, Laravel ou autre framework
-- ✅ Package autonome et léger (~2MB)
-
-##### 4. **Système d'Événements Intégré**
 ```php
-// Observer automatique sur TOUTES les tables
-class xObservProduit extends xObservGen {
-    public function RaiseEvent($ClassName, $EventType, &$EventArg) {
-        // Réagir automatiquement aux changements
-    }
+// NAbySyGS — aucune configuration préalable
+$liste = $Maison->JoinTable($Pays, null, "IdPays", "ID")->JointureChargeListe();
+
+// Eloquent — déclaration obligatoire dans le Model
+class Maison extends Model {
+    public function pays() { return $this->belongsTo(Pays::class, 'IdPays'); }
 }
 ```
 
-**Autres ORM :**
-- Doctrine : Events Listeners (configuration complexe)
-- Eloquent : Model Events (limité aux models déclarés)
+#### 4. API REST + Documentation Intégrées
 
-##### 5. **API REST Intégré**
-- 🎁 Structure d'API fournie "out of the box"
-- 🔐 Authentification JWT intégrée
-- 🌐 CORS géré automatiquement
-- 📝 Journalisation système incluse
+* 🎁 Structure d'API fournie "out of the box"
+* 🔐 Authentification JWT intégrée
+* 🌐 CORS géré automatiquement
+* 📋 Documentation des routes via `/api/describe`, avec export JSON/PDF
+* 📝 Journalisation système incluse
 
-##### 6. **Modules Métier Prêts à l'Emploi**
-- Gestion de boutiques
-- Gestion de stocks
-- Facturation
-- Utilisateurs avec permissions
-- SMS et Email
+#### 5. Pas de Dépendances Complexes
 
-##### 7. **Courbe d'Apprentissage Faible**
-```php
-// Compréhensible en 5 minutes
-$client = new xORMHelper($nabysy, null, true, "clients");
-$client->Nom = "Dupont";
-$client->Enregistrer();
-```
+* ✅ Fonctionne avec PHP 8.1+ et MySQLi natif
+* ✅ Pas besoin de Symfony, Laravel ou autre framework
+* ✅ Package autonome et léger (~2MB)
 
-#### ❌ Inconvénients / Limitations
-
-##### 1. **Moins de Fonctionnalités Avancées**
+### ❌ Limitations
 
 | Fonctionnalité | NAbySyGS | Doctrine | Eloquent |
-|----------------|----------|----------|----------|
+|---|---|---|---|
 | Relations complexes (Many-to-Many) | ⚠️ Manuel | ✅ Automatique | ✅ Automatique |
 | Lazy Loading | ❌ Non | ✅ Oui | ✅ Oui |
 | Query Builder avancé | ⚠️ Basique | ✅ DQL | ✅ Fluent |
 | Transactions complexes | ⚠️ Manuel | ✅ UnitOfWork | ✅ Oui |
 | Caching sophistiqué | ❌ Non | ✅ 2nd level cache | ✅ Query cache |
 
-```php
-// NAbySyGS - Relations manuelles
-$commande = new xORMHelper($nabysy, 1, true, "commandes");
-$client = new xORMHelper($nabysy, $commande->IdClient, true, "clients");
+### 📊 Tableau Récapitulatif
 
-// Eloquent - Relations automatiques
-$commande = Commande::find(1);
-$client = $commande->client; // Automatique via relation définie
-```
+| Critère | NAbySyGS | Doctrine | Eloquent | RedBeanPHP |
+|---|---|---|---|---|
+| **Facilité** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Performance** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Fonctionnalités** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| **Auto-création tables** | ⭐⭐⭐⭐⭐ | ❌ | ❌ | ⭐⭐⭐⭐⭐ |
+| **Jointures sans config** | ⭐⭐⭐⭐⭐ | ❌ | ❌ | ⚠️ |
+| **Routage URL intégré** | ⭐⭐⭐⭐⭐ | ❌ | ⭐⭐⭐ | ❌ |
+| **Double routage** | ⭐⭐⭐⭐⭐ | ❌ | ❌ | ❌ |
+| **API Intégrée** | ⭐⭐⭐⭐⭐ | ❌ | ⭐⭐⭐ | ❌ |
+| **Doc routes intégrée** | ⭐⭐⭐⭐⭐ | ❌ | ❌ | ❌ |
+| **Setup HTML auto** | ⭐⭐⭐⭐⭐ | ❌ | ❌ | ❌ |
+| **Communauté** | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Setup** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
 
 ### 🎯 Quand Utiliser NAbySyGS ?
 
-#### ✅ **Idéal Pour :**
-
-1. **Prototypes et MVPs Rapides**
-   - Lancer une API en quelques heures
-   - Tester des idées rapidement
-   - Projets avec deadline serrée
-
-2. **Petites et Moyennes Applications**
-   - < 200 tables
-   - < 500 000 enregistrements par table
-   - Équipe de 1-50 développeurs
-
-3. **Applications Métier Internes**
-   - ERP légers
-   - Systèmes de gestion (stocks, clients, factures)
-   - Outils administratifs
-
-4. **Projets Sans Infrastructure DevOps**
-   - Hébergement mutualisé
-   - Pas de CLI disponible
-   - Environnement simple (FTP)
-
-5. **Développeurs Débutants en ORM**
-   - Courbe d'apprentissage douce
-   - Concepts simples
-   - Résultats immédiats
-
-
+1. **Prototypes et MVPs Rapides** — Lancer une API en quelques heures, tester des idées rapidement
+2. **Petites et Moyennes Applications** — < 200 tables, < 500 000 enregistrements/table, équipe de 1-50 développeurs
+3. **Applications Métier Internes** — ERP légers, stocks, factures, clients, outils administratifs
+4. **Projets Sans Infrastructure DevOps** — Hébergement mutualisé, pas de CLI disponible, environnement simple
+5. **Développeurs Débutants en ORM** — Courbe d'apprentissage douce, résultats immédiats
 
 ### 🔄 Migration vers NAbySyGS
 
 #### Depuis Eloquent (Laravel)
 
 ```php
-// Avant (Laravel Eloquent)
-$produits = Produit::where('prix', '>', 1000)
-    ->orderBy('nom')
-    ->limit(10)
-    ->get();
+// Avant
+$produits = Produit::where('prix', '>', 1000)->orderBy('nom')->limit(10)->get();
 
-// Après (NAbySyGS)
-$produit = new xORMHelper($nabysy, null, true, "produits");
-$produits = $produit->ChargeListe(
-    "prix > 1000",
-    "nom ASC",
-    "*",
-    null,
-    "10"
-);
+// Après
+$produit  = new xORMHelper($nabysy, null, true, "produits");
+$produits = $produit->ChargeListe("prix > 1000", "nom ASC", "*", null, "10");
 ```
 
 #### Depuis Doctrine
 
 ```php
-// Avant (Doctrine)
-$repository = $entityManager->getRepository(Produit::class);
-$produit = $repository->find(1);
+// Avant
+$produit = $entityManager->getRepository(Produit::class)->find(1);
 $produit->setPrix(5000);
 $entityManager->flush();
 
-// Après (NAbySyGS)
-$produit = new xORMHelper($nabysy, 1, true, "produits");
+// Après
+$produit       = new xORMHelper($nabysy, 1, true, "produits");
 $produit->Prix = 5000;
 $produit->Enregistrer();
 ```
 
-### 📊 Tableau Récapitulatif
+---
 
-| Critère | NAbySyGS | Doctrine | Eloquent | RedBeanPHP |
-|---------|----------|----------|----------|------------|
-| **Facilité** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Performance** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Fonctionnalités** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| **Auto-création** | ⭐⭐⭐⭐⭐ | ❌ | ❌ | ⭐⭐⭐⭐⭐ |
-| **API Intégrée** | ⭐⭐⭐⭐⭐ | ❌ | ⭐⭐⭐ | ❌ |
-| **Communauté** | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Documentation** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Setup** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-
-### 💡 Recommandation
-
-**Utilisez NAbySyGS si :**
-- Vous voulez un MVP en **moins d'une journée**
-- Vous n'avez **pas besoin de relations complexes**
-- Vous développez une **application de gestion simple**
-- Vous êtes **seul ou en petite équipe**
-- Vous préférez la **simplicité à la puissance**
-
-## 🎯 Bonnes Pratiques
-
-1. **Toujours utiliser `ValideUser()`** pour protéger vos endpoints sensibles
-2. **Nommer vos actions** en MAJUSCULES avec préfixe module : `PRODUIT_CREATE`
-3. **Utiliser xNotification** pour les réponses réussies, `xErreur` pour les erreurs
-4. **Activer le debug** uniquement en développement
-5. **Versionner** votre fichier `appinfos.php` pour la configuration personnalisée
-6. **Créer des observateurs** pour automatiser les tâches répétitives
-7. **Logger les événements importants** pour faciliter le débogage
-
-## 📝 Structure de Réponse
+## 📝 Structure de Réponse API
 
 ### Succès
 
@@ -1359,25 +1249,48 @@ $produit->Enregistrer();
 }
 ```
 
+---
+
+## 🎯 Bonnes Pratiques
+
+1. **Toujours utiliser `ValideUser()`** pour protéger vos endpoints sensibles
+2. **Nommer vos actions** en MAJUSCULES avec préfixe module : `PRODUIT_CREATE`
+3. **Utiliser `xNotification`** pour les réponses réussies, `xErreur` pour les erreurs
+4. **Activer le debug** uniquement en développement
+5. **Versionner** votre fichier `appinfos.php` pour la configuration personnalisée
+6. **Créer des observateurs** pour automatiser les tâches répétitives
+7. **Logger les événements importants** pour faciliter le débogage
+8. **Utiliser `koro db update`** après toute modification manuelle de `db_structure.php`
+9. **Consulter `/api/describe`** pour vérifier que toutes vos routes URL sont bien enregistrées
+
+---
+
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à :
 
-1. Proposer des suggestions aux projet
+1. Proposer des suggestions via les Issues
 2. Créer une branche (`git checkout -b feature/amelioration`)
-3. Commit vos changements (`git commit -m 'Ajout fonctionnalité'`)
-4. Push sur la branche (`git push origin feature/amelioration`)
+3. Committer vos changements (`git commit -m 'Ajout fonctionnalité'`)
+4. Pusher sur la branche (`git push origin feature/amelioration`)
 5. Ouvrir une Pull Request
+
+---
 
 ## 📄 Licence
 
-MIT License - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+MIT License — voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+---
 
 ## 👨‍💻 Auteur
 
 **Paul Isidore A. NIAMIE**
-- Email: paul.isidore@gmail.com
-- Website: [https://groupe-pam.net](https://groupe-pam.net)
+
+* Email : [paul.isidore@gmail.com](mailto:paul.isidore@gmail.com)
+* Website : [https://groupe-pam.net](https://groupe-pam.net)
+
+---
 
 ## 🙏 Remerciements
 
