@@ -190,6 +190,7 @@ class xGSUrlRouterManager{
     public static function resolveUrlRoute(bool $CanSendReponse=false):xGSUrlRouterResponse{
         $Rep=new xGSUrlRouterResponse();
         $Rep->OK=0;
+        $PrecCanSendReponse = $CanSendReponse ;
 
         if(isset($_GET['Action'])){
             $action = $_GET['Action'] ;
@@ -233,18 +234,20 @@ class xGSUrlRouterManager{
             if (isset($route)) {
                 $GoodRouter = $router ;
                 //Route définit
+                $CanSendReponse = true ;
                 break;
             }
             //var_dump($router->getRegisteredRoute());
         }
-        if ($route === null && !self::$Main::$ByPasseNoUrlRoute) {
+
+        if ($route === null && !xNAbySyGS::$ByPasseNoUrlRoute) {
             $Rep->TxErreur='Aucune route trouvée';
             $Rep->Path = $requestUri ;
             $Rep->Methode = $requestMethod ;
             if($CanSendReponse){
                 // Définir les headers de réponse
                 header('Content-Type: application/json; charset=utf-8');
-                self::$Main::AllowCORS();
+                xNAbySyGS::AllowCORS();
                 // Route non trouvée
                 http_response_code(404);
                 echo json_encode($Rep);
@@ -263,12 +266,12 @@ class xGSUrlRouterManager{
             $Rep->route=$route ;
             if($CanSendReponse){
                 $Rep->Contenue = self::runRouteHandler($Rep->Router, $Rep->route);
-                //echo json_encode($Rep);
-                //exit;
+                $CanSendReponse = $PrecCanSendReponse ;
             }
         }
         return $Rep;
     }
+
 
     /**
      * Execute le module de routage URL

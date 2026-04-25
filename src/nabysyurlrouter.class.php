@@ -13,6 +13,7 @@
 namespace NAbySy\Router\Url;
 
 use Exception;
+use NAbySy\xNAbySyGS;
 
 class xNAbySyUrlRouterHelper implements INAbySyUrlRouter {
 
@@ -174,17 +175,20 @@ class xNAbySyUrlRouterHelper implements INAbySyUrlRouter {
     public function resolve(string $url, string $method): ?array
     {
         $this->params = [];
-        $url = '/' . trim($url, '/');
+        $url = '/' . trim($url, '/');  // ← d'abord on normalise $url
         $method = strtoupper($method);
 
-        // Chercher dans les routes de la méthode spécifique
+        // Ensuite seulement on ajoute le BASEDIR
+        if (xNAbySyGS::$BASEDIR != '') {
+            $basedir = '/' . trim(xNAbySyGS::$BASEDIR, '/');
+            $url = $basedir . $url;    // ex: '/test' + '/pays' = '/test/pays'
+        }
+
         $result = $this->matchRoute($url, $method);
         
-        // Si pas trouvé, chercher dans les routes ANY
         if ($result === null && $method !== 'ANY') {
             $result = $this->matchRoute($url, 'ANY');
         }
-
         return $result;
     }
 
