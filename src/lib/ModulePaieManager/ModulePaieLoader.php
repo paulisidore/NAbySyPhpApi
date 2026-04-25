@@ -193,7 +193,9 @@ use NAbySy\xNAbySyGS;
                 }
             }
         }
-        self::$Main::$Log->Write( count(self::$ListeModule) . " module(s) de paiement inscrit(s) sur la plate-forme. Dont ".$NbUserModTrouve." module(s) de paiement utilisateur chargé(s).");
+        if(self::$Main::$IsFirstSetup || (self::$Main->ActiveDebug && self::$Main::$LogLevel>=3) ){
+            self::$Main::$Log->Write( count(self::$ListeModule) . " module(s) de paiement inscrit(s) sur la plate-forme. Dont ".$NbUserModTrouve." module(s) de paiement utilisateur chargé(s).");
+        }
 
     }
 

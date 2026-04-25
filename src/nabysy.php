@@ -120,6 +120,15 @@ Class xNAbySyGS
 	public $MCP_SEPARATEUR ="" ;
 	
 	public $ActiveDebug=false ;
+
+	/**
+	 * 1 pour les messages d'information, 
+	 * 2 pour les messages de warning 
+	 * 3 pour les messages d'erreur
+	 * @var int
+	 */
+	public static int $LogLevel = 1 ; //1 pour les messages d'information, 2 pour les messages de warning et 3 pour les messages d'erreur
+
 	public bool $MODE_INVENTAIRE_BOUTIQUE = false ;
 	public bool $MODE_INVENTAIRE_DEPOT = false ;
 	/* Gestion de redirection selon heure */
@@ -2378,6 +2387,8 @@ Class xNAbySyGS
 		}
 
 		$Conn = $StartInfo->Connexion ;
+
+		self::$LogLevel = $StartInfo->LogLevel ;
 		
 		$nabysy = new xNAbySyGS($Conn->Serveur,$Conn->DBUser,$Conn->DBPwd,$StartInfo->InfoClientMCP,$Conn->DB,$Conn->MasterDB, $Conn->Port, self::$BASEDIR, $StartInfo->DesableTokenAuth)  ;
 		if ($nabysy == false){
@@ -2389,6 +2400,8 @@ Class xNAbySyGS
 		}
 		$nabysy->MODULE->Actif=true;
 		$nabysy->ActiveDebug= boolval ($StartInfo->DebugMode) ;
+		$nabysy->LogLevel = $StartInfo->LogLevel ;
+
 		ini_set('display_errors', 0);
 		ini_set('display_startup_errors', 0);
 		error_reporting(E_ERROR);
@@ -2450,6 +2463,7 @@ Class xNAbySyGS
 
 	public static function SetShowDebug(bool $ShowDebug=true, int $DebugLevel=1){
 		if($ShowDebug){
+			self::$LogLevel = $DebugLevel ;
 			ini_set('display_errors', $DebugLevel);
 			ini_set('display_startup_errors', $DebugLevel);
 			error_reporting(E_ALL);
@@ -2558,6 +2572,37 @@ Class xNAbySyGS
 		}
 		
 		return $rep ;
+	}
+
+	/**
+	 * Permet de désactiver l'appel double de la CLI pour tenter la synchronistation de la base de donnée
+	 * et la structure du projet utilisateur
+	 * @return bool 
+	 */
+	public static function TurnOffIsFirstSetup(): bool {
+		$FolderPath = self::ModuleGSHostFolder();
+		if (!is_dir($FolderPath)){return false ;} ;
+				
+		$FolderPath = rtrim($FolderPath, DIRECTORY_SEPARATOR . '/');
+		$items      = scandir($FolderPath);
+		
+		$nbFile = count(array_filter(
+			$items,
+			fn($f) => $f !== '.' && $f !== '..' && is_dir($FolderPath . DIRECTORY_SEPARATOR . $f)
+		));
+		if($nbFile == 0){
+			//On créér un dossier vierge pour indiquer que le setup a été effectué au moins une fois
+			$dummyFolder = $FolderPath . DIRECTORY_SEPARATOR . "setup_done";
+			if(!is_dir($dummyFolder)){
+				try {
+					self::$Log->AddToLog("TurnOffIsFirstSetup: Désactivation du Setup via la création du dossier ". $dummyFolder);
+					mkdir($dummyFolder, 0777, true);	
+				} catch (\Throwable $th) {
+					//throw $th;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**

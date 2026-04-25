@@ -12,6 +12,13 @@
         public int $DisplayErrors = 1 ;
         public int $DisplayStartUpErrors = 1 ;
         public int $ErrorReporting = E_ALL ;
+
+        /**
+         * 1 pour les messages d'information, 2 pour les messages de warning et 3 pour les messages d'erreur
+         * @var int
+         */
+        public int $LogLevel = 1 ;
+
         /**
          * Contient les informations relatives au client PAM (Paul et Aïcha Machinerie SARL)
          */

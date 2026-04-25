@@ -201,6 +201,7 @@ class xGSUrlRouterManager{
                 if(self::$Main::$IsFirstSetup){
                     $Rep->Extra = "NABYSY_STRUCURE_INITIAL_SETUP" ;
                     $Rep->Contenue="Configuration initiale. Effectuer un second Appel pour terminer la configuration.";
+                    xNAbySyGS::TurnOffIsFirstSetup();
                 }        
                 $Rep->SendAsJSON();
             }
