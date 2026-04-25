@@ -38,7 +38,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
             $Rep->OK = 1;
             $Rep->Contenue = [];
             //---------------------------------------------/
-            return json_encode($Rep);
+            $Rep->SendAsJSON();
         });
 
         /**Read and return one {routename} by id */
@@ -49,7 +49,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
             $Rep->OK = 1;
             $Rep->Contenue = [];
             //---------------------------------------------/
-            return json_encode($Rep);
+            $Rep->SendAsJSON();
         });
 
 
@@ -65,7 +65,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
             $Rep->OK = 1;
             $Rep->Contenue = [];
             //---------------------------------------------/
-            return json_encode($Rep);
+            $Rep->SendAsJSON();
         });
 
         /** Edit one {routename} */
@@ -80,7 +80,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
             $Rep->OK = 1;
             $Rep->Contenue = [];
             //---------------------------------------------/
-            return json_encode($Rep);
+            $Rep->SendAsJSON();
         });
 
         /**Delete one {routename} on server */
@@ -92,7 +92,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
             $Rep->OK = 1;
             $Rep->Contenue = [];
             //---------------------------------------------/
-            return json_encode($Rep);
+            $Rep->SendAsJSON();
         });
     }
 }
