@@ -231,7 +231,9 @@ if (\$ACTIVE_DEBUG) {
     N::SetShowDebug(\$ACTIVE_DEBUG, \$DEBUG_LEVEL);
     N::SetAuthSessionTime(\$DUREE_SESSION_AUTH);
     N::\$SendAuthReponse = {$authRespStr}; // Indique si les réponses d'authentification doivent être envoyées
-    include_once __DIR__ . '/db_structure.php'; // Modules/tables métier — géré par nsy CLI
+    if(file_exists(__DIR__ . '/db_structure.php')){
+        include_once __DIR__ . '/db_structure.php'; // Modules/tables métier — géré par nsy CLI
+    }
 {$routingBlock}
 ?>
 PHP;

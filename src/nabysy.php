@@ -2400,7 +2400,7 @@ Class xNAbySyGS
 		}
 		$nabysy->MODULE->Actif=true;
 		$nabysy->ActiveDebug= boolval ($StartInfo->DebugMode) ;
-		$nabysy->LogLevel = $StartInfo->LogLevel ;
+		self::$LogLevel = $StartInfo->LogLevel ;
 
 		ini_set('display_errors', 0);
 		ini_set('display_startup_errors', 0);
