@@ -2358,19 +2358,10 @@ Class xNAbySyGS
 	}
 
 	public function MAJ_DB(){
+		$MySQL=new xDB($this) ;
+		$MySQL->DebugMode=false ;
 		
-			$MySQL=new xDB($this) ;
-			$MySQL->DebugMode=false ;
-			$Tabl="parametre";
-			if (!$MySQL->TableExiste($Tabl)){
-				//Création de la Table Entete
-				$MySQL->CreateTable($Tabl);
-				//Création des Champs
-				$MySQL->AlterTable($Tabl,'MONNAIS','VARCHAR(255)','ADD','F CFA') ;
-				$MySQL->AlterTable($Tabl,'MONNAIS2','VARCHAR(255)','ADD','FRANCS CFA') ;				
-			}							
-			return true ;	
-				
+		return true ;
 	}		
 
 	public function __debugInfo() {

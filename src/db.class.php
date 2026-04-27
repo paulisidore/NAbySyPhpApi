@@ -66,23 +66,22 @@ use xDBStateFullSet;
                 if(trim($DBaseName) !==''){
                     $TxSQL="SHOW TABLES FROM ".$DBaseName." like '".$Table."' " ;
                 }
-            }
-            if ($this->DebugMode){
-                //echo '</br>Vérifions la Présence de la Table '.$Table.': '.$TxSQL ;
-            }               
+            }              
             $reponse=$this->Main->ReadWrite($TxSQL,true,null,false);
             if (count($reponse->fetch_all())>=1){
                 if ($this->DebugMode){
-                    //echo '...Présent' ;
+                    echo '</br>Table '.$this->Main->DataBase.'.'.$Table.' présent. </br>' ;
                 }                    
                 return true;
             }
-            if ($this->DebugMode){
+            if ($this->DebugMode && xNAbySyGS::$LogLevel > 2){
                 $Tx=$Table;
                 if (isset($DBaseName)){
                     $Tx=$DBaseName.".".$Table ;
+                }else{
+                    $Tx=$this->Main->DataBase.".".$Table ;
                 }
-                $this->Main::$Log->Write('Absence de la table '.$Tx);
+                xNAbySyGS::$Log->Write('Absence de la table '.$Tx);
             }
             return false;
         }
@@ -92,7 +91,7 @@ use xDBStateFullSet;
             if (isset($DBaseName)){
                 $NomTable="`".$DBaseName."`.".$NomTable." " ;
             }
-            $TxSQL="CREATE TABLE ".$NomTable." (
+            $TxSQL="CREATE TABLE  IF NOT EXISTS ".$NomTable." (
                 ".$ChampID." INT(11) AUTO_INCREMENT PRIMARY KEY 
                 );" ;
             if ($this->DebugMode)
