@@ -47,7 +47,7 @@ use NAbySy\xNotification;
         public function GetCheckOut($Montant,array $InfosPosteSaisie):xNotification ; //Retourne l'objet contenant la demande de validation à présenter au client
 
         /** Retourne les informations sur l'etat d'une demande de paiement */
-        public function GetEtatCheckOut(xCheckOutParam $CheckOutInfo):xNotification ;
+        public function GetEtatCheckOut(ICheckOutParam $CheckOutInfo):xNotification ;
 
         /**
          * Valide ou non de la vente par le odule de paiement
