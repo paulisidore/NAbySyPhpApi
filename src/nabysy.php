@@ -483,21 +483,24 @@ Class xNAbySyGS
 			
 			
 			
-			if($this->MaBoutique->DataBase !== $this->DataBase){
-				$Lst=$this->MaBoutique->ChargeListe("dbname like '".$this->DataBase."'") ;
-				if($Lst->num_rows>0){
-					$rw=$Lst->fetch_array() ;
-					$IdB=0;
-					if(isset($rw['id'])){
-						$IdB=$rw['id'] ;
-					}elseif(isset($rw['ID'])){
-						$IdB=$rw['ID'] ;
-					}elseif(isset($rw['Id'])){
-						$IdB=$rw['Id'] ;
+			if(isset($this->MaBoutique)){
+				if($this->MaBoutique->DataBase !== $this->DataBase){
+					$Lst=$this->MaBoutique->ChargeListe("dbname like '".$this->DataBase."'") ;
+					if($Lst->num_rows>0){
+						$rw=$Lst->fetch_array() ;
+						$IdB=0;
+						if(isset($rw['id'])){
+							$IdB=$rw['id'] ;
+						}elseif(isset($rw['ID'])){
+							$IdB=$rw['ID'] ;
+						}elseif(isset($rw['Id'])){
+							$IdB=$rw['Id'] ;
+						}
+						$Bout=new xBoutique($this,$IdB) ;
+						$this->MaBoutique=$Bout ;
 					}
-					$Bout=new xBoutique($this,$IdB) ;
-					$this->MaBoutique=$Bout ;
 				}
+				$this->MAJ_DB() ;
 			}			
 			
 			self::$SMSEngine=new xSMSEngine($this);
@@ -825,6 +828,33 @@ Class xNAbySyGS
 		}
 		return $Created ;
 	}
+
+	/**
+	 * Permet de récupérer la version du package à partir du composer.json ou composer.lock
+	 * @return string
+	 */
+	public static function getVersion(): string
+    {
+        $MY_VERSION="1.2.6";
+        // Chercher le composer.json du package CLI lui-même
+        $composerJson = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'composer.json';
+        if (file_exists($composerJson)) {
+            $data = json_decode(file_get_contents($composerJson), true);
+            if (!empty($data['version'])) return $data['version'];
+        }
+
+        // Fallback : lire depuis le composer.lock du projet hôte
+        $lockFile = "./". 'composer.lock';
+        if (file_exists($lockFile)) {
+            $lock = json_decode(file_get_contents($lockFile), true);
+            foreach ($lock['packages'] ?? [] as $pkg) {
+                if ($pkg['name'] === 'nabysyphpapi/xnabysygs') {
+                    return ltrim($pkg['version'], 'v');
+                }
+            }
+        }
+        return $MY_VERSION ; // Dernier recours
+    }
 
 	/**
 	 * Convertit un texte en carmel case

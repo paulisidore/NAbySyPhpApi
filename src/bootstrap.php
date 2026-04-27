@@ -15,51 +15,54 @@ if (php_sapi_name() === 'cli' && (
 
 use NAbySy\xNAbySyGS;
 
-define('XNABYSY_LOADED', true);
+defined('XNABYSY_LOADED') || define('XNABYSY_LOADED', true);
 
 // ============================================================
 //  1. LOGGING BOOTSTRAP AUTONOME
 //  Disponible avant toute initialisation de N
 // ============================================================
 
-function nabysyBootstrapLog(string $message, string $level = 'INFO'): void
-{
-    $logFile = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
-    $line    = date('d/m/Y H:i:s') . " [{$level}] " . $message . PHP_EOL;
-    error_log("[NAbySyGS Bootstrap] {$message}");
-    @file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
-}
-
-// Capture les erreurs fatales non attrapables par try/catch
-register_shutdown_function(function () {
-    $error = error_get_last();
-    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR])) {
-        nabysyBootstrapLog(
-            "[FATAL] {$error['message']} dans {$error['file']} ligne {$error['line']}",
-            'FATAL'
-        );
-        nabysyOpenBootstrapLog();
+if (!function_exists('nabysyBootstrapLog')) {
+    function nabysyBootstrapLog(string $message, string $level = 'INFO'): void
+    {
+        $logFile = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
+        $line    = date('d/m/Y H:i:s') . " [{$level}] " . $message . PHP_EOL;
+        error_log("[NAbySyGS Bootstrap] {$message}");
+        @file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
     }
-});
+
+    // Capture les erreurs fatales non attrapables par try/catch
+    register_shutdown_function(function () {
+        $error = error_get_last();
+        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR])) {
+            nabysyBootstrapLog(
+                "[FATAL] {$error['message']} dans {$error['file']} ligne {$error['line']}",
+                'FATAL'
+            );
+            nabysyOpenBootstrapLog();
+        }
+    });
+}
 
 // ============================================================
 //  2. AFFICHAGE DES LOGS BOOTSTRAP EN CAS D'ERREUR
 // ============================================================
 
-function nabysyOpenBootstrapLog(): void
-{
-    $logFile     = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
-    $logHtmlFile = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap_log.html';
+if (!function_exists('nabysyOpenBootstrapLog')) {
+    function nabysyOpenBootstrapLog(): void
+    {
+        $logFile     = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap.log';
+        $logHtmlFile = __DIR__ . DIRECTORY_SEPARATOR . 'nabysygs_bootstrap_log.html';
 
-    if (!file_exists($logFile)) return;
+        if (!file_exists($logFile)) return;
 
-    $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    if (empty($lines)) return;
+        $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (empty($lines)) return;
 
-    // Générer le HTML des logs
-    $html  = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>';
-    $html .= '<title>NAbySyGS — Bootstrap Log</title>';
-    $html .= '<style>
+        // Générer le HTML des logs
+        $html  = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>';
+        $html .= '<title>NAbySyGS — Bootstrap Log</title>';
+        $html .= '<style>
         body  { background:#0a0f0d; color:#e8f0eb; font-family:monospace; padding:32px; }
         h2    { color:#f5a623; margin-bottom:16px; }
         .log  { background:#111a15; border:1px solid #1f3026; border-radius:8px; padding:16px; }
@@ -70,31 +73,32 @@ function nabysyOpenBootstrapLog(): void
         .FATAL { color:#ff5252; font-weight:bold; }
         .WARN  { color:#f5a623; }
     </style></head><body>';
-    $html .= '<h2>🦅 NAbySyGS — Bootstrap Log</h2><div class="log">';
+        $html .= '<h2>🦅 NAbySyGS — Bootstrap Log</h2><div class="log">';
 
-    foreach ($lines as $line) {
-        $level = 'INFO';
-        if (str_contains($line, '[FATAL]')) $level = 'FATAL';
-        elseif (str_contains($line, '[ERROR]')) $level = 'ERROR';
-        elseif (str_contains($line, '[WARN]'))  $level = 'WARN';
-        $html .= '<div class="line ' . $level . '">' . htmlspecialchars($line) . '</div>';
-    }
+        foreach ($lines as $line) {
+            $level = 'INFO';
+            if (str_contains($line, '[FATAL]')) $level = 'FATAL';
+            elseif (str_contains($line, '[ERROR]')) $level = 'ERROR';
+            elseif (str_contains($line, '[WARN]'))  $level = 'WARN';
+            $html .= '<div class="line ' . $level . '">' . htmlspecialchars($line) . '</div>';
+        }
 
-    $html .= '</div><p style="margin-top:16px;color:#6b8c74;font-size:0.75rem;">';
-    $html .= 'Fichier log : ' . htmlspecialchars($logFile);
-    $html .= '</p></body></html>';
+        $html .= '</div><p style="margin-top:16px;color:#6b8c74;font-size:0.75rem;">';
+        $html .= 'Fichier log : ' . htmlspecialchars($logFile);
+        $html .= '</p></body></html>';
 
-    @file_put_contents($logHtmlFile, $html);
+        @file_put_contents($logHtmlFile, $html);
 
-    // Ouvrir dans le navigateur selon l'OS
-    $url = 'file:///' . str_replace('\\', '/', realpath($logHtmlFile) ?: $logHtmlFile);
-    if (PHP_OS_FAMILY === 'Windows') {
-        $safeUrl = str_replace(['"', '^', '&', '<', '>', '|'], '', $url);
-        @exec('cmd /c start "" "' . $safeUrl . '" > NUL 2>&1');
-    } elseif (PHP_OS_FAMILY === 'Darwin') {
-        @exec('open ' . escapeshellarg($url) . ' > /dev/null 2>&1 &');
-    } else {
-        @exec('xdg-open ' . escapeshellarg($url) . ' > /dev/null 2>&1 &');
+        // Ouvrir dans le navigateur selon l'OS
+        $url = 'file:///' . str_replace('\\', '/', realpath($logHtmlFile) ?: $logHtmlFile);
+        if (PHP_OS_FAMILY === 'Windows') {
+            $safeUrl = str_replace(['"', '^', '&', '<', '>', '|'], '', $url);
+            @exec('cmd /c start "" "' . $safeUrl . '" > NUL 2>&1');
+        } elseif (PHP_OS_FAMILY === 'Darwin') {
+            @exec('open ' . escapeshellarg($url) . ' > /dev/null 2>&1 &');
+        } else {
+            @exec('xdg-open ' . escapeshellarg($url) . ' > /dev/null 2>&1 &');
+        }
     }
 }
 
@@ -104,30 +108,32 @@ function nabysyOpenBootstrapLog(): void
 //  un dossier contenant vendor/ + composer.json
 // ============================================================
 
-function nabysyFindHostRoot(string $startDir, int $maxLevels = 10): ?string
-{
-    $current = $startDir;
-    for ($i = 0; $i < $maxLevels; $i++) {
-        $parent = dirname($current);
+if (!function_exists('nabysyFindHostRoot')) {
+    function nabysyFindHostRoot(string $startDir, int $maxLevels = 10): ?string
+    {
+        $current = $startDir;
+        for ($i = 0; $i < $maxLevels; $i++) {
+            $parent = dirname($current);
 
-        // Sécurité : atteint la racine du système de fichiers
-        if ($parent === $current) {
-            nabysyBootstrapLog("Racine projet hôte introuvable depuis {$startDir}", 'ERROR');
-            return null;
+            // Sécurité : atteint la racine du système de fichiers
+            if ($parent === $current) {
+                nabysyBootstrapLog("Racine projet hôte introuvable depuis {$startDir}", 'ERROR');
+                return null;
+            }
+
+            // Un dossier Composer valide contient vendor/ ET composer.json
+            if (is_dir($parent . DIRECTORY_SEPARATOR . 'vendor')
+                && file_exists($parent . DIRECTORY_SEPARATOR . 'composer.json')
+            ) {
+                return rtrim($parent, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            }
+
+            $current = $parent;
         }
 
-        // Un dossier Composer valide contient vendor/ ET composer.json
-        if (is_dir($parent . DIRECTORY_SEPARATOR . 'vendor')
-            && file_exists($parent . DIRECTORY_SEPARATOR . 'composer.json')
-        ) {
-            return rtrim($parent, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        }
-
-        $current = $parent;
+        nabysyBootstrapLog("Racine projet hôte introuvable après {$maxLevels} niveaux", 'ERROR');
+        return null;
     }
-
-    nabysyBootstrapLog("Racine projet hôte introuvable après {$maxLevels} niveaux", 'ERROR');
-    return null;
 }
 
 // ============================================================
