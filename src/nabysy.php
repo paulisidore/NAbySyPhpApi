@@ -2538,7 +2538,7 @@ Class xNAbySyGS
 	 * @return string : Version de NAbySyGS
 	 */
 	public static function VERSION(){
-		return NABYSY_VERSION ;
+		return self::getVersion() ;
 	}
 
 	/**
