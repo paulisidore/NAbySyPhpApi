@@ -20,6 +20,25 @@ use NAbySy\xNAbySyGS;
     public static string $DossierModulePaie ;
     public static string $DossierUserModulePaie ;
 
+    /** Indique que le client a effectivement payé la transaction */
+    public static $PAIEMENT_VALIDER = 'PAIEMENT_VALIDER';
+
+    /** Indique que le client a refusé de payer la transaction */
+    public static $PAIEMENT_REFUSER = 'PAIEMENT_REFUSER';
+
+    /** Indique que le systeme a annulé la transaction */
+    public static $PAIEMENT_ANNULER = 'PAIEMENT_ANNULER';
+
+    /** Indique que la transaction est en cour de traitement */
+    public static $PAIEMENT_ENCOUR = 'PAIEMENT_ENCOUR';
+
+    /** Indique que la demande de paiement a expirée */
+    public static $PAIEMENT_EXPIRER = 'PAIEMENT_EXPIRER';
+
+    /** Indique que la transaction à été remboursée */
+    public static $PAIEMENT_REMBOURSER = 'PAIEMENT_REMBOURSER';
+    
+
     public function __construct(xNAbySyGS $NAbySy){
         self::$Main=$NAbySy;
         self::$ListeModule = [];

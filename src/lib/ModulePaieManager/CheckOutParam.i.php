@@ -6,24 +6,6 @@ namespace NAbySy\Lib\ModulePaie;
  */
 interface ICheckOutParam
 {
-    /** Indique que le client a effectivement payé la transaction */
-    public static $PAIEMENT_VALIDER = 'PAIEMENT_VALIDER';
-
-    /** Indique que le client a refusé de payer la transaction */
-    public static $PAIEMENT_REFUSER = 'PAIEMENT_REFUSER';
-
-    /** Indique que le systeme a annulé la transaction */
-    public static $PAIEMENT_ANNULER = 'PAIEMENT_ANNULER';
-
-    /** Indique que la transaction est en cour de traitement */
-    public static $PAIEMENT_ENCOUR = 'PAIEMENT_ENCOUR';
-
-    /** Indique que la demande de paiement a expirée */
-    public static $PAIEMENT_EXPIRER = 'PAIEMENT_EXPIRER';
-
-    /** Indique que la transaction à été remboursée */
-    public static $PAIEMENT_REMBOURSER = 'PAIEMENT_REMBOURSER';
-
     /**
      * Créer un nouvel objet de demande de paiement sans l'enregistrer dans la base de donnée.
      * @param int $Montant : Le montant de la transaction à demander
