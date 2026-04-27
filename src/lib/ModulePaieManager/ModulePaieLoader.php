@@ -1,5 +1,6 @@
 <?php
 namespace NAbySy\Lib\ModulePaie ;
+include_once __DIR__."/CheckOutParam.i.php";
 
 use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\xNAbySyGS;
