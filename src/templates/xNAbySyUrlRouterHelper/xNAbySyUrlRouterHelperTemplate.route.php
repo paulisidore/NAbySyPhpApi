@@ -28,6 +28,16 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
 
         /**Read and return list of {routename} */
         $this->get('/{routename}', function() {
+            /**
+             * If you want, you can re-route request to NAbySyPhpApi action file
+             * 
+             * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
+             * All request parameters will be automaticaly transfert and handle by action file.
+             * 
+             *  $_REQUEST['Action']="routename}_GET" ;
+             *  include_once './gs/{routename}/{routename}_action.php';
+             */
+            
             $Rep = new xNotification();
             $nabysy = N::getInstance();
             if(!isset($nabysy->User)){
