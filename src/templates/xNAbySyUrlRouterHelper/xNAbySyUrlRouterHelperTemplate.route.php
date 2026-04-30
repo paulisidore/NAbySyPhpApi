@@ -27,7 +27,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
     private function setupRoute() {
 
         /**Read and return list of {routename} */
-        $this->get('/{BASEDIR}{routename}', function() {
+        $this->get('/{routename}', function() {
             $Rep = new xNotification();
             $nabysy = N::getInstance();
             if(!isset($nabysy->User)){
@@ -42,7 +42,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
         });
 
         /**Read and return one {routename} by id */
-        $this->get('/{BASEDIR}{routename}/{id}', function($id) {
+        $this->get('/{routename}/{id}', function($id) {
             $Rep = new xNotification();
             $Rep->OK = 0;            
            //YOUR LOGIC CODE HERE-------------------------/
@@ -54,7 +54,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
 
 
         /**Create new {routename} ressource on server */
-        $this->post('/{BASEDIR}{routename}', function() {
+        $this->post('/{routename}', function() {
             $Rep = new xNotification();
             $Rep->OK = 0;
             
@@ -69,7 +69,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
         });
 
         /** Edit one {routename} */
-        $this->put('/{BASEDIR}{routename}/{id}', function($id) {
+        $this->put('/{routename}/{id}', function($id) {
             $Rep = new xNotification();
             $Rep->OK = 0;
             
@@ -84,7 +84,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
         });
 
         /**Delete one {routename} on server */
-        $this->delete('/{BASEDIR}{routename}/{id}', function($id) {
+        $this->delete('/{routename}/{id}', function($id) {
             $Rep = new xNotification();
             $Rep->OK = 0;
             
