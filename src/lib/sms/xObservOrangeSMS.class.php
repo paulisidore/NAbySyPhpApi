@@ -49,7 +49,7 @@ class xObservOrangeSMS extends \NAbySy\OBSERVGEN\xObservGen  {
 
     }
 
-    public function RaiseEvent($ClassName,$EventType,&$EventArg){
+    public function RaiseEvent(string $ClassName,string $EventType,&$EventArg){
         /* L'Action a executer */
         //var_dump($EventType);
         //var_dump($EventArg);
@@ -64,7 +64,7 @@ class xObservOrangeSMS extends \NAbySy\OBSERVGEN\xObservGen  {
             }                
         }
 
-        if ($EventType=self::xMessageSMS_ADD){
+        if ($EventType===self::xMessageSMS_ADD){
             //Est déclanché après l'ajour d'un nouveau message en préparation pour l'envoie
             //On ajoute le SMS Dans la file d'Attente
             $IdEnvoie=(int)$EventArg ;
@@ -82,7 +82,7 @@ class xObservOrangeSMS extends \NAbySy\OBSERVGEN\xObservGen  {
 
         //var_dump($EventType);
 
-        if ($EventType=self::xMessageSMS_EDIT){
+        if ($EventType===self::xMessageSMS_EDIT){
             //Est déclanché après une modification
             $NewListe=[];
             $ListeEnvoyee=[];
@@ -122,7 +122,7 @@ class xObservOrangeSMS extends \NAbySy\OBSERVGEN\xObservGen  {
                 }
             }
             
-            $this->Main::$SMSEngine::$ListeMessageEnvoie=$NewListe ;
+            xNAbySyGS::$SMSEngine::$ListeMessageEnvoie=$NewListe ;
 
             if (count($ListeEnvoyee)){
                 $ClassName=get_class(self::$OrangeSmsEngine) ;

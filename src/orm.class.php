@@ -72,6 +72,26 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public static string $dataBaseName ='';
 
+    /** Evènement exeuté après ajout d'une nouvelle ligne dans la table */
+    public const EVENTS_ADD = '_ADD' ;
+
+    /** Evènement exectué après modification d'un enregistrement dans la table */
+    public const EVENTS_EDIT = '_EDIT' ;
+
+    /** Evènement exectué après suppression d'un enregistrement dans la table */
+    public const EVENTS_DELETE = '_DEL' ;
+
+    /** Evènement exectué avant ajout d'une nouvelle ligne dans la table */
+    public const EVENTS_BEFORE_ADD = '_BEFORE_ADD' ;
+
+    /** Evènement exectué avant modification d'un enregistrement dans la table */
+    public const EVENTS_BEFORE_EDIT = '_BEFORE_EDIT' ;
+
+    /** Evènement exectué avant suppression d'un enregistrement dans la table */
+    public const EVENTS_BEFORE_DELETE = '_BEFORE_DEL' ;
+
+
+
     /**
      * @param xNAbySyGS $NAbySy Objet central.
      * @param string $TableName Nom de la Table à lier.
@@ -631,12 +651,43 @@ class xORMHelper implements IORM , JsonSerializable{
         //return false ;
     }
 
+    /**
+     * Save current record to database
+     * @return bool 
+     */
+    public function Save(): bool{
+        return $this->Enregistrer() ;
+    }
+
     private function SaveNew():bool{
         $Tabl=$this->DataBase.".".$this->Table ;
         $TxSQL=$this->GetInsertSQLString() ;
         if ($TxSQL){
             //var_dump($TxSQL) ;
-            //exit ;
+            $Cible=$this;
+            if (isset($this->RaiseEventTaget)){
+                $Cible=$this->RaiseEventTaget ;                     
+            }
+            $ActualClass=get_class($Cible) ;
+            $Sep=explode("\\",$ActualClass);
+            $nbT=count($Sep);
+            if ($nbT>0){
+                $ActualClass=$Sep[$nbT-1];
+            }
+
+            //Events BeforeUpdate
+            $Arg[0]=$ActualClass.self::EVENTS_BEFORE_ADD ;
+            $Arg[1]=$this->Id ;
+            $Arg[2]=$this ;
+            
+            $CanProceed = xNAbySyGS::RaiseEventWithResponse($ActualClass, $Arg);
+            if(isset($CanProceed)){
+                if($CanProceed->StopPropagation){
+                    //Annulation de l'Opération d'UpDate
+                    return false ;
+                }
+            }
+            
             $LastId=$this->Main->ReadWrite($TxSQL,true,$Tabl,$this->DebugMode);
             if ($LastId){
                 $this->__set('ID',$LastId) ;
@@ -653,9 +704,9 @@ class xORMHelper implements IORM , JsonSerializable{
                 if ($nbT>0){
                     $ActualClass=$Sep[$nbT-1];
                 }
-                $Arg[0]=$ActualClass.'_ADD' ;
+                $Arg[0]=$ActualClass.self::EVENTS_ADD ;
                 $Arg[1]=$LastId ;
-                //var_dump($Arg);
+                $Arg[2]=$this ;
                 $this->Main->RaiseEvent($ActualClass,$Arg) ;
 
                 return true ;
@@ -666,19 +717,33 @@ class xORMHelper implements IORM , JsonSerializable{
 
     private function UpDate() : bool{
         $Tabl=$this->DataBase.".".$this->Table ;
+        $Cible=$this;
+        if (isset($this->RaiseEventTaget)){
+            $Cible=$this->RaiseEventTaget ;                     
+        }
+        $ActualClass=get_class($Cible) ;
+        $Sep=explode("\\",$ActualClass);
+        $nbT=count($Sep);
+        if ($nbT>0){
+            $ActualClass=$Sep[$nbT-1];
+        }
+
+        //Events BeforeUpdate
+        $Arg[0]=$ActualClass.self::EVENTS_BEFORE_EDIT ;
+        $Arg[1]=$this->Id ;
+        $Arg[2]=$this ;
+        $CanProceed = xNAbySyGS::RaiseEventWithResponse($ActualClass, $Arg);
+        if(isset($CanProceed)){
+            if($CanProceed->StopPropagation){
+                //Annulation de l'Opération d'UpDate
+                return false ;
+            }
+        }
+        
         $TxSQL=$this->GetUpDateSQLString() ;
         if ($TxSQL !== ""){
             $this->Main->ReadWrite($TxSQL,true,null,$this->DebugMode);
-            $Cible=$this;
-            if (isset($this->RaiseEventTaget)){
-                $Cible=$this->RaiseEventTaget ;                     
-            }
-            $ActualClass=get_class($Cible) ;
-            $Sep=explode("\\",$ActualClass);
-            $nbT=count($Sep);
-            if ($nbT>0){
-                $ActualClass=$Sep[$nbT-1];
-            }
+            
             $Arg[0]=$ActualClass.'_EDIT' ;
             $Arg[1]=$this->Id ;
             $Arg[2]=$this ;
@@ -839,6 +904,30 @@ class xORMHelper implements IORM , JsonSerializable{
     public function Supprimer() : bool {
         try {
             $Tabl=$this->FullTableName() ;
+
+            $Cible=$this;
+            if (isset($this->RaiseEventTaget)){
+                $Cible=$this->RaiseEventTaget ;                     
+            }
+            $ActualClass=get_class($Cible) ;
+            $Sep=explode("\\",$ActualClass);
+            $nbT=count($Sep);
+            if ($nbT>0){
+                $ActualClass=$Sep[$nbT-1];
+            }
+
+            //Events BeforeDelete
+            $Arg[0]=$ActualClass.self::EVENTS_BEFORE_DELETE ;
+            $Arg[1]=$this->Id ;
+            $Arg[2]=$this ;
+            $CanProceed = xNAbySyGS::RaiseEventWithResponse($ActualClass, $Arg);
+            if(isset($CanProceed)){
+                if($CanProceed->StopPropagation){
+                    //Annulation de l'Opération
+                    return false ;
+                }
+            }
+
             $TxSQL="delete from ".$Tabl." where Id='".(int)$this->Id."' limit 1" ;
             $this->Main->ReadWrite($TxSQL,true,null,$this->DebugMode);
             //Remise de l'auto increment;
@@ -855,7 +944,7 @@ class xORMHelper implements IORM , JsonSerializable{
             if ($nbT>0){
                 $ActualClass=$Sep[$nbT-1];
             }
-            $Arg[0]=$ActualClass.'_DEL' ;
+            $Arg[0]=$ActualClass.self::EVENTS_DELETE ;
             $Arg[1]=$this->Id ;
             $Arg[2]=$this ;
             //var_dump($Arg);
@@ -872,6 +961,14 @@ class xORMHelper implements IORM , JsonSerializable{
             }
         } 
         return false ;       
+    }
+
+    /**
+     * Delete current record from database.
+     * @return bool 
+     */
+    public function Delete() : bool {
+        return $this->Supprimer();
     }
 
     /**
@@ -933,6 +1030,16 @@ class xORMHelper implements IORM , JsonSerializable{
         }
         
         return $resultat ;
+    }
+
+    /**
+     * Load record by ID from current Table in this object
+     * @param int $IdToLoad 
+     * @return xORMHelper 
+     */
+    public function Load(int $IdToLoad):xORMHelper{
+        $this->ChargeOne($IdToLoad);
+        return $this ;
     }
 
     /**
@@ -1001,6 +1108,10 @@ class xORMHelper implements IORM , JsonSerializable{
 
         return $resultat ;
         
+    }
+    
+    public function GetList(?string $Criteria=null,?string $OrderBy=null,?string $ListColumnSelect="*", ?string $GroupBy=null, ?string $Limit=null):?mysqli_result{
+        return $this->ChargeListe($Criteria,$OrderBy,$ListColumnSelect,$GroupBy,$Limit) ;
     }
 
     /**
@@ -1078,6 +1189,10 @@ class xORMHelper implements IORM , JsonSerializable{
         }
         return $TxSQL ;
         
+    }
+
+    public function GetListNoExecute(?string $Criteria=null,?string $OrderBy=null,?string $ListColumnSelect="*", ?string $GroupBy=null, ?string $Limit=null):string{
+        return $this->ChargeListeNoExecute($Criteria,$OrderBy,$ListColumnSelect,$GroupBy,$Limit) ;
     }
 
     public function ExecSQL($TxSQL):?mysqli_result {
@@ -1225,6 +1340,12 @@ class xORMHelper implements IORM , JsonSerializable{
 		return $Retour ;		
 	}
 
+    /**
+     * Convertir l'Objet en JSON
+     * @param bool $TableStructure 
+     * @param array $RemoveFieldList 
+     * @return string 
+     */
     public function ToJSON($TableStructure=false, $RemoveFieldList=[]): string {
         $JSonText="{" ;
         if (!$TableStructure){        
@@ -1298,7 +1419,7 @@ class xORMHelper implements IORM , JsonSerializable{
                 if ($AddToReponse) {
                     $xCh['Nom'] = $Champ->Nom;
                     $xCh['Valeur'] = $Champ->Valeur;
-                    $Tableau[] = $xCh;
+                    $Tableau[$Champ->Nom] = $Champ->Valeur;
                 }
             }
         }
@@ -1348,7 +1469,6 @@ class xORMHelper implements IORM , JsonSerializable{
     
     /**
      * Permet de cloner un enregistrement
-     * @param int $IdProforma : :e ID de la proforma à cloner
      * @param $TargetDataBase : Si fournit, le clone sera disponible dans cette base de donnée
      * @param $IgnoreID : Si Oui, ne clone pas l'ID de l'enregistrement en cour. Dans le cas où la base de donnée en cour est la même que
      * $TargetDataBase, $IgnoreID n'aura aucun effet et l'ID ne sera pas copié.
@@ -1422,11 +1542,27 @@ class xORMHelper implements IORM , JsonSerializable{
     }
 
     /**
+     * WARNING: TRUNCATE CURRENT TABLE
+     * @return bool 
+     */
+    public function TruncateTable():bool{
+        return $this->ViderTable();
+    }
+
+    /**
      * Indique si Oui ou Non la table existe déjà dans la base de donnée
      * @return bool
      */
     public function TableExisteInDataBase():bool{
         return $this->MySQL->TableExiste($this->Table, $this->DataBase);
+    }
+
+    /**
+     * Check if current Table exist in current Database
+     * @return bool 
+     */
+    public function TableExist():bool{
+        return $this->TableExisteInDataBase();
     }
 
     /**
@@ -1448,6 +1584,15 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public function ChampsExisteInTable(string $Champ):bool{
         return $this->MySQL->ChampsExiste($this->Table,$Champ, $this->DataBase);
+    }
+
+    /**
+     * Check if field exist in current table
+     * @param string $FieldName 
+     * @return bool 
+     */
+    public function FieldExistInTable(string $FieldName):bool{
+        return $this->ChampsExisteInTable($FieldName);
     }
 
     /**
@@ -1540,15 +1685,6 @@ class xORMHelper implements IORM , JsonSerializable{
         
         return false;
     }
-
-/*     public function AddTableByText($tableJointe, $cleJointe, $clePrincipale = 'ID', $type = 'LEFT JOIN') {
-        $this->joins[] = [
-            'type' => $type,
-            'table' => $tableJointe,
-            'on' => "{$this->FullTableName()}.{$clePrincipale} = {$tableJointe}.{$cleJointe}"
-        ];
-        return $this;
-    } */
 
     public function JoinTable(xORMHelper $TargetOrm, string $Alias=null,string $cleJointeSrc, string $cleJointeEtrangere='ID', $type = 'LEFT OUTER JOIN'):xORMHelper {
         if(!isset($TargetOrm)){
@@ -1681,6 +1817,10 @@ class xORMHelper implements IORM , JsonSerializable{
         }
 
         return $resultat ;
+    }
+
+    public function JointureLoadList(string $Criteria=null,?string $OrderBy=null, ?string $ListColumnSelect="*", ?string $GroupBy=null, ?string $Limit=null):?mysqli_result{
+        return $this->JointureChargeListe($Criteria,$OrderBy,$ListColumnSelect,$GroupBy,$Limit) ;
     }
 
     public function __debugInfo() {

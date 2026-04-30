@@ -166,7 +166,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if(isset($Page)){
             //echo "Je supprime Page avec Id=".$Page->id ;
             //echo "ReadBean Page=$Page" ;
-            echo "NAbySy Page=".var_dump($Page) ;
+            //echo "NAbySy Page=".var_dump($Page) ;
             //exit ;
             //$site=R::load($this->TablePageInterdite,$Page->id) ;
             //if (isset($site)){                            

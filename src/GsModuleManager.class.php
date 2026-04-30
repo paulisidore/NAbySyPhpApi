@@ -490,6 +490,124 @@ use xNAbySyCustomListOf;
       return false;
    }
 
+   /**
+    * Créer un nouvelle observeur de table
+    * @param string $ClassOrTableName : Nom de la Table sur laquelle se fera l'observation des évènements
+    * @param string $DossierCategorie 
+    * @return bool|xNotification 
+    * @throws Throwable 
+    * @throws Exception 
+    */
+   public static function GenerateTableObserver(string $ClassOrTableName, string $DossierCategorie):bool|xNotification{
+      $Rep=new xNotification();
+      $Rep->OK = 0;
+      $DossierFinal=null ;
+      $ClassName = $ClassOrTableName ;
+      $nTable = $ClassOrTableName ;
+
+      try {
+         $lstDosMod=explode(DIRECTORY_SEPARATOR, $DossierCategorie);
+         if(count($lstDosMod) < 2){
+            $DossierCategorie = self::$Main::CurrentFolder(true)."gs".DIRECTORY_SEPARATOR.$DossierCategorie ;
+         }
+         if(!is_dir($DossierCategorie)){
+            mkdir($DossierCategorie, 0777, true) ;
+         }
+
+         if(substr(strtolower($ClassName),0,1) !== 'x'){
+            $ClassName = xNAbySyGS::toCamelCase($ClassName) ;
+         }
+
+         if(substr($ClassName,0,1) !== 'x' && substr($ClassName,0,1) !== 'X'){
+            $ClassName = 'x'.$ClassName ;
+         }
+         if(!str_contains(strtolower($ClassName), 'observ')){
+            $nTable = $ClassName ;
+            $ClassName = $ClassName.'Observ' ;
+         }
+
+
+         $DossMod = $DossierCategorie.DIRECTORY_SEPARATOR ;
+         $DossMod = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$DossMod);
+         $DossMod = $DossMod.$ClassName.DIRECTORY_SEPARATOR ;
+         if(!is_dir($DossMod)){
+            mkdir($DossMod, 0777, true) ;
+         }
+         $DossierFinal = $DossMod ;
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      if(!isset($DossierFinal)){
+         throw new \Exception("Impossible de créer le module ".$ClassName." dans la catégorie ".$DossierFinal) ;
+         return false;
+      }
+
+      $fichier_module=$DossierFinal.$ClassName.".class.php" ;
+      if(file_exists($fichier_module)){
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog("Attention le fichier ".$fichier_module." existe déjà.");
+         }
+         $Rep->OK=1;
+         return $Rep;
+         throw new \Exception("Erreur impossible de créer le module. Le fichier ".$fichier_module." existe déjà", 0);
+      }
+
+      $templatePath =self::$Main::CurrentFolder() . 'templates/'.N_TYPE_ORM.'/'.N_TYPE_EVENT_OBSERVER.'Template.class.php';
+
+      $vTable = $nTable;
+      if(substr(strtolower($vTable),0,1)=="x"){
+            $vTable=substr($vTable,1) ;
+      }
+      $vTable= self::$Main->toCamelCase($vTable) ;
+      
+      $outputDir = $DossierFinal ;
+      $newClassName = $ClassName;
+      $newTableName = $vTable;
+      
+
+      // Lire le contenu du template
+      $template = file_get_contents($templatePath);
+      
+      // Remplacer dynamiquement des morceaux
+      $updated = str_replace([
+         'ModelTemplate',
+         'ModelTable',
+         '{DATE}',
+      ], [
+         $newClassName,
+         $newTableName,
+         date('d/M/Y H:i:s'),
+      ], $template);
+
+      // Créer le dossier si nécessaire
+      if (!is_dir($outputDir)) {
+         mkdir($outputDir, 0777, true);
+      }
+
+      try {
+         // Écrire dans un nouveau fichier
+         file_put_contents($fichier_module, $updated);
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog(" ".N_TYPE_EVENT_OBSERVER." générée dans le dossier ".$fichier_module) ;
+         }
+      } catch (\Throwable $th) {
+         throw $th;
+      }
+      $Rep->Source = $fichier_module ;
+      $Rep->OK = 1;
+      try {
+         chmod($fichier_module, 0774);
+         return $Rep;
+      } catch (\Throwable $th) {
+         $Rep->TxErreur='Attention: Impossible de modifier les droits sur le fichier '.$fichier_module.". Exception: ". $th->getMessage() ;
+         if(self::$DebugToLog){
+            self::$Main::$Log->AddToLog('Attention: Impossible de modifier les droits sur le fichier '.$fichier_module, $th->getMessage()) ;
+         }
+         return $Rep ;
+      }
+      return false;
+   }
+
    public function __debugInfo() {
       $liste = array (self::$Categories ) ;
       return $liste ;

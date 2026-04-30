@@ -1,0 +1,166 @@
+29/04/2026 22:03:37 [FATAL] [FATAL] Uncaught Error: Call to a member function toCamelCase() on null in D:\Projets\web\www\ComposerPackage\PackageTest\gs\patient\xPatientObserv\xPatientObserv.class.php:38
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\PackageTest\gs\patient\patient_action.php(39): NAbySy\OBSERVGEN\xPatientObserv->__construct(Object(NAbySy\xNAbySyGS))
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\gs_api.php(215): include_once('D:\\Projets\\web\\...')
+#2 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(3126): require('D:\\Projets\\web\\...')
+#3 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(58): NAbySy\xNAbySyGS::ReadHttpRequest()
+#4 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#8 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#9 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\PackageTest\gs\patient\xPatientObserv\xPatientObserv.class.php ligne 38
+29/04/2026 22:27:49 [FATAL] [FATAL] Uncaught TypeError: Cannot assign null to property NAbySy\OBSERVGEN\xEventArg::$ORMObject of type NAbySy\ORM\IORM in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\observgen.i.php:85
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2059): NAbySy\OBSERVGEN\xEventArg->__construct('xPatient', 'xPatient_BEFORE...', NULL, NULL, Array)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\orm.class.php(682): NAbySy\xNAbySyGS::RaiseEventWithResponse('xPatient', Array)
+#2 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\orm.class.php(649): NAbySy\ORM\xORMHelper->SaveNew()
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\orm.class.php(659): NAbySy\ORM\xORMHelper->Enregistrer()
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\gs\patient\patient_action.php(58): NAbySy\ORM\xORMHelper->Save()
+#5 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\gs_api.php(215): include_once('D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(3126): require('D:\\Projets\\web\\...')
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(58): NAbySy\xNAbySyGS::ReadHttpRequest()
+#8 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#9 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#10 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#11 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#12 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#13 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\observgen.i.php ligne 85
+30/04/2026 11:13:47 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:525
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2518): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2592): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 525
+30/04/2026 11:13:47 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:525
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2518): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2592): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 525
+30/04/2026 11:14:32 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:525
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2518): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2592): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 525
+30/04/2026 11:14:33 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:525
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2518): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2592): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 525
+30/04/2026 11:18:04 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:530
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2525): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2599): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 530
+30/04/2026 11:18:05 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:530
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2525): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2599): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 530
+30/04/2026 11:21:49 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:532
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2537): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2611): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 532
+30/04/2026 11:21:49 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:532
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2537): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2611): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 532
+30/04/2026 11:23:16 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:532
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2537): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2611): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 532
+30/04/2026 11:23:17 [FATAL] [FATAL] Uncaught Error: Class "xPatientObserv" not found in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:532
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2537): NAbySy\xNAbySyGS->__construct('127.0.0.1', 'root', '', Object(NAbySy\ModuleMCP), 'nabysygstest', 'nabysygstest', 3306, '', true)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(2611): NAbySy\xNAbySyGS::Start(Object(NAbySy\xStartUpInfo))
+#2 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(41): NAbySy\xNAbySyGS::Init('My NAbySyGS API...', 'Mon Entreprise ...', 'Dakar, S\xC3\xA9n\xC3\xA9ga...', '+221 33 836 XX ...', 'nabysygstest', 'nabysygstest', '127.0.0.1', 'root', '', 3306, '')
+#3 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#4 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#7 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#8 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 532
+30/04/2026 12:01:40 [FATAL] [FATAL] Uncaught Error: Object of class NAbySy\xPatient could not be converted to string in D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php:2087
+Stack trace:
+#0 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\orm.class.php(683): NAbySy\xNAbySyGS::RaiseEventWithResponse('xPatient', Array)
+#1 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\orm.class.php(649): NAbySy\ORM\xORMHelper->SaveNew()
+#2 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\orm.class.php(659): NAbySy\ORM\xORMHelper->Enregistrer()
+#3 D:\Projets\web\www\ComposerPackage\PackageTest\gs\patient\patient_action.php(58): NAbySy\ORM\xORMHelper->Save()
+#4 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\gs_api.php(215): include_once('D:\\Projets\\web\\...')
+#5 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php(3148): require('D:\\Projets\\web\\...')
+#6 D:\Projets\web\www\ComposerPackage\PackageTest\appinfos.php(58): NAbySy\xNAbySyGS::ReadHttpRequest()
+#7 D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\bootstrap.php(324): include('D:\\Projets\\web\\...')
+#8 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(41): require('D:\\Projets\\web\\...')
+#9 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\composer\autoload_real.php(45): {closure}('edf5a08123b0b42...', 'D:\\Projets\\web\\...')
+#10 D:\Projets\web\www\ComposerPackage\PackageTest\vendor\autoload.php(22): ComposerAutoloaderInitcb8999849a6fa0f1f24d9b52bfa7d3ac::getLoader()
+#11 D:\Projets\web\www\ComposerPackage\PackageTest\index.php(38): require_once('D:\\Projets\\web\\...')
+#12 {main}
+  thrown dans D:\Projets\web\www\ComposerPackage\NAbySyPhpApi\src\nabysy.php ligne 2087

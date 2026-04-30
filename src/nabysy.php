@@ -77,6 +77,9 @@ use NAbySy\Lib\Sms\xSMSEngine;
 use NAbySy\MethodePaiement\xMethodePaie;
 use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\ModuleMCP;
+use NAbySy\OBSERVGEN\IOBSERVGEN;
+use NAbySy\OBSERVGEN\xEventArg;
+use NAbySy\OBSERVGEN\xEventReponse;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\Router\Url\xGSUrlRouterManager;
 use NAbySy\Router\Url\xGSUrlRouterResponse;
@@ -164,6 +167,10 @@ Class xNAbySyGS
 	public static array $ListeModuleRS ;
 	public static array $ListeModuleExterne ;
 
+	/**
+	 * Liste des Observateur
+	 * @var xObservGen[]
+	 */
 	public static array $ListeModuleObserv=[] ;
 
 	/** Contient la liste des tous les Modules de Réduction notemment le module principal de Bon d'Achat */
@@ -305,6 +312,18 @@ Class xNAbySyGS
 	 * @var string
 	 */
 	public static string $NABYSY_DIRECTORY = __DIR__.DIRECTORY_SEPARATOR ;
+
+	/**
+	 * Maintient une liste des dernières erreurs liées aux évènements
+	 * @var xEventReponse[]
+	 */
+	public static array $LastEventError = [];
+
+	/**
+	 * Maintient une liste des dernières réponse réussit des évènements
+	 * @var xEventReponse[]
+	 */
+	public static array $LastEventSuccess = [];
 
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
@@ -505,17 +524,37 @@ Class xNAbySyGS
 			
 			self::$SMSEngine=new xSMSEngine($this);
 			
-			self::$BonAchatManager=new xBonAchatManager($this);			
-
+			//self::$BonAchatManager=new xBonAchatManager($this);			
+			$NbObserverChargePrec = count(self::$ListeModuleObserv);
 			foreach (self::$ListeModuleAutoLoader as $AutoLoad){
-				//On chargera uniquement les Observateurs
-				$CheckObs='xObserv';
-				$Len=strlen($CheckObs) ;
+				//On chargera uniquement les Observateurs				
 				foreach ($AutoLoad->ListeModule as $Mod){
-					$Pref=substr($Mod[0],0,$Len) ;
-					if (strtolower($Pref)==strtolower($CheckObs)){
-						$ClassN=$Mod[0] ;
-						$NewObserv=new $ClassN($this);
+					//Un Observer à après x et son nom, le mot 'Observ'
+					//var_dump($Mod);
+					if (preg_match('/^x.+Observ$/', $Mod[0])){
+						//On charge le Module Observeur
+						$fichier_observ =$Mod[1].DIRECTORY_SEPARATOR.$Mod[0].'.class.php';
+						
+						if(file_exists($fichier_observ)){
+							try {
+								$NameSp= self::getNamespaceFromFile($fichier_observ);
+								if(!isset($NameSp)){
+									$NameSp ="";
+								}
+								include_once $fichier_observ ;
+								$ClassN=$NameSp.'\\'.$Mod[0] ;
+								$NewObserv=new $ClassN($this);
+
+							} catch (\Throwable $th) {
+								if($this->ActiveDebug){
+									if(self::$LogLevel>2){
+										throw $th;
+									}
+								}
+							}
+							
+						}
+						
 					}
 				}
 			}
@@ -1949,11 +1988,12 @@ Class xNAbySyGS
 		return true ;
 	}
 
-	public static function RaiseEvent($ClassName,$Arguments=null){
+	public static function RaiseEvent(string $ClassName,mixed $Arguments=null){
 		$EventType=null;
 		$nArg=$Arguments ;
 		$Param=[] ;
 		$NbArg=1 ;
+		
 		if (!is_array($Arguments)){
 			var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2));
 			var_dump($Arguments) ;
@@ -1980,16 +2020,115 @@ Class xNAbySyGS
 			$EventType=$TEvent[$nb];
 			$Param[0]=$EventType ;
 		}
+		$EventArg = new xEventArg($ClassName, $EventType, null, null, $Param);
+
 		foreach (self::$ListeModuleObserv as $ModObserveur){
 			
 			foreach ($ModObserveur->ListeObservable as $Observable){
 				//self::$Log->Write("Event Recherche: ".$ClassName.' : '.json_encode($Param) ) ;				
 				if ($EventType==$Observable){	
-					//self::$Log->Write("Event Exection: ".$ClassName.' : '.json_encode($Param).' : '.$nArg[$NbArg-1]) ;				
-					$ModObserveur->RaiseEvent($ClassName,$Param,$nArg[$NbArg-1]) ;					
+					//self::$Log->Write("Event Exection: ".$ClassName.' : '.json_encode($Param).' : '.$nArg[$NbArg-1]) ;
+					if(is_array($Param)	){
+						$Retour=$ModObserveur->Raise($EventArg);
+						if(isset($Retour)){
+							self::$Log->Write("Event Retour: ".$ClassName.' : '.json_encode($Retour) ) ;
+							if ($Retour instanceof xEventArg){
+								if ($Retour->StopPropagation){
+									if($ModObserveur->Main->ActiveDebug){
+										if(self::$LogLevel>2){
+											self::$Log->Write("Event Propagation Stoppé: ".$ClassName.' (Raison: '.$Retour->RaisonStopPropagation.') : '.json_encode($Param) ) ;
+										}
+										break;
+									}
+								}
+							}
+						}
+					}else{
+						$ModObserveur->RaiseEvent($ClassName,$Param,$nArg[$NbArg-1]) ;
+					}
 				}
 			}
 		}
+	}
+
+	public static function RaiseEventWithResponse(string $ClassName, mixed $Arguments=null):?xEventReponse{
+		$EventType=null;
+		$oSource=null ;
+		$nArg=$Arguments ;
+		$Param=[] ;
+		$NbArg=1 ;
+		
+		if (!is_array($Arguments)){
+			var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2));
+			var_dump($Arguments) ;
+		}
+		
+		if (is_array($Arguments)){
+			$NbArg=count($Arguments) ;
+			
+			if ($NbArg){
+				$EventType=$Arguments[0];
+				//var_dump($EventType);
+				for ($i=0; $i < $NbArg ; $i++) {
+					$Param[$i]=$Arguments[$i];
+				}
+				if(isset($Param[2]) && is_object($Param[2]) ){
+					$oSource=$Param[2] ;
+				}
+			}
+		}else{
+			$EventType=$Arguments ;
+			$Param[0]=$EventType ;
+		}
+		$TEvent=explode('\\',$EventType);
+		$nb=count($TEvent) ;
+		
+		if ($nb>0){
+			$nb =$nb-1 ;
+			$EventType=$TEvent[$nb];
+			$Param[0]=$EventType ;
+		}
+		
+		$EventArg = new xEventArg($ClassName, $EventType, $oSource, null, $Param);
+		
+		foreach (self::$ListeModuleObserv as $ModObserveur){
+			$CanDo = $ModObserveur->CanBeRaised($EventType);
+			if ($CanDo){
+				foreach ($ModObserveur->ListeObservable as $Observable){
+					if ($EventType==$Observable){	
+						
+						if(is_array($Param)	){
+							if($ModObserveur->Main->ActiveDebug){
+								if(self::$LogLevel>2){
+									$ModObserveur->Main::$Log->AddToLog("Evenement déclenché: ".$ClassName." Handler = ".$ModObserveur->Nom." [Param: ".json_encode($Param)." ]");
+								}
+							}
+							$Retour=$ModObserveur->Raise($EventArg);
+							if(isset($Retour)){
+								if ($Retour instanceof xEventReponse){
+									if($ModObserveur->Main->ActiveDebug){
+										if(self::$LogLevel>2){
+											$ModObserveur->Main::$Log->AddToLog("Reponse Evenement: ".$ClassName." Handler = ".$ModObserveur->Nom." : ".json_encode($Retour)." ");
+										}
+									}
+									if ($Retour->StopPropagation){
+										self::$LastEventError[] = $Retour ;
+										return $Retour ;
+										break;
+									}else{
+										self::$LastEventSuccess[] = $Retour ;
+									}
+								}
+							}
+						}else{
+							$ModObserveur->RaiseEvent($ClassName,$Param,$nArg[$NbArg-1]) ;
+						}
+					}
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -3035,6 +3174,42 @@ Class xNAbySyGS
 	public static function ReadUrlRouterRequest():?xGSUrlRouterResponse{
 		if(self::$UrlRouter->count()==0){return null;}
 		return self::$UrlRouter::resolveUrlRoute();
+	}
+
+	/**
+	 * Extrait le namespace d'un fichier PHP de manière robuste.
+	 * Supporte la syntaxe ; et la syntaxe avec accolades {}.
+	 */
+	public static function getNamespaceFromFile(string $filePath): ?string {
+		if (!file_exists($filePath)) {
+			return null;
+		}
+
+		$tokens = token_get_all(file_get_contents($filePath));
+		$count = count($tokens);
+		$namespace = '';
+		$i = 0;
+
+		while ($i < $count) {
+			// On cherche le token T_NAMESPACE
+			if (is_array($tokens[$i]) && $tokens[$i][0] === T_NAMESPACE) {
+				$i++; // On passe au token suivant l'espace
+				
+				// On continue de lire jusqu'à trouver ';' ou '{'
+				while ($i < $count && !in_array($tokens[$i], [';', '{'])) {
+					if (is_array($tokens[$i])) {
+						// On concatène les noms (T_STRING) et les séparateurs (T_NS_SEPARATOR / T_NAME_QUALIFIED)
+						$namespace .= $tokens[$i][1];
+					}
+					$i++;
+				}
+				
+				return trim($namespace);
+			}
+			$i++;
+		}
+
+		return null;
 	}
 }
 

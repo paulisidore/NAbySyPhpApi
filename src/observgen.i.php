@@ -1,7 +1,9 @@
 <?php
     namespace NAbySy\OBSERVGEN ;
 
+use NAbySy\ORM\IORM;
 use NAbySy\xNAbySyGS;
+use xNotification;
 
 /**
  * Class Observateur
@@ -36,7 +38,7 @@ use NAbySy\xNAbySyGS;
          * SERVICE_ADD ,
          * MVT_AFFECTATION 
          */
-        public function __construct(xNAbySyGS $NabySyGS,$ObserveurName=null,$ListeObservable=[]);
+        public function __construct(xNAbySyGS $NabySyGS,string $ObserveurName=null,array $ListeObservable=[]);
 
         /**
          * Cette méthode permet de différencier les observateurs et les autres class
@@ -48,7 +50,14 @@ use NAbySy\xNAbySyGS;
          * @param array $EventArg contiendra la listes des paramètres passée par le moteur des évènements.
          * @return void
          */
-        public function RaiseEvent($ClassName,$EventType,&$EventArg);
+        public function RaiseEvent(string $ClassName,string $EventType, &$EventArg);
+
+        /**
+         * Déclenche un évènement correspondant à l'objet xEventArg
+         * @param xEventArg $EventArg 
+         * @return xEventReponse : Contiendra la réponse de l'observateur suite au traitement de l'évènement. Si $StopPropagation est VRAI alors les Observateurs suivants ne seront plus executés 
+         */
+        public function Raise(xEventArg $EventArg):xEventReponse;
 
         /**
          * Attibut ou retourne l'état actuel de l'objet observateur.
@@ -57,6 +66,43 @@ use NAbySy\xNAbySyGS;
          */
         public function State(bool $NewState=null):bool;
 
+    }
+
+    /**
+     * Objet passé en Argument pour la configuration des évènements
+     * @package NAbySy\OBSERVGEN
+     */
+    class xEventArg {
+        public string $ClassName ;
+        public string $EventType ;
+        public ?IORM $ORMObject ;
+        public ?object $OtherObject ;
+        public ?array $ListeArgs ;
+
+        public function __construct(string $ClassName, string $EventType,?IORM $ORMObject, ?object $OtherObject=null, ?array $ListeArgs=null){
+            $this->ClassName=$ClassName ;
+            $this->EventType=$EventType ;
+            $this->ORMObject=$ORMObject ;
+            $this->OtherObject=$OtherObject ;
+            $this->ListeArgs=$ListeArgs ;
+        }
+    }
+
+    /**
+     * Reponse retourner suite au traitement effectué par un Observateur.
+     * Si $StopPropagation est VRAI alors les Observateurs suivants ne seront plus executés
+     * @package NAbySy\OBSERVGEN
+     */
+    class xEventReponse {
+        public bool $StopPropagation=false ;
+        public ?string $RaisonStopPropagation=null ;
+        public ?object $ObjetSource=null ;
+
+        public function __construct(bool $StopPropagation, ?string $RaisonStopPropagation=null, ?object $ObjetSource=null){
+            $this->StopPropagation=$StopPropagation ;
+            $this->RaisonStopPropagation=$RaisonStopPropagation ;
+            $this->ObjetSource=$ObjetSource ;
+        }
     }
 
 

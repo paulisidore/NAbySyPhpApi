@@ -15,7 +15,7 @@
     define('N_TYPE_SMS_OPERATOR','ISmsOperatorHelper');
 
     /** Définit les Objets de type Observateur pour les évènements liées aux bases de données gérées dans NAbySyGS */
-    define('N_TYPE_EVENT_OBSERVER','\NAbySy\OBSERVGEN\xObservGen');
+    define('N_TYPE_EVENT_OBSERVER','xObservGen');
 
     /** Définit les Objets de type NAbySyGS Url Router */
     define('N_TYPE_URL_ROUTE','xNAbySyUrlRouterHelper');
