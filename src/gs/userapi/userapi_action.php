@@ -48,6 +48,12 @@ use NAbySy\xUser;
             $Reponse->OK=0;
             $Reponse->TxErreur="Impossible de valider l'opération.";
             
+            if(!isset($PARAM['IDUSER'])  && isset($PARAM['ID']) ){
+                $PARAM['IDUSER']=$PARAM['ID'];
+            }elseif(!isset($PARAM['IDUSER'])  && isset($PARAM['id']) ){
+                $PARAM['IDUSER']=$PARAM['id'];
+            }
+            
             if(isset($_REQUEST['IDUSER'])){
                 $IdU=(int)$_REQUEST['IDUSER'] ;
                 $Critere .=" AND Id=".$IdU ;
@@ -167,6 +173,12 @@ use NAbySy\xUser;
                 exit;
             }
             $IdU=null;
+            if(!isset($PARAM['IDUSER'])  && isset($PARAM['ID']) ){
+                $PARAM['IDUSER']=$PARAM['ID'];
+            }elseif(!isset($PARAM['IDUSER'])  && isset($PARAM['id']) ){
+                $PARAM['IDUSER']=$PARAM['id'];
+            }
+
             if (!isset($PARAM['IDUSER'])){
                 $Err->TxErreur = "Id utilisateur absent impossible de continuer.";
                 echo json_encode($Err) ;
@@ -288,6 +300,11 @@ use NAbySy\xUser;
                 exit;
             }
             $IdU=null;
+            if(!isset($PARAM['IDUSER'])  && isset($PARAM['ID']) ){
+                $PARAM['IDUSER']=$PARAM['ID'];
+            }elseif(!isset($PARAM['IDUSER'])  && isset($PARAM['id']) ){
+                $PARAM['IDUSER']=$PARAM['id'];
+            }
             if (!isset($PARAM['IDUSER'])){
                 $Err->TxErreur = "Id utilisateur absent. impossible de continuer.";
                 echo json_encode($Err) ;
