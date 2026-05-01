@@ -47,13 +47,19 @@ use NAbySy\xUser;
             $Reponse=new xErreur;
             $Reponse->OK=0;
             $Reponse->TxErreur="Impossible de valider l'opération.";
+
+            if($nabysy->User->NiveauAcces<4){
+                $Err->OK=0;
+                $Err->TxErreur = "Niveau d'accès insuffisant pour cette opération.";
+                $Err->SendAsJSON();
+            }
             
             if(!isset($PARAM['IDUSER'])  && isset($PARAM['ID']) ){
                 $PARAM['IDUSER']=$PARAM['ID'];
             }elseif(!isset($PARAM['IDUSER'])  && isset($PARAM['id']) ){
                 $PARAM['IDUSER']=$PARAM['id'];
             }
-            
+
             if(isset($_REQUEST['IDUSER'])){
                 $IdU=(int)$_REQUEST['IDUSER'] ;
                 $Critere .=" AND Id=".$IdU ;
