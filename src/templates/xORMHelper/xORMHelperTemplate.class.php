@@ -12,7 +12,10 @@
     use NAbySy\ORM\xORMHelper;
 
     class ModelTemplate extends xORMHelper {
-        public function __construct(xNAbySyGS $NabySy,?int $Id=null,$AutoCreate=true,$TableName="ModelTable", $DBName=null){
+        public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$AutoCreate=true,$TableName="ModelTable", $DBName=null){
+            if(!isset($NabySy)){
+                $NabySy = xNAbySyGS::getInstance();
+            }    
             if ($TableName==''){
                 $TableName="ModelTable";
             }

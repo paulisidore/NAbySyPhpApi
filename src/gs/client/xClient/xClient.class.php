@@ -6,7 +6,7 @@ use NAbySy\xNAbySyGS ;
 
 Class xClient extends xORMHelper
 {
-	public function __construct(xNAbySyGS $NabySy,?int $IdClient=null,$CreationChampAuto=true,$TableName="client"){
+	public function __construct(?xNAbySyGS $NabySy,?int $IdClient=null,$CreationChampAuto=true,$TableName="client"){
 		if ($TableName==''){
             $TableName="client";
         }
@@ -50,11 +50,6 @@ Class xClient extends xORMHelper
 		$this->Solde=$NewSolde ;
 		
 		return true ;
-	}
-	
-	public function Save(){
-		$this->Enregistrer();
-		return $this->Id ;
 	}
 
 	public function ChangeSolde($NewSolde){

@@ -16,6 +16,9 @@ $action=null ;
 if (isset($PARAM['Action'])){
     $action=$PARAM['Action'] ;
 }
+if (isset($PARAM['ACTION'])){
+    $action=$PARAM['ACTION'] ;
+}
 if (isset($PARAM['action'])){
     $action=$PARAM['action'] ;
 }
@@ -29,39 +32,36 @@ if (!isset($action)){
     //Il n'y a pas d'action, on retourne a la page précedente
     $Err->OK=0;
     $Err->TxErreur='Aucune définit !' ;
-    $Err->Source= __FILE__ ;
-    $reponse=json_encode($Err) ;
-    echo $reponse ;
+    if(N::$LogLevel>2 && N::getInstance()->ActiveDebug){
+        $Err->Source= __FILE__ ;
+    }
+    $Err->SendAsJSON() ;
     exit;	
 }
 
 /**
- * Routing et Traitement éventuelle des actions liées aux requettes HTTP
+ * Routing et Traitement éventuel des actions liées aux requettes HTTP
  */
 switch ($action) {
     case '[CATEGORIE]_GET': //Lecture: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
-        echo $Reponse->ToJSON();
-        exit;
+        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->SendAsJSON() ;
 		break;
     case '[CATEGORIE]_CREATE': //Création: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
-        echo $Reponse->ToJSON();
-        exit;
+        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->SendAsJSON() ;
 		break;
     case '[CATEGORIE]_SAVE': //Enregistrement: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
-        echo $Reponse->ToJSON();
-        exit;
+        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->SendAsJSON() ;
         break;
     case '[CATEGORIE]_DELETE': //Suppression: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action non effectuée. Absence de critère" ;
-        echo $Reponse->ToJSON();
-        exit;
+        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->SendAsJSON() ;
         break;
     default:
         break;

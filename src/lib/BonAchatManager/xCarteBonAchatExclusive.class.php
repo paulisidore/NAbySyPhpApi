@@ -22,7 +22,7 @@ Class xCarteBonAchatExclusive extends xORMHelper{
     /** Le libelle donné par chaque client et définit dans chacun son portefeuille. */
     public string $LIBELLE =''; //Le libelle donné par chaque client et définit dans chacun son portefeuille.
 
-    public function __construct(xNAbySyGS $NAbySy,?int $Id=null,$AutoCreateTable=true,$TableName="cartebonachatexclusive",string $RefCarte=null)
+    public function __construct(?xNAbySyGS $NAbySy,?int $Id=null,$AutoCreateTable=true,$TableName="cartebonachatexclusive",string $RefCarte=null)
     {
         if (!isset($TableName)){
             $TableName="cartebonachatexclusive";

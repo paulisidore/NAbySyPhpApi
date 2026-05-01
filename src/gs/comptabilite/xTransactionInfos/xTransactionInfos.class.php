@@ -13,7 +13,7 @@ use NAbySy\xNAbySyGS;
 Class xTransactionInfos extends xORMHelper {
     private static $ChampDispo = [];
 
-	public function __construct(xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="trans_config"){
+	public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="trans_config"){
 		if ($TableName==''){
             $TableName="trans_config";
         }

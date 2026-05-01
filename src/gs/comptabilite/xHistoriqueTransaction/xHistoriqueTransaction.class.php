@@ -8,9 +8,8 @@ use NAbySy\GS\Stock\xJournalCaisse;
 use NAbySy\ORM\xORMHelper;
 use xErreur;
 use NAbySy\xNAbySyGS;
+use NAbySy\xUser;
 use xNotification;
-use xUser;
-
 /**
  * Module de Gestion des Transactions.
  * @package NAbySy\GS\Comptabilite
@@ -52,7 +51,7 @@ Class xHistoriqueTransaction extends xTransactionInfos{
      * @return xHistoriqueTransaction 
      * @throws Exception 
      */
-    public function EnregistrerNouveauVersementClient(xClient $Client, float $Montant,string $Libelle=null,xCategorieTransaction $Categorie=null,string|DateTime $DateVers = null,string $ModeReglement="E",xInfosCheque $ChequeInfos=null): xHistoriqueTransaction{
+    public function EnregistrerNouveauVersementClient(xClient $Client, float $Montant,string $Libelle=null,xCategorieTransaction $Categorie=null,string|DateTime $DateVers = null,string $ModeReglement="E",xInfosCheque $ChequeInfos=null): ?xHistoriqueTransaction{
         $date=date("Y-m-d");
         if (is_string($DateVers)){
             $dte=new DateTime($DateVers);
@@ -326,7 +325,7 @@ class xInfosCheque {
  */
 class xCategorieTransaction extends xORMHelper{
     public const CATEGORIE_REGLEMENT_CLIENT = "REGLEMENT BON CLIENT";
-    public function __construct(xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="categorie"){
+    public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="categorie"){
 		if ($TableName==''){
             $TableName="categorie";
         }

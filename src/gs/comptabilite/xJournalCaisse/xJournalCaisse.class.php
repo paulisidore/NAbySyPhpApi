@@ -29,7 +29,7 @@ class xJournalCaisse extends xORMHelper {
      * @return void 
      * @throws Exception 
      */
-    public function __construct(xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="caisse",int $IdCaissier=0, string $dateCaisse=null){
+    public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="caisse",int $IdCaissier=0, string $dateCaisse=null){
         if ($TableName==''){
             $TableName="caisse";
         }

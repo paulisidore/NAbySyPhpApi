@@ -32,7 +32,10 @@ Class xProforma extends xORMHelper
 
 	public xDetailVente $DetailVente ;
 	
-	public function __construct(xNAbySyGS $NAbySyGS,?int $IdFacture=null,$AutoCreateTable=false,$TableName='factureproforma',xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NAbySyGS,?int $IdFacture=null,$AutoCreateTable=false,$TableName='factureproforma',xBoutique $Boutique=null){
+		if(!isset($NabySy)){
+			$NabySy = xNAbySyGS::getInstance();
+		}
 		$this->Main = $NAbySyGS ;
 		$this->MaBoutique = $NAbySyGS->MaBoutique ;
 		if (isset($Boutique)){

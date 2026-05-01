@@ -19,7 +19,10 @@ Class xBoutique extends xORMHelper  {
 
 	public const TABLE_PARAMETRE = 'parametre';
 
-	public function __construct(xNAbySyGS $NAbySy, ?int $IdBoutique=0,$AutoCreateTable=false,$NomTable=null, string $BoutiqueDBName=null){
+	public function __construct(?xNAbySyGS $NAbySy, ?int $IdBoutique=0,$AutoCreateTable=false,$NomTable=null, string $BoutiqueDBName=null){
+		if(!isset($NabySy)){
+			$NabySy = xNAbySyGS::getInstance();
+		}
 		$this->Conn = $NAbySy::$db_link;
 		if (!isset($NomTable)){
 			$NomTable='boutique';

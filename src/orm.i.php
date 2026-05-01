@@ -18,7 +18,7 @@ use NAbySy\xNAbySyGS;
          * @param xNAbySyGS $NAbySyGS Objet centrale NAbySyGS.
          * @param string $NomTable Nom de la table auque l'ORM est liée.
          */
-        public function __construct(xNAbySyGS $NabySyGS,int $Id=null,$CreationChampAuto=true,$NomTable=null);
+        public function __construct(?xNAbySyGS $NabySyGS,int $Id=null,$CreationChampAuto=true,$NomTable=null);
 
          /**
          * Retourne le nom complet de la Table

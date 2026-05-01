@@ -11,7 +11,7 @@ use NAbySy\xNAbySyGS;
  */
 Class xHistoriqueCompteBancaire extends xORMHelper
 {
-	public function __construct(xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="transaction"){
+	public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="transaction"){
 		if ($TableName==''){
             $TableName="transaction";
         }

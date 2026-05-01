@@ -5,8 +5,8 @@ use mysqli_result;
 use NAbySy\Lib\BonAchat\Exclusive\xCarteBonAchatExclusive;
 use NAbySy\Lib\BonAchat\xHistoriqueBonAchat;
 use NAbySy\ORM\xORMHelper;
+use NAbySy\xNAbySyGS;
 use xErreur;
-use xNAbySyGS;
 
 /**
  * Module de gestion des Entreprises clientes.
@@ -21,7 +21,7 @@ use xNAbySyGS;
     
         /** Carte Bloquée */
         public const ETAT_BLOQUEE ='BLOQUEE';
-        public function __construct(xNAbySyGS $NAbySy,?int $Id=null,$AutoCreateTable=false,$TableName="cliententreprise")
+        public function __construct(?xNAbySyGS $NAbySy,?int $Id=null,$AutoCreateTable=false,$TableName="cliententreprise")
         {
             if ($TableName == ''){
                 $TableName='cliententreprise';
@@ -162,7 +162,7 @@ use xNAbySyGS;
             }
 
             $Reponse->Extra=[];
-            $Reponse->TxErreur=[];
+            $Reponse->TxErreur="";
             foreach($ListeIdCarte as $IdCarte){
                 if((int)$IdCarte>0){
                     $Carte=new xCarteBonAchatExclusive($this->Main,$IdCarte);
@@ -189,7 +189,7 @@ use xNAbySyGS;
                             $OK[$Carte->Id]['REPONSE']="ID-CARTE ".$IdCarte." inactif." ;
                         }
                         $OK[$Carte->Id]['IDTRANSACTION']=0;
-                        $Reponse->TxErreur[] = $OK[$Carte->Id];
+                        $Reponse->TxErreur .= $OK[$Carte->Id]['REPONSE'];
                     }
                 }
             }
@@ -215,7 +215,7 @@ use xNAbySyGS;
                 return $Reponse;
             }
             $Reponse->Extra=[];
-            $Reponse->TxErreur=[];
+            $Reponse->TxErreur="";
             foreach($ListeIdCarte as $IdCarte){
                 if((int)$IdCarte>0){
                     $Carte=new xCarteBonAchatExclusive($this->Main,$IdCarte);
@@ -236,7 +236,7 @@ use xNAbySyGS;
                             $OK[$Carte->Id]['REPONSE']="ID-CARTE ".$IdCarte." inactif." ;
                         }
                         $OK[$Carte->Id]['IDTRANSACTION']=0;
-                        $Reponse->TxErreur[] = $OK[$Carte->Id];
+                        $Reponse->TxErreur .= $OK[$Carte->Id]['REPONSE'];
                     }
                 }
             }
@@ -292,7 +292,7 @@ use xNAbySyGS;
             $Reponse->OK=0;
             $NbCarte=count($ListeIdCarte);
             $Reponse->Extra=[];
-            $Reponse->TxErreur=[];
+            $Reponse->TxErreur="";
             $Tache='SUSPENSION CARTE BON ACHAT';
             
             foreach($ListeIdCarte as $IdCarte){
@@ -305,7 +305,7 @@ use xNAbySyGS;
                                 $OK[$Carte->Id]['REPONSE']="Carte déja suspendue ou bloquée. Etat trouvé: ".$Carte->Etat;
                                 $OK[$Carte->Id]['ID-CARTE']=$Carte->Id;
                                 $OK[$Carte->Id]['REF-CARTE']=$Carte->REFCARTE ;                          
-                                $Reponse->TxErreur[] = $OK[$Carte->Id];
+                                $Reponse->TxErreur .= $OK[$Carte->Id]['REPONSE'];
                             }else{
                                 $Carte->Etat=$Carte::CARTE_SUSPENDUE ;
                                 if ($Carte->Enregistrer()){
@@ -326,7 +326,7 @@ use xNAbySyGS;
                         }else{
                             $OK[$Carte->Id]['REPONSE']="ID-CARTE ".$IdCarte." ne fait pas partie de la collection des cartes attribuées à l'entreprise ".$this->Nom." (Id-Entreprise: ".$this->Id.")";
                             $OK[$Carte->Id]['IDTRANSACTION']=0;
-                            $Reponse->TxErreur[] = $OK[$Carte->Id];
+                            $Reponse->TxErreur .= $OK[$Carte->Id]['REPONSE'];
                         }
                     }
                     
@@ -344,7 +344,7 @@ use xNAbySyGS;
             $Reponse->OK=0;
             $NbCarte=count($ListeIdCarte);
             $Reponse->Extra=[];
-            $Reponse->TxErreur=[];
+            $Reponse->TxErreur="";
             $Tache='ACTIVATION CARTE BON ACHAT';
             
             foreach($ListeIdCarte as $IdCarte){
@@ -357,7 +357,7 @@ use xNAbySyGS;
                                 $OK[$Carte->Id]['REPONSE']="Carte déja activée: ".$Carte->Etat;
                                 $OK[$Carte->Id]['ID-CARTE']=$Carte->Id;
                                 $OK[$Carte->Id]['REF-CARTE']=$Carte->REFCARTE ;                          
-                                $Reponse->TxErreur[] = $OK[$Carte->Id];
+                                $Reponse->TxErreur .= $OK[$Carte->Id]['REPONSE'];
                             }else{
                                 $Carte->Etat=$Carte::CARTE_ACTIF ;
                                 if ($Carte->Enregistrer()){
@@ -378,7 +378,7 @@ use xNAbySyGS;
                         }else{
                             $OK[$Carte->Id]['REPONSE']="ID-CARTE ".$IdCarte." ne fait pas partie de la collection des cartes attribuées à l'entreprise ".$this->Nom." (Id-Entreprise: ".$this->Id.")";
                             $OK[$Carte->Id]['IDTRANSACTION']=0;
-                            $Reponse->TxErreur[] = $OK[$Carte->Id];
+                            $Reponse->TxErreur .= $OK[$Carte->Id]['REPONSE'];
                         }
                     }
                 }

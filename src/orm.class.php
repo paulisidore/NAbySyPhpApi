@@ -99,7 +99,13 @@ class xORMHelper implements IORM , JsonSerializable{
      * @param bool $CreationChampAuto Si = vrai, tout les champs non existant dans la table seront créee automatiquement.
      * @param string $DBName : Nom de la Base de donnée. si différente de celle de la base de donnée mère de NAbySyGS
      */
-    public function __construct(xNAbySyGS $NAbySy,int $Id=null,$CreationChampAuto=true,$TableName=null,$DBName=null){
+    public function __construct(?xNAbySyGS $NAbySy,int $Id=null,$CreationChampAuto=true,$TableName=null,$DBName=null){
+        if(!isset($NAbySy)){
+            $NAbySy = self::$xMain ;
+        }
+        if(!isset($NAbySy)){
+            $NAbySy = xNAbySyGS::getInstance() ;
+        }
         $this->Table=$TableName ;
         $this->Main=$NAbySy ;
         self::$xMain=$NAbySy ;
@@ -1059,7 +1065,7 @@ class xORMHelper implements IORM , JsonSerializable{
         }
         if($this->TableIsEmpty()){
             /**Pour éviter des bug de table inexistant ou vide */
-            $TxSQL ="select 1 from  ".$this->Main->MainDataBase." where ID=0" ;
+            $TxSQL ="select 1 from  ".$this->Main->MainDataBase.".utilisateur where ID=0" ;
             $nullresultat = $this->Main->ReadWrite($TxSQL) ;
             return $nullresultat ;
         }

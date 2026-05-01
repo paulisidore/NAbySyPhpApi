@@ -20,7 +20,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
     public $EnteteTable;
     private $_Signature ;
     
-    public function __construct(xNAbySyGS $NabySy,?int $IdUser=null,$CreationChampAuto=true,$TableName="utilisateur",$UserN=null) 
+    public function __construct(?xNAbySyGS $NabySy,?int $IdUser=null,$CreationChampAuto=true,$TableName="utilisateur",$UserN=null) 
     {
         if ($TableName==''){
             $TableName="utilisateur";

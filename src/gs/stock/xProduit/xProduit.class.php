@@ -27,7 +27,7 @@ Class xProduit extends xORMHelper
 	public const ETAT_CRITIQUE = 'C';
 	public const ETATS_STOCK_GROS_TERMINE = 'T';
 	
-	public function __construct(xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='produits', xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='produits', xBoutique $Boutique=null){
 		self::$TableConfig=[];
 		if (!isset($TableName)){
 			$TableName="produits";

@@ -14,7 +14,7 @@ Class xCompteBancaire extends xORMHelper
     public xHistoriqueCompteBancaire $Historique ;
     public string $TableHistoriqueBancaire ="transaction";
 
-	public function __construct(xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="banque"){
+	public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="banque"){
 		if ($TableName==''){
             $TableName="banque";
         }

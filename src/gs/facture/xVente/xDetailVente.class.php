@@ -19,16 +19,19 @@ Class xDetailVente extends xORMHelper{
     public array $ListeProduits ;
     public array $ListeMethodePaie ;
     
-    public function __construct(xNAbySyGS $NAbySyGS,$Id=null,$AutoCreateTable=false,$TableName='detailfacture',
+    public function __construct(?xNAbySyGS $NabySy,$Id=null,$AutoCreateTable=false,$TableName='detailfacture',
         xBoutique $Boutique=null,$IdFacture=null, $FullInfos=true){
-        $LaDataBase=$NAbySyGS->MaBoutique->DataBase;
+        if(!isset($NabySy)){
+			$NabySy = xNAbySyGS::getInstance();
+		}
+        $LaDataBase=$NabySy->MaBoutique->DataBase;
         if (isset($Boutique)){
             $LaDataBase=$Boutique->DataBase;
         }
         if (!isset($TableName)){
             $TableName='detailfacture';
         }
-		parent::__construct($NAbySyGS,$Id,$AutoCreateTable,$TableName,$LaDataBase) ;
+		parent::__construct($NabySy,$Id,$AutoCreateTable,$TableName,$LaDataBase) ;
 
         $this->ListeProduits=[];
 

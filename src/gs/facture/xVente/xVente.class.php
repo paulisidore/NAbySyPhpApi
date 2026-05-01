@@ -28,14 +28,17 @@ Class xVente extends xORMHelper
 
 	public xDetailVente $DetailVente ;
 	
-	public function __construct(xNAbySyGS $NAbySyGS,?int $IdFacture=null,$AutoCreateTable=false,$TableName='facture',xBoutique $Boutique=null){
-		$this->Main = $NAbySyGS ;
-		$this->MaBoutique = $NAbySyGS->MaBoutique ;
+	public function __construct(?xNAbySyGS $NabySy,?int $IdFacture=null,$AutoCreateTable=false,$TableName='facture',xBoutique $Boutique=null){
+		if(!isset($NabySy)){
+			$NabySy = xNAbySyGS::getInstance();
+		}
+		$this->Main = $NabySy ;
+		$this->MaBoutique = $NabySy->MaBoutique ;
 		if (isset($Boutique)){
 			$this->Main = $Boutique->Main ;
 			$this->MaBoutique=$Boutique;
 		}
-		parent::__construct($NAbySyGS,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
+		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
 
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
