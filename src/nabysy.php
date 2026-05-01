@@ -993,6 +993,17 @@ Class xNAbySyGS
 		if (isset($_REQUEST['TOKEN'])){
 			$_REQUEST['Token']=$_REQUEST['TOKEN'] ;
 		}
+		if (isset($_REQUEST['token'])){
+			$_REQUEST['Token']=$_REQUEST['token'] ;
+		}
+
+		if(isset($_REQUEST['Token']) && trim($_REQUEST['Token']) !='' ){
+			if($this->DesableTokenCheckingOnLoad){
+				//Token fournit alors on réactive l'Authentification du Token
+				$this->DesableTokenCheckingOnLoad = false ;
+			}
+		}
+
 		if (isset($_REQUEST['IDPOSTE'])){
 			$this->IdPosteClient=$_REQUEST['IDPOSTE'] ;
 		}
@@ -1414,7 +1425,6 @@ Class xNAbySyGS
 			$Auth=new xAuth($this);
 			$UserToken=$Auth->DecodeToken($Token) ;
 			//var_dump($UserToken)."</br>" ;
-			//var_dump($User) ;
 			$Err=new xErreur();
 			if (!isset($UserToken)){
 				$Err->TxErreur="Utilisateur introuvable !" ;
@@ -1429,11 +1439,16 @@ Class xNAbySyGS
 				echo json_encode($Err) ;
 				http_response_code(419);            
 				exit ;
+			}
+			
+			$CanLoad=true;
+			if(isset($this->User) && $this->User->Id == $UserToken->user_id && $this->User->Boutique->Id == $UserToken->IdBoutique){
+				$CanLoad=false;
+			}
+			if($CanLoad){
+				$this->User=new xUser($this,$UserToken->user_id) ;
 			}	
-			$this->User=new xUser($this,$UserToken->user_id) ;
 		}
-
-		
 	}
 
 	public function GetSite(){
@@ -2237,6 +2252,7 @@ Class xNAbySyGS
 		if(!isset($this->MaBoutique)){
 			$this->ChargeInfos();
 		}
+		
 		if(!self::$NO_AUTH){
 			if (!isset($this->User)){
 				//Definition d'un utilisateur par défaut en mode NO_AUTH
@@ -2272,7 +2288,7 @@ Class xNAbySyGS
 			}
 			return false ;	
 		}
-		if ($this->User->Id==0){		
+		if ($this->User->Id==0){
 			if ($SendReponse==true){
 				$traces = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2);
 				foreach ($traces as $trace) {
