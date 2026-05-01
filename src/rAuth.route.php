@@ -33,7 +33,7 @@ class rAuth extends xNAbySyUrlRouterHelper {
             $Rep = new xNotification();
             $Rep->OK=0;
             $Rep->Contenue = [];
-            N::$Log->AddToLog(__FILE__." L".__LINE__." Authentification en cour...") ;
+            //N::$Log->AddToLog(__FILE__." L".__LINE__." Authentification en cour...") ;
             include_once 'auth.php';
         });
 
@@ -42,7 +42,7 @@ class rAuth extends xNAbySyUrlRouterHelper {
             $Rep = new xNotification();
             $Rep->OK=0;
             $Rep->Contenue = [];
-            N::$Log->AddToLog(__FILE__." L".__LINE__." Authentification en cour...") ;
+            //N::$Log->AddToLog(__FILE__." L".__LINE__." Authentification en cour...") ;
             include_once 'auth.php';
         });
 

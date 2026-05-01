@@ -51,10 +51,10 @@ use NAbySy\xNAbySyGS;
 
         $RepWork=self::$DossierModulePaie ;
         if (!is_dir($RepWork)){
-            self::$Main::$Log->Write("Création du dossier ".$RepWork);
+            //self::$Main::$Log->Write("Création du dossier ".$RepWork);
             mkdir($RepWork,0777,true);
             if (is_dir($RepWork)){
-                self::$Main::$Log->Write("Dossier ".$RepWork." crée !");
+                //self::$Main::$Log->Write("Dossier ".$RepWork." crée !");
             }else{
                 self::$Main::$Log->Write("Impossible de créer le dossier ".$RepWork." !");
             }
