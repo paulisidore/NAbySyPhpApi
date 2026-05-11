@@ -34,10 +34,9 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
-             *  $_REQUEST['Action']="routename}_GET" ;
+             *  $_REQUEST['Action']="{routename}_GET" ;
              *  include_once './gs/{routename}/{routename}_action.php';
              */
-            
             $Rep = new xNotification();
             $nabysy = N::getInstance();
             if(!isset($nabysy->User)){
@@ -53,6 +52,16 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
 
         /**Read and return one {routename} by id */
         $this->get('/{routename}/{id}', function($id) {
+            /**
+             * If you want, you can re-route request to NAbySyPhpApi action file
+             * 
+             * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
+             * All request parameters will be automaticaly transfert and handle by action file.
+             * 
+             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['ID']=$id ;
+             *  include_once './gs/{routename}/{routename}_action.php';
+             */
             $Rep = new xNotification();
             $Rep->OK = 0;            
            //YOUR LOGIC CODE HERE-------------------------/
@@ -65,6 +74,15 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
 
         /**Create new {routename} ressource on server */
         $this->post('/{routename}', function() {
+            /**
+             * If you want, you can re-route request to NAbySyPhpApi action file
+             * 
+             * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
+             * All request parameters will be automaticaly transfert and handle by action file.
+             * 
+             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  include_once './gs/{routename}/{routename}_action.php';
+             */
             $Rep = new xNotification();
             $Rep->OK = 0;
             
@@ -80,6 +98,16 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
 
         /** Edit one {routename} */
         $this->put('/{routename}/{id}', function($id) {
+            /**
+             * If you want, you can re-route request to NAbySyPhpApi action file
+             * 
+             * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
+             * All request parameters will be automaticaly transfert and handle by action file.
+             * 
+             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['ID']=$id ;
+             *  include_once './gs/{routename}/{routename}_action.php';
+             */
             $Rep = new xNotification();
             $Rep->OK = 0;
             
@@ -95,6 +123,16 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
 
         /**Delete one {routename} on server */
         $this->delete('/{routename}/{id}', function($id) {
+            /**
+             * If you want, you can re-route request to NAbySyPhpApi action file
+             * 
+             * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
+             * All request parameters will be automaticaly transfert and handle by action file.
+             * 
+             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['ID']=$id ;
+             *  include_once './gs/{routename}/{routename}_action.php';
+             */
             $Rep = new xNotification();
             $Rep->OK = 0;
             

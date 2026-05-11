@@ -358,6 +358,7 @@ if (class_exists('N') && isset(N::$Log)) {
         ));
         if ($hasErrors) {
             nabysyOpenBootstrapLog();
+            @unlink($bootstrapLog); // Nettoyer après transfert
         }
     }
 }

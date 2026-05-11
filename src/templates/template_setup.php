@@ -227,7 +227,7 @@ if (\$ACTIVE_DEBUG) {
         __MASTERDB__,      __DBSERVER__,
         __DBUSER__,        __DBPASSWORD__,
         __DBPORT__,        __BASEDIR__);
-    \$nabysy->ActiveDebug = {$debugStr};
+    
     N::SetShowDebug(\$ACTIVE_DEBUG, \$DEBUG_LEVEL);
     N::SetAuthSessionTime(\$DUREE_SESSION_AUTH);
     N::\$SendAuthReponse = {$authRespStr}; // Indique si les réponses d'authentification doivent être envoyées
