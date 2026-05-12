@@ -140,7 +140,8 @@ Class xAuth
                     //echo $Reponse ;
                     $decoded=$Err ; //"EXPIRE" ;
                     if (!$NoRetournError){
-                        http_response_code(419); 
+                        http_response_code(401); 
+                        $this->Main->AllowCORS();
                         exit ;
                     } 
                 
@@ -150,6 +151,7 @@ Class xAuth
                     http_response_code(401);
                 
                     // show error message
+                    $this->Main->AllowCORS();
                     echo json_encode(array(
                         "message" => "Access denied.",
                         "error" => $e->getMessage()

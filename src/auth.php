@@ -67,14 +67,14 @@ use NAbySy\xUser;
             $Err->TxErreur="La session a expirée." ;
             $Err->OK=0;
             echo json_encode($Err) ;
-            http_response_code(419);            
+            http_response_code(401);            
             exit ;
         }
         if (get_class($UserToken)=='xErreur' || get_class($UserToken)=='NAbySy\xErreur'){
             $Err->TxErreur="Votre session à expirée." ;
             $Err->OK=0;
             echo json_encode($Err) ;
-            http_response_code(419);            
+            http_response_code(401);            
             exit ;
         }
         
@@ -89,7 +89,7 @@ use NAbySy\xUser;
             $Err->OK=0;
             $Err->Source=$User->DataBase ;
             echo json_encode($Err) ;
-            http_response_code(419);            
+            http_response_code(401);            
             exit ;
         }
         
@@ -196,7 +196,7 @@ use NAbySy\xUser;
         
         $Notif->Source='auth-'.$User->Id.':'.$Login;
         $nabysy->User=$User ;
-         if($User->Main::$SendAuthReponse && !$ConnectByToken){
+        if($User->Main::$SendAuthReponse && !$ConnectByToken){
             http_response_code(200);
             echo json_encode($Notif) ;
             exit ;

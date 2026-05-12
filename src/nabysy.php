@@ -1043,7 +1043,8 @@ Class xNAbySyGS
 					$this->IdPosteClient=$Usr->IdPoste;
 					$this->NomPosteClient=$Usr->NomPoste;
 				}else{
-					echo json_encode($Usr) ;
+					$this->AllowCORS();
+					http_response_code(401); 
 					exit ;
 				}
 			}
@@ -1430,14 +1431,14 @@ Class xNAbySyGS
 				$Err->TxErreur="Utilisateur introuvable !" ;
 				$Err->OK=0;
 				echo json_encode($Err) ;
-				http_response_code(419);            
+				http_response_code(401);            
 				exit ;
 			}
 			if (get_class($UserToken)=='xErreur'){
 				$Err->TxErreur="Votre session à expirée." ;
 				$Err->OK=0;
 				echo json_encode($Err) ;
-				http_response_code(419);            
+				http_response_code(401);            
 				exit ;
 			}
 			
@@ -2222,6 +2223,7 @@ Class xNAbySyGS
 			//header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
 			header('Access-Control-Allow-Credentials: true');
 			header('Access-Control-Max-Age: 86400');    // cache for 1 day
+			header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 		}else{
 			header("Access-Control-Allow-Origin: *");
 			header('Access-Control-Allow-Credentials: true');
@@ -2231,12 +2233,15 @@ Class xNAbySyGS
 		// Access-Control headers are received during OPTIONS requests
 		if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 			
-			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
-				// may also be using PUT, PATCH, HEAD etc
-				header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])){
+					// may also be using PUT, PATCH, HEAD etc
+					header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+				}
 			
-			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
-				header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])){
+					header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+					header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+				}
 		
 			exit(0);
 		}
