@@ -14,13 +14,22 @@ class xMediaRessource {
     public function __construct(xNAbySyGS $nabysy, string $LocalDir="media"){
         $this->Main = $nabysy;
         $this->DossierMedia = $LocalDir;
-        if(!is_dir($this->DossierMedia)){
+        $vDirectorie = $this->GetFullFolderPath();
+        if(!is_dir($vDirectorie)){
             try {
-                mkdir($this->DossierMedia,0777,true);
+                mkdir($vDirectorie,0777,true);
             } catch (\Throwable $th) {
                 throw $th;
             }
         }
+    }
+
+    /**
+     * Retourne le chemin complet du dossier des Medias sans le separateur à la fin
+     * @return string 
+     */
+    public function GetFullFolderPath ():string{
+        return $this->Main->CurrentFolder(true).$this->DossierMedia;
     }
 
     /**
@@ -32,7 +41,7 @@ class xMediaRessource {
      */
     public function SaveMedia(string $FullFilePath, string $dstFileName, bool $deleteIfExiste=false):bool{
         if (file_exists($FullFilePath)){
-            $File = $this->DossierMedia.DIRECTORY_SEPARATOR. $dstFileName ;
+            $File = $this->GetFullFolderPath().DIRECTORY_SEPARATOR. $dstFileName ;
             if(file_exists($File)){
                 if(!$deleteIfExiste){
                     //On ne supprime pas s'il existe
@@ -69,7 +78,7 @@ class xMediaRessource {
      * @return bool 
      */
     public function MediaExiste(string $MediaName):bool{
-        $File = $this->DossierMedia.DIRECTORY_SEPARATOR. $MediaName ;
+        $File = $this->GetFullFolderPath().DIRECTORY_SEPARATOR. $MediaName ;
         return file_exists($File) ;
     }
 
@@ -80,7 +89,7 @@ class xMediaRessource {
      * @return string 
      */
     public function GetMediaRealPath(string $MediaName, bool $checkPresent=false):string{
-        $File = $this->DossierMedia.DIRECTORY_SEPARATOR. $MediaName ;
+        $File = $this->GetFullFolderPath().DIRECTORY_SEPARATOR. $MediaName ;
         if($checkPresent){
             if(!file_exists($File)){
                 return '';
@@ -93,7 +102,7 @@ class xMediaRessource {
 	 * Sauvegarder un Média envoyé depuis une requette HTTP
 	 */
 	public function SaveMediaFromRequest($ChampFichier="fichier",$NomFichier="monfichierMedia.png"){
-		$DossierPhoto=$this->Main->CurrentFolder(true).$this->DossierMedia;
+		$DossierPhoto=$this->GetFullFolderPath();
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -106,7 +115,7 @@ class xMediaRessource {
 	 * @return true|string 
 	 */
 	public function GetMediaURL(string $FileName, $NoSendToClient=false,string $baseUrl=null){
-        $DossierPhoto=$this->Main->CurrentFolder(true).$this->DossierMedia;
+        $DossierPhoto=$this->GetFullFolderPath();
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
         $vFileName=$FileName ;
