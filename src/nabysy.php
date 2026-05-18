@@ -325,6 +325,12 @@ Class xNAbySyGS
 	 */
 	public static array $LastEventSuccess = [];
 
+	/**
+	 * Contient le dernier contenue brute du CORP de la requette reçus.
+	 * @var string
+	 */
+	public static string $LastHttpBodyContent="";
+
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true)
@@ -2453,6 +2459,8 @@ Class xNAbySyGS
 		$LISTE_VARIABLE=$_REQUEST;
 
 		$corps=file_get_contents('php://input');
+		self::$LastHttpBodyContent = $corps ;
+		
 		if (isset($corps)){
 			if ($corps !==""){
 				// self::$Log->Write("POST DATA Brute: ".$corps);
