@@ -331,6 +331,12 @@ Class xNAbySyGS
 	 */
 	public static string $LastHttpBodyContent="";
 
+	/**
+	 * Dernier Objet JSON passé dans le corps HTTP
+	 * @var null|object
+	 */
+	public static ?object $LastJsonObjectInBody=null;
+
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true)
@@ -2460,7 +2466,7 @@ Class xNAbySyGS
 
 		$corps=file_get_contents('php://input');
 		self::$LastHttpBodyContent = $corps ;
-		
+
 		if (isset($corps)){
 			if ($corps !==""){
 				// self::$Log->Write("POST DATA Brute: ".$corps);
@@ -2478,43 +2484,57 @@ Class xNAbySyGS
 		if(isset($sortie)){
 			if (trim($sortie)!==""){
 				$contenue = $sortie;
-				$lignePar=explode("&",$contenue);
-				if (is_array($lignePar)){
-					$tableau=[];
-					foreach($lignePar as $lignedata){
-						$data=explode("=",$lignedata);
-						if (is_array($data)){
-							if ($data[0] !==""){
-								$tableau[$data[0]] = $data[1];
+				$ContentIsObjet=false;
+				// On tente de décoder en tant qu'objet
+				$objetDecoded = json_decode($corps);
+				// json_last_error() permet de vérifier si une erreur de syntaxe est survenue
+				if (json_last_error() === JSON_ERROR_NONE && is_object($objetDecoded)) {
+					//Donnée est un Objet JSON
+					$ContentIsObjet=true;
+					self::$LastJsonObjectInBody = $objetDecoded ;
+				}
+				if($ContentIsObjet){
+					self::$LastJsonObjectInBody = $objetDecoded ;
+				}else{
+					$lignePar=explode("&",$contenue);
+					if (is_array($lignePar)){
+						$tableau=[];
+						foreach($lignePar as $lignedata){
+							$data=explode("=",$lignedata);
+							if (is_array($data)){
+								if ($data[0] !==""){
+									$tableau[$data[0]] = $data[1];
+								}
 							}
 						}
+						if (count($tableau)){
+							$sortie=$tableau ;
+						}
 					}
-					if (count($tableau)){
-						$sortie=$tableau ;
-					}
-				}
-				$postData=$sortie;
-				if($postData){
-					if(count($postData)){
-						//self::$Log->AddToLog("Des données POST ont été trouvées: ".json_encode($postData));
-						if(count($_REQUEST)>0){
-							foreach ($postData as $key => $value) {
-								$CanAdd=true;
-								foreach ($_REQUEST as $pkey => $pvalue) {
-									if($pkey == $key){
-										$CanAdd=false;
-										break;
+					$postData=$sortie;
+					if($postData){
+						if(count($postData)){
+							//self::$Log->AddToLog("Des données POST ont été trouvées: ".json_encode($postData));
+							if(count($_REQUEST)>0){
+								foreach ($postData as $key => $value) {
+									$CanAdd=true;
+									foreach ($_REQUEST as $pkey => $pvalue) {
+										if($pkey == $key){
+											$CanAdd=false;
+											break;
+										}
+									}
+									if($CanAdd){
+										$_REQUEST[$key]=$value;
 									}
 								}
-								if($CanAdd){
-									$_REQUEST[$key]=$value;
-								}
+							}else{
+								$_REQUEST = $postData;
 							}
-						}else{
-							$_REQUEST = $postData;
 						}
 					}
 				}
+				
 			}
 		}
 		$LISTE_VARIABLE=$_REQUEST;
