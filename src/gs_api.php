@@ -57,7 +57,7 @@ if (!class_exists('N')) {
                 if (isset($PARAM[strtolower($ChampAction)])){
                     $action=$PARAM[strtolower($ChampAction)] ;
                 }
-                $nabysy->ReadConfig();
+                //$nabysy->ReadConfig();
             }
         }
         //echo json_encode($_POST);

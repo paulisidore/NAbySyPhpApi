@@ -235,8 +235,9 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (!isset($IdU)){
             $IdU=$this->Id ;
         }
-        $TxSQL='select * from '.$this->Boutique->DBName.'.'.$this->Table.' where Id="'.$IdU.'" ';
-        $Rep=$this->Main->ReadWrite($TxSQL,false,null);
+        $Rep = $this->ChargeListe("ID='".$IdU."'");
+        //$TxSQL='select * from '.$this->Boutique->DBName.'.'.$this->Table.' where Id="'.$IdU.'" ';
+        //$Rep=$this->Main->ReadWrite($TxSQL,false,null);
         if (isset($Rep)){
             if ($Rep->num_rows>0){
                 $xRS=$Rep->fetch_assoc();

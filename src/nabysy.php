@@ -662,7 +662,7 @@ Class xNAbySyGS
 	 * @return void 
 	 * @throws Throwable 
 	 */
-	public function restartConnexion(string $Myserveur,string $Myuser,string $Mypasswd, ModuleMCP $mod, string $db, int $port=3306){ 
+	public function restartConnexion(string $Myserveur,string $Myuser,string $Mypasswd, ModuleMCP $mod, string $db, int $port=3306, bool $IsForTechnoWEB=false){ 
 		if (!isset(self::$Log)){
 			$Dt=date('mY') ;
 			self::$Log=new xLog($this,"NAbySyGS_Log-".$Dt.".csv") ;
@@ -750,21 +750,6 @@ Class xNAbySyGS
 				if($this->MaBoutique->DataBase !== $this->DataBase){
 					$this->MaBoutique->DataBase = $this->DataBase;
 					$this->MaBoutique->AutoCreate=false ; //Pour ne pas creer dans les BOutique Dynamique
-					//var_dump("Maintenant MaBaoutique->DataBase = ".$this->MaBoutique->DataBase);exit;
-					//$Lst=$this->MaBoutique->ChargeListe("dbname like '".$this->DataBase."'") ;
-					// if($Lst->num_rows>0){
-					// 	$rw=$Lst->fetch_array() ;
-					// 	$IdB=0;
-					// 	if(isset($rw['id'])){
-					// 		$IdB=$rw['id'] ;
-					// 	}elseif(isset($rw['ID'])){
-					// 		$IdB=$rw['ID'] ;
-					// 	}elseif(isset($rw['Id'])){
-					// 		$IdB=$rw['Id'] ;
-					// 	}
-					// 	$Bout=new xBoutique($this,$IdB) ;
-					// 	$this->MaBoutique=$Bout ;
-					// }
 				}
 			}
 			
@@ -802,7 +787,9 @@ Class xNAbySyGS
 					}
 				}
 			}
-
+			if($IsForTechnoWEB){
+				self::$TECHNOWEB_ACTIVE = true;
+			}
 			$this->ReadConfig() ;
 			self::$Main = $this ;
 		}
@@ -1171,7 +1158,9 @@ Class xNAbySyGS
 			$this->MaBoutique->ACTIF = 1;
 			$this->MaBoutique->IMP_LIGNE="";
 			$this->MaBoutique->IsBoutique=0; //Depôt Mère
-			$this->MaBoutique->Enregistrer();
+			if(!self::$TECHNOWEB_ACTIVE){
+				$this->MaBoutique->Enregistrer();
+			}
 		}
 		
 		if(!self::$TECHNOWEB_ACTIVE){
@@ -1675,6 +1664,8 @@ Class xNAbySyGS
 				$CanLoad=false;
 			}
 			if($CanLoad){
+				//var_dump(xNAbySyGS::$TECHNOWEB_ACTIVE);
+				//var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 3));exit;
 				$this->User=new xUser($this,$UserToken->user_id) ;
 			}	
 		}
@@ -3484,14 +3475,15 @@ Class xNAbySyGS
 												if($this->ActiveDebug && self::$LogLevel>3){
 													self::$Log->AddToLog("Connexion via TechnoWEB ... ");
 												}
+
 												$this->restartConnexion($CltTechnoWeb->AdresseIP_VPN, 
 													$CltTechnoWeb->ServiceDBUser,
 													$CltTechnoWeb->ServiceDBPwd, 
 													$this->MODULE,
 													trim($CltTechnoWeb->ServiceDB),
-													(int)$CltTechnoWeb->ServiceDBPort
+													(int)$CltTechnoWeb->ServiceDBPort,
+													true
 													);
-												self::$TECHNOWEB_ACTIVE = true;
 												if($this->ActiveDebug && self::$LogLevel>3){
 													self::$Log->AddToLog("Client TechnoWEB connecté: ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
 												}
