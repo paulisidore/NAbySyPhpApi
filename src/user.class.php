@@ -202,8 +202,10 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if (!isset($Username)){
             $Username=$this->Login ;
         }
-        $TxSQL='select * from '.$this->Boutique->DBName.'.'.$this->TEntete.' where Login like "'.$Username.'" ';
-        $Rep=$this->Main->ReadWrite($TxSQL,false,null);
+        $Rep = $this->ChargeListe("Login like '".$Username."'");
+        //$TxSQL='select * from '.$this->Boutique->DBName.'.'.$this->TEntete.' where Login like "'.$Username.'" ';
+        //var_dump($Rep);exit;
+        //$Rep=$this->Main->ReadWrite($TxSQL,false,null);
         
         if (isset($Rep)){
             if ($Rep->num_rows>0){
@@ -411,10 +413,6 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
     }
 
     public function CheckPassword($pwd_to_check){
-        //R::selectDatabase($this->Boutique->DBName) ;       
-        $TxSQL="select * from `".$this->Boutique->DBName."`.`".$this->TEntete."` where login like '".$this->Login."' 
-        AND (password like '".$pwd_to_check."' or password like MD5('".$pwd_to_check."') )  " ;
-        //echo $TxSQL;
         $Ret=$this->ChargeListe(" (password like '".$pwd_to_check."' or password like MD5('".$pwd_to_check."') )");
         //var_dump($Ret);
         if ($Ret){

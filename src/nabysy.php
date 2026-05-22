@@ -352,6 +352,11 @@ Class xNAbySyGS
 	 */
 	public static bool $TECHNOWEB_ACTIVE = false;
 
+	/**
+	 * Le nom d'utilisateur par défaut attribué à l'objet User si l'authentification est désactivée.
+	 */
+	public const NO_AUTH_USER = 'NO_AUTH_USER';
+
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true){ 
@@ -2561,7 +2566,7 @@ Class xNAbySyGS
 			if (!isset($this->User)){
 				//Definition d'un utilisateur par défaut en mode NO_AUTH
 				$this->User=new xUser($this,null,self::GLOBAL_AUTO_CREATE_DBTABLE) ;
-				$this->User->Login="NO_AUTH_USER" ;
+				$this->User->Login=self::NO_AUTH_USER;
 				$this->User->Password="" ;
 				$this->User->NiveauAcces=1 ;
 			}
