@@ -700,7 +700,9 @@ Class xNAbySyGS
 			}catch(\Throwable $th){
 				$Err=new xErreur;
 				$Err->OK=0;
-				$Err->Autres="Serveur : ".$Myserveur." | User = ".$Myuser." | Pwd = ".$Mypasswd. " | Port = ".$port ;
+				if(self::$LogLevel>2 && $this->ActiveDebug){
+					$Err->Autres="Serveur : ".$Myserveur." | User = ".$Myuser." | Port = ".$port ;
+				}
 				$Err->TxErreur = "Erreur de connexion à la base de donnée : " . $th->getMessage();
 				$this->Erreur=$Err->TxErreur ;
 				$this->ISCONNECTED=false ;
