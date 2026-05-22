@@ -3522,8 +3522,9 @@ Class xNAbySyGS
 						}
 					}
 				}else{
-					var_dump($_REQUEST);
-					var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4));exit;
+					if(self::$LogLevel>2 && $this->ActiveDebug){
+						self::$Log->AddToLog("ID-TechnoWeb ".$IdTechnoWeb." introuvable. ");
+					}
 					$this->AutorisationCORS();
 					$Err=new xErreur();
 					$Err->TxErreur="ID-TechnoWeb ".$IdTechnoWeb." est introuvable !";
