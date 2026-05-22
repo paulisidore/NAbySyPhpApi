@@ -90,7 +90,17 @@ class xORMHelper implements IORM , JsonSerializable{
     /** Evènement exectué avant suppression d'un enregistrement dans la table */
     public const EVENTS_BEFORE_DELETE = '_BEFORE_DEL' ;
 
+    /**
+     * Si vrai l'objet utilisera la connexion de la base de donnée master
+     * @var bool
+     */
+    public bool $UseMasterLink = false;
 
+    /**
+     * Si VRAI, le prochain objet de l'ORM utilisera la connexion MasterDB pour être chargé
+     * @var bool
+     */
+    public static bool $UseMasterLinkOnNextInit = false;
 
     /**
      * @param xNAbySyGS $NAbySy Objet central.
@@ -106,6 +116,8 @@ class xORMHelper implements IORM , JsonSerializable{
         if(!isset($NAbySy)){
             $NAbySy = xNAbySyGS::getInstance() ;
         }
+        $this->UseMasterLink = xORMHelper::$UseMasterLinkOnNextInit ;
+
         $this->Table=$TableName ;
         $this->Main=$NAbySy ;
         self::$xMain=$NAbySy ;
@@ -114,17 +126,28 @@ class xORMHelper implements IORM , JsonSerializable{
         $this->ListeChampDB=[];
         $this->DataBase = $this->Main->MainDataBase ;
         if (isset($NAbySy->MaBoutique)){
-            $this->DataBase = $NAbySy->MaBoutique->DBase;
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE){
+                $this->DataBase = $NAbySy->MaBoutique->DBase;
+            }else{
+                $this->DataBase = $NAbySy->DataBase ;
+            }
+        }
+        if(xNAbySyGS::$TECHNOWEB_ACTIVE || $this->UseMasterLink){
+            $this->DataBase = $NAbySy->DataBase ;
         }
         $this->AutoCreate=$CreationChampAuto ;
         $this->DebugMode=false ;
 
         $this->ListeTypeChampDB=[];
         self::$Ctype=new xDBFieldType() ;
-
+        
         if (isset($this->Main)){
-            $this->MySQL = new xDB($this->Main) ;
+            $this->MySQL = new xDB($this->Main, xORMHelper::$UseMasterLinkOnNextInit) ;
             $this->DebugMode=$this->Main->ActiveDebug ;
+        }else{
+            if(isset($this->MySQL)){
+                $this->MySQL->UseMasterLink = self::$UseMasterLinkOnNextInit ;
+            }
         }
 
         if (isset($DBName)){
@@ -148,7 +171,25 @@ class xORMHelper implements IORM , JsonSerializable{
                 }                
             }
         }
+        self::$UseMasterLinkOnNextInit = false ;
         
+    }
+
+    /**
+     * Définit ou Désactive l'utilisation de la connexion Master
+     * @param null|bool $UseMasterDBLink 
+     * @return bool Retourne Vrai si l'utilisation de la connexion Master est activée
+     */
+    public function UseMasterDataBaseLink(?bool $UseMasterDBLink=true):bool{
+        if(isset($UseMasterDBLink)){
+            $this->UseMasterLink = $UseMasterDBLink ;
+            if(isset($this->MySQL)){
+                $this->MySQL->UseMasterLink = $UseMasterDBLink ;
+            }else{
+                $this->MySQL = new xDB($this->Main, $this->UseMasterLink) ;
+            }
+        }
+        return $this->MySQL->UseMasterLink ;
     }
 
     public function FullTableName():string{
@@ -208,6 +249,7 @@ class xORMHelper implements IORM , JsonSerializable{
             if ($Lst){
                 if($Lst->num_rows){
                     $rw=$Lst->fetch_assoc();
+                    xORMHelper::$UseMasterLinkOnNextInit = $this->UseMasterLink ;
                     $DataORM=new xORMHelper($this->Main,$rw['ID'],$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,$this->Table,$this->DataBase);
                 }
             }        
@@ -384,7 +426,20 @@ class xORMHelper implements IORM , JsonSerializable{
         $this->ListeTypeChampDB=[];
         $Tabl="`".$this->DataBase."`.`".$this->Table."`" ;
         $query = "SELECT * from " . $Tabl . " limit 1";
-        if($result = $this->Main::$db_link->query($query)){
+
+        $Conn=$this->Main::$db_link;
+        
+        if($this->UseMasterLink || !isset($this->Main::$db_link) ){
+            $Conn=$this->Main::$master_db_link ;
+        }
+
+        if($this->Table == "boutique" && !$this->UseMasterLink){
+            var_dump($this->Table);
+            var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,3));
+            echo "On doit utiliser la connexion master avec la boutique";exit;
+        }
+
+        if($result = $Conn->query($query)){
             // Get field information for all columns
             while ($column_info = $result->fetch_field()){
                 //var_dump($column_info);
@@ -857,6 +912,7 @@ class xORMHelper implements IORM , JsonSerializable{
     public function GetUpDateSQLString ():string{
         $Tabl=$this->DataBase.".".$this->Table ;
         $TxSQL="" ;
+        xORMHelper::$UseMasterLinkOnNextInit = $this->UseMasterLink;
         $PrecVal=new xORMHelper($this->Main,$this->Id,$this->AutoCreate,$this->Table,$this->DataBase);
         $TxSQL="update ".$Tabl." SET " ;
         $i=1 ;
@@ -987,7 +1043,7 @@ class xORMHelper implements IORM , JsonSerializable{
         $TxSQL = 'select * from '.$this->FullTableName()." where Id='".(int)$Id."' limit 1" ;
         //var_dump($TxSQL);
         try{
-            $retour=$this->Main->ReadWrite($TxSQL);
+            $retour=$this->Main->ReadWrite($TxSQL,false,null,true,$this->UseMasterLink);
             if ($retour !== null){
                 $resultat=$retour ;
             }
@@ -1107,7 +1163,7 @@ class xORMHelper implements IORM , JsonSerializable{
             $this->Main::$Log->Write($Note) ;
             if($this->DebugMode){
                 header('Content-Type: application/json');
-                echo json_encode(["error" => "SQL Error: " . $ex->getMessage(), "sql" => $TxSQL]);
+                echo json_encode(["src" => __FILE__." LINE ".__LINE__ ,"error" => "SQL Error: " . $ex->getMessage(), "sql" => $TxSQL]);
                 exit;
             }
         }
@@ -1496,6 +1552,7 @@ class xORMHelper implements IORM , JsonSerializable{
         //On va crée les champs eventuellements manquant dans la base cible
         $CibleDB = new xDB($this->Main);
         if (!$CibleDB->TableExiste($this->Table,$CloneDB)){
+            xORMHelper::$UseMasterLinkOnNextInit = $this->UseMasterLink ;
             $CloneTable = new xORMHelper($this->Main, null, true, $this->Table, $CloneDB);
             $CloneTable->FlushMeToDB();
         }
@@ -1523,6 +1580,7 @@ class xORMHelper implements IORM , JsonSerializable{
             $ReponseID=$this->ExecUpdateSQL($TxSQL,$InsertTable);
             if (isset($ReponseID)){
                 if (is_int($ReponseID)){
+                    xORMHelper::$UseMasterLinkOnNextInit = $this->UseMasterLink ;
                     $CloneORM = new xORMHelper($this->Main, $ReponseID, $this->Main::GLOBAL_AUTO_CREATE_DBTABLE, $this->Table, $CloneDB);
                 }
             }
@@ -1807,7 +1865,7 @@ class xORMHelper implements IORM , JsonSerializable{
                 $this->Main::$Log->Write($Note) ;
                 if($this->DebugMode){
                     header('Content-Type: application/json');
-                    echo json_encode(["error" => "SQL Error: " . $ex->getMessage(), "sql" => $TxSQL]);
+                    echo json_encode(["src" => __FILE__." LINE ".__LINE__ ,"error" => "SQL Error: " . $ex->getMessage(), "sql" => $TxSQL]);
                     exit;
                 }
             }

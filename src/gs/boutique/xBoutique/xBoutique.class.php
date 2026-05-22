@@ -20,10 +20,11 @@ Class xBoutique extends xORMHelper  {
 	public const TABLE_PARAMETRE = 'parametre';
 
 	public function __construct(?xNAbySyGS $NAbySy, ?int $IdBoutique=0,$AutoCreateTable=false,$NomTable=null, string $BoutiqueDBName=null){
-		if(!isset($NabySy)){
-			$NabySy = xNAbySyGS::getInstance();
+		if(!isset($NAbySy)){
+			throw new Exception("Passer un objet xNAbySyGS", 1);
 		}
-		$this->Conn = $NAbySy::$db_link;
+		$this->Conn = xNAbySyGS::$master_db_link;
+
 		if (!isset($NomTable)){
 			$NomTable='boutique';
 		}
@@ -33,12 +34,16 @@ Class xBoutique extends xORMHelper  {
 		if($BoutiqueDBName==""){
 			$BoutiqueDBName=$NAbySy->MasterDataBase ;
 		}
+		xORMHelper::$UseMasterLinkOnNextInit = true;
+		
 		parent::__construct($NAbySy,$IdBoutique,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
 
 		if(isset($NAbySy->MaBoutique)){
 			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET', $BoutiqueDBName)){
 				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET',$BoutiqueDBName);
 			}
+
+			xORMHelper::$UseMasterLinkOnNextInit = true;
 			$this->Parametre=new xORMHelper($NAbySy,1,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
 			if ($this->Parametre->Id > 0){
 				//$this->AddToLog("Table Paramètre de la boutique Id ".$IdBoutique."=".$this->Parametre->ToJSON());
@@ -560,7 +565,6 @@ Class xBoutique extends xORMHelper  {
 		$vFileName=$this->Id.'logo.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
 		$FileName=$DossierPhotos.$this->Id.'logo.png' ;
-		$Debugger=new xORMHelper($this->Main,null,false,'journal');
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
 		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){
@@ -644,7 +648,7 @@ Class xBoutique extends xORMHelper  {
 		$vFileName=$this->Id.'-enteteA4.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
 		$FileName=$DossierPhotos.$this->Id.'-enteteA4.png' ;
-		$Debugger=new xORMHelper($this->Main,null,false,'journal');
+		
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
 		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){
@@ -747,7 +751,7 @@ Class xBoutique extends xORMHelper  {
 		$vFileName=$this->Id.'logoticket.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
 		$FileName=$DossierPhotos.$this->Id.'logoticket.png' ;
-		$Debugger=new xORMHelper($this->Main,null,false,'journal');
+		
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
 		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){

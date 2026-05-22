@@ -22,6 +22,7 @@ include_once 'xNabySyCustomListOf.class.php' ;
 include_once 'erreur.php' ;
 include_once 'notification.class.php';
 include_once 'db.class.php' ;
+include_once 'enginehook.i.php';
 
 require_once 'auth.class.php';
 require_once "vendor/autoload.php";
@@ -65,12 +66,13 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use mysqli;
+use NAbySy\Events\Engine\Hook\IEngineHook;
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\Lib\BonAchat\IBonAchatManager;
 use NAbySy\Lib\BonAchat\xBonAchatManager;
 use NAbySy\Lib\Http\xCurlHelper;
 use NAbySy\Lib\ModuleExterne\IModuleExterne;
-use NAbySy\Lib\ModuleExterne\TechnoWEB\ITechnoWEB;
+use NAbySy\TechnoWEB\ITechnoWEB;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\Lib\ModulePaie\PaiementModuleLoader;
 use NAbySy\Lib\Sms\xSMSEngine;
@@ -85,6 +87,7 @@ use NAbySy\Router\Url\xGSUrlRouterManager;
 use NAbySy\Router\Url\xGSUrlRouterResponse;
 use NAbySy\xErreur;
 use ReflectionObject;
+use Throwable;
 use xDBStateFullSet;
 use xNAbySyCustomListOf;
 
@@ -102,6 +105,7 @@ Class xNAbySyGS
 
 	public ModuleMCP $MODULE ;
 	public static mysqli $db_link ;
+	public static mysqli $master_db_link ;
 	public string $dbase ="" ;
 	public string $DataBase="" ;
 	public string $MainDataBase="" ;
@@ -163,9 +167,14 @@ Class xNAbySyGS
 	public static xLog $Log ;
 
 	public static $ListeModuleAutoLoader=[];
-	public static array $ListeModuleRH ;
-	public static array $ListeModuleRS ;
-	public static array $ListeModuleExterne ;
+
+	/**
+	 * Liste des modules prenant en charge les eventements systeme
+	 * @var IEngineHook[]
+	 */
+	public static array $ListeModuleWithHook = [];
+
+	public static array $ListeModuleExterne = [] ;
 
 	/**
 	 * Liste des Observateur
@@ -337,10 +346,15 @@ Class xNAbySyGS
 	 */
 	public static ?object $LastJsonObjectInBody=null;
 
+	/**
+	 * Si le module est connecté via le Réseau TechnoWEB retourne VRAI
+	 * @var bool
+	 */
+	public static bool $TECHNOWEB_ACTIVE = false;
+
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
-		string $baseDir=null, ?bool $desableTokenAuth=true)
-	{ 
+		string $baseDir=null, ?bool $desableTokenAuth=true){ 
 		self::$Main = $this ;
 		if(isset($baseDir)){
 			if( $baseDir !==''){
@@ -408,12 +422,30 @@ Class xNAbySyGS
 		}
 
 		$userGSFolder = self::ModuleGSHostFolder() ; //Provoque la vérification de l'installation Initiale de NAbySyGS et la création du dossier de stockage des Modules GS
-		
-		if(!isset(self::$db_link) || $Myserveur !== $this->db_serveur ){
+
+		if(!isset(self::$master_db_link)){
+			try {
+				self::$master_db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $MasterDB,$port) or die("Master DB Connection Error ".mysqli_error(self::$master_db_link ));
+			} catch (\Throwable $th) {
+				$Err=new xErreur;
+				$Err->OK=0;
+				$Err->TxErreur = "Erreur de connexion à la base de donnée Master : " . $th->getMessage();
+				$this->Erreur=$Err->TxErreur ;
+				$this->ISCONNECTED=false ;
+				$Err->SendAsJSON();
+				return;
+			}
+		}
+
+		if(!isset(self::$db_link) || ($Myserveur !== $this->db_serveur && $this->db_serveur !=="") ){
 			if($port <= 0){
 				$port=3306;
 			}
-			if(!self::instanceDBExist($Myserveur, $Myuser, $Mypasswd, $port, $mod)){
+			$UserMasterDB=false;
+			if(isset(self::$master_db_link)){
+				$UserMasterDB=true ;
+			}
+			if(!self::instanceDBExist($Myserveur, $Myuser, $Mypasswd, $port, $mod, $UserMasterDB)){
 				try {
 					if(!isset( self::$db_link )){
 						self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link ));
@@ -452,6 +484,7 @@ Class xNAbySyGS
 			$this->db_pass=$Mypasswd ;
 			$this->db_serveur=$Myserveur ;
 			$this->UserToken=null ;
+
 
 			if ($this->IsLinuxOS){
 				try{
@@ -500,7 +533,7 @@ Class xNAbySyGS
 			if (!isset(self::$DBModulePaieMgr)){
 				self::LoadModuleGS();
 				self::$DBModulePaieMgr=new xMethodePaie($this);
-				self::LoadModuleLib(0);
+				self::LoadModuleLib(self::$LogLevel);
 				$this->ChargeInfos() ;
 				self::LoadExternalModuleLib();
 				$PMLoader=new PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
@@ -534,7 +567,9 @@ Class xNAbySyGS
 				$this->MAJ_DB() ;
 			}			
 			
-			self::$SMSEngine=new xSMSEngine($this);
+			if(!self::$TECHNOWEB_ACTIVE){
+				self::$SMSEngine=new xSMSEngine($this);
+			}
 			
 			//self::$BonAchatManager=new xBonAchatManager($this);			
 			$NbObserverChargePrec = count(self::$ListeModuleObserv);
@@ -571,13 +606,18 @@ Class xNAbySyGS
 				}
 			}
 
-			self::$GSModManager = new xGSModuleManager(self::$Main);
+			self::$Main = $this ;
+
+			if(!self::$TECHNOWEB_ACTIVE || !isset(self::$GSModManager )){
+				self::$GSModManager = new xGSModuleManager(self::$Main);
+			}
 
 			$this->ReadConfig() ;
 
-			self::$Main = $this ;
-
-			self::$UrlRouter = new xGSUrlRouterManager($this);
+			
+			if(!self::$TECHNOWEB_ACTIVE || !isset(self::$UrlRouter )){
+				self::$UrlRouter = new xGSUrlRouterManager($this);
+			}
 		}
 
 	}
@@ -587,20 +627,14 @@ Class xNAbySyGS
 		if(isset(self::$TechnoWEBMgr)){
 			if(isset($_REQUEST['IDTECHNOWEB'])){
 				$nabysy = self::getInstance(null,true);
-				//self::$Log->Write("TechnoWeb: Boutique Prec: ".$nabysy->MaBoutique->Nom,1) ;
-				//self::$Log->Write("TechnoWeb: Base de donnée Précédent: ".$nabysy->MaBoutique->DataBase,0) ;
-				$nabysy->LoadDataBaseFromTechnoWEBClient();
-				//self::$Log->Write("TechnoWeb: Base de donnée du Client: ".$nabysy->MaBoutique->DataBase,1) ;
-				//echo("Base de donnée du Client: ".self::getInstance()->MaBoutique->DataBase)."</br>";//exit;
-				// self::LoadModuleLib();
-				// self::LoadModuleGS();
+				$nabysy->LoadDataBaseFromTechnoWEBClient(true);
 				$nabysy::LoadModuleLib(2);
 				//self::$Log->Write("TechnoWeb: BD Après LoadModuleLib: ".$nabysy->MaBoutique->DataBase,1) ;
 				$nabysy::LoadModuleGS();
 				//self::$Log->Write("TechnoWeb: BD Après LoadModuleGS: ".$nabysy->MaBoutique->DataBase,1) ;
 
 				//self::$Log->Write("TechnoWeb: BD Avant Refresh Parametre: ".$nabysy->MaBoutique->Parametre->DataBase,1) ;
-				$nabysy->MaBoutique->Parametre = new xORMHelper($nabysy,1,true,'parametre');
+				//$nabysy->MaBoutique->Parametre = new xORMHelper($nabysy,1,true,'parametre');
 				//self::$Main->ChargeInfos() ;
 				self::$Main = $nabysy ;
 				//self::$Log->Write("TechnoWeb BD Après Refresh Parametre: ".$nabysy->MaBoutique->Parametre->DataBase, 1) ;
@@ -611,6 +645,162 @@ Class xNAbySyGS
 			}
 		}
     }
+
+	/**
+	 * Permert de se connecter ou reconnecter à un autre serveur MariaDB
+	 * @param string $Myserveur 
+	 * @param string $Myuser 
+	 * @param string $Mypasswd 
+	 * @param ModuleMCP $mod 
+	 * @param string $db 
+	 * @param int $port 
+	 * @return void 
+	 * @throws Throwable 
+	 */
+	public function restartConnexion(string $Myserveur,string $Myuser,string $Mypasswd, ModuleMCP $mod, string $db, int $port=3306){ 
+		if (!isset(self::$Log)){
+			$Dt=date('mY') ;
+			self::$Log=new xLog($this,"NAbySyGS_Log-".$Dt.".csv") ;
+			//self::$Log->Write("Chargement du Module Principal NAbySy RH-RS");
+		}
+
+		self::$dbuser = $Myuser ;
+		self::$dbpass = $Mypasswd ;
+		self::$dbserver = $Myserveur ;
+
+		$this->dbase = $db ;
+		$this->DataBase=$db ;
+		
+		$this->MODE_INVENTAIRE_BOUTIQUE=false ;
+		$this->MODE_INVENTAIRE_DEPOT=false ;		
+
+		$userGSFolder = self::ModuleGSHostFolder() ; //Provoque la vérification de l'installation Initiale de NAbySyGS et la création du dossier de stockage des Modules GS
+		
+		$CanReconnect = true ;
+		if(isset(self::$db_link) && $Myserveur !== $this->db_serveur){
+			//var_dump($Myserveur);
+			//var_dump($this->db_serveur);exit;
+			if(!self::IsDBlinkClosed(self::$db_link)){
+				try {
+					self::$db_link->close()  ;
+				} catch (\Throwable $th) {
+					//throw $th;
+				}
+			}
+		}
+
+		if(!isset(self::$db_link) || $CanReconnect){
+			if($port <= 0){
+				$port=3306;
+			}
+			try{
+				$this->ISCONNECTED=false ;
+				self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
+				$this->db_serveur = $Myserveur;
+			}catch(\Throwable $th){
+				$Err=new xErreur;
+				$Err->OK=0;
+				$Err->Autres="Serveur : ".$Myserveur." | User = ".$Myuser." | Pwd = ".$Mypasswd. " | Port = ".$port ;
+				$Err->TxErreur = "Erreur de connexion à la base de donnée : " . $th->getMessage();
+				$this->Erreur=$Err->TxErreur ;
+				$this->ISCONNECTED=false ;
+				$Err->SendAsJSON(true);
+				return;
+			}
+			
+			if (!self::$db_link){
+				$Err=new xErreur;
+				$Err->OK=0;
+				$Err->TxErreur = "Erreur de connexion à la base de donnée : " . mysqli_error(self::$db_link);
+				$this->Erreur=$Err->TxErreur ;
+				$this->ISCONNECTED=false ;
+				$Err->SendAsJSON(true);				
+				return;
+			}
+			$this->db_port=$port ;
+
+			$this->Erreur="" ;
+			$this->ISCONNECTED=true ;
+			$this->db_user=$Myuser ;
+			$this->db_pass=$Mypasswd ;
+			$this->db_serveur=$Myserveur ;
+			$this->UserToken=null ;
+			
+			if (!isset(self::$DBModulePaieMgr) || $CanReconnect){
+				self::LoadModuleGS();
+				self::$DBModulePaieMgr=new xMethodePaie($this);
+				self::LoadModuleLib(0);
+				$this->ChargeInfos() ;
+				self::LoadExternalModuleLib();
+				$PMLoader=new PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
+			}
+
+			/* Modification du jeu de résultats en utf8mb4 */
+			self::$db_link->set_charset("utf8mb4");
+			
+			
+			if(isset($this->MaBoutique)){
+				if($this->MaBoutique->DataBase !== $this->DataBase){
+					$this->MaBoutique->DataBase = $this->DataBase;
+					$this->MaBoutique->AutoCreate=false ; //Pour ne pas creer dans les BOutique Dynamique
+					//var_dump("Maintenant MaBaoutique->DataBase = ".$this->MaBoutique->DataBase);exit;
+					//$Lst=$this->MaBoutique->ChargeListe("dbname like '".$this->DataBase."'") ;
+					// if($Lst->num_rows>0){
+					// 	$rw=$Lst->fetch_array() ;
+					// 	$IdB=0;
+					// 	if(isset($rw['id'])){
+					// 		$IdB=$rw['id'] ;
+					// 	}elseif(isset($rw['ID'])){
+					// 		$IdB=$rw['ID'] ;
+					// 	}elseif(isset($rw['Id'])){
+					// 		$IdB=$rw['Id'] ;
+					// 	}
+					// 	$Bout=new xBoutique($this,$IdB) ;
+					// 	$this->MaBoutique=$Bout ;
+					// }
+				}
+			}
+			
+			//self::$BonAchatManager=new xBonAchatManager($this);			
+			$NbObserverChargePrec = count(self::$ListeModuleObserv);
+			foreach (self::$ListeModuleAutoLoader as $AutoLoad){
+				//On chargera uniquement les Observateurs				
+				foreach ($AutoLoad->ListeModule as $Mod){
+					//Un Observer à après x et son nom, le mot 'Observ'
+					//var_dump($Mod);
+					if (preg_match('/^x.+Observ$/', $Mod[0])){
+						//On charge le Module Observeur
+						$fichier_observ =$Mod[1].DIRECTORY_SEPARATOR.$Mod[0].'.class.php';
+						
+						if(file_exists($fichier_observ)){
+							try {
+								$NameSp= self::getNamespaceFromFile($fichier_observ);
+								if(!isset($NameSp)){
+									$NameSp ="";
+								}
+								include_once $fichier_observ ;
+								$ClassN=$NameSp.'\\'.$Mod[0] ;
+								$NewObserv=new $ClassN($this);
+
+							} catch (\Throwable $th) {
+								if($this->ActiveDebug){
+									if(self::$LogLevel>2){
+										throw $th;
+									}
+								}
+							}
+							
+						}
+						
+					}
+				}
+			}
+
+			$this->ReadConfig() ;
+			self::$Main = $this ;
+		}
+
+	}
 
 	/**
 	 * Vérifie si la Base de donnée master existe
@@ -629,13 +819,15 @@ Class xNAbySyGS
 	 * Vérifie si la base de donnée de l'instance en cour existe
 	 * @return bool 
 	 */
-	public static function instanceDBExist(string $serveur, string $user ,string $passwd, int $port, ModuleMCP $mod): bool {
+	public static function instanceDBExist(string $serveur, string $user ,string $passwd, int $port, ModuleMCP $mod, ?bool $UseMasterLink=false): bool {
 		$DBExist=false ;
 		$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->DataBase."'";
-		if(!isset( self::$db_link )){
-			self::$db_link = new mysqli($serveur, $user, $passwd,null ,$port) or die("Error ".mysqli_error(self::$db_link ));
+		
+		$IsFormasterLink=false;
+		if(isset($UseMasterLink) && $UseMasterLink === true){
+			$IsFormasterLink=true ;
 		}
-		$Res=self::getInstance()->ReadWrite($TxSQL);
+		$Res=self::getInstance()->ReadWrite($TxSQL,false,null,true,$IsFormasterLink);
 		if ($Res->num_rows>0){
 			$DBExist=true ;
 		}
@@ -939,7 +1131,7 @@ Class xNAbySyGS
 		//var_dump($PARAM);//exit;
 		if(isset($StartBoutique)){
 			$this->MaBoutique=$StartBoutique ;
-		}else{
+		}elseif(!self::$TECHNOWEB_ACTIVE){
 			$this->MaBoutique=new xBoutique($this,0);
 			$Depot=$this->MaBoutique->GetDepot();
 			//var_dump($Depot);
@@ -975,28 +1167,30 @@ Class xNAbySyGS
 			$this->MaBoutique->Enregistrer();
 		}
 		
-		//$LstB=$this->MaBoutique->ChargeListe("ID <> ".$Depot->Id,null,"ID");
-		$TxSQL = "select ID from `".$this->MasterDataBase."`.boutique where ID<>0 ";
-		$LstB = $this->ReadWrite($TxSQL);
-		
-		if($LstB->num_rows){
-			while($rw = $LstB->fetch_assoc()){
-				//$Bout = new xBoutique($this,(int)$rw['ID'],false);
-				if((int)$rw['ID']){
-					$Bout = new xBoutique($this,(int)$rw['ID'],false);
-					$this->Boutiques[] = $Bout ;
-					$CanAdd=true;
-					if(count(self::$ListeBoutique)){
-						foreach (self::$ListeBoutique as $BoutP) {
-							if($Bout->Id == $BoutP->Id){
-								$CanAdd=false;
-								break;
+		if(!self::$TECHNOWEB_ACTIVE){
+			//$LstB=$this->MaBoutique->ChargeListe("ID <> ".$Depot->Id,null,"ID");
+			$TxSQL = "select ID from `".$this->MasterDataBase."`.boutique where ID<>0 ";
+			$LstB = $this->ReadWrite($TxSQL,false,null,true,true);
+			
+			if($LstB->num_rows){
+				while($rw = $LstB->fetch_assoc()){
+					//$Bout = new xBoutique($this,(int)$rw['ID'],false);
+					if((int)$rw['ID']){
+						$Bout = new xBoutique($this,(int)$rw['ID'],false);
+						$this->Boutiques[] = $Bout ;
+						$CanAdd=true;
+						if(count(self::$ListeBoutique)){
+							foreach (self::$ListeBoutique as $BoutP) {
+								if($Bout->Id == $BoutP->Id){
+									$CanAdd=false;
+									break;
+								}
 							}
 						}
-					}
-					if($CanAdd){
-						//var_dump("Ajout de ".$Bout->Nom);
-						self::$ListeBoutique[] = $Bout ;
+						if($CanAdd){
+							//var_dump("Ajout de ".$Bout->Nom);
+							self::$ListeBoutique[] = $Bout ;
+						}
 					}
 				}
 			}
@@ -1076,8 +1270,9 @@ Class xNAbySyGS
 			$Auth=new xAuth($this) ;
 			$this->UserToken=$Auth->GetToken($this->User);
 		}
-		
-		$this->Parametre = new xORMHelper($this,1,true,'parametre');
+		if(!self::$TECHNOWEB_ACTIVE){
+			$this->Parametre = new xORMHelper($this,1,true,'parametre');
+		}
 	}		
 	
 
@@ -1161,7 +1356,7 @@ Class xNAbySyGS
 		return $Reponse ;
 	}
 
-	public function ReadWrite($SQL,$NoReponse=false,$InsertTable=null,$DEBUG=true){
+	public function ReadWrite($SQL,$NoReponse=false,$InsertTable=null,$DEBUG=true, bool $UseMasterDBLink=false){
 		$IsOK=false ;
 		//global $serveur,$user,$passwd,$bdd,$db_link, $MODULE ;
 		//$this->SelectDB();
@@ -1193,9 +1388,11 @@ Class xNAbySyGS
 		$req=null;
 		try{
 			//$vSQL=self::$db_link->real_escape_string($SQL) ;
-			$req=self::$db_link->query($SQL);
-			$ResultatMySQLi=$req ;
-
+			if($UseMasterDBLink){
+				$req=self::$master_db_link->query($SQL);
+			}else{
+				$req=self::$db_link->query($SQL);
+			}
 		} catch(Exception $e) {
 			$error=$e->getMessage() ;
 			$Dat=date("Y-m-d");
@@ -1210,7 +1407,7 @@ Class xNAbySyGS
 
 			if($this->ActiveDebug){
 				header('Content-Type: application/json');
-				echo json_encode(["error" => "SQL Error: " . $e->getMessage(), "sql" => $SQL]);
+				echo json_encode(["src" => __FILE__." LINE ".__LINE__ , "error" => "SQL Error: " . $e->getMessage(), "sql" => $SQL, "trace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,5)]);
 				exit;
 			}
 		}		
@@ -1223,11 +1420,15 @@ Class xNAbySyGS
 			$PortClient=$_SERVER['REMOTE_PORT'];
 			//$NomBoutique=$this->MaBoutique->Nom ;
 			$Tache ="ERREUR SYSTEME - READWRITE SQL" ;
-			$Note= self::$db_link->error ;
+			if($UseMasterDBLink){
+				$Note= self::$master_db_link->error ;
+			}else{
+				$Note= self::$db_link->error ;
+			}
 			$Fichier=$FichierError ;
 			// 1 : on ouvre le fichier
 			$monfichier = fopen($Fichier, 'a');
-				$TxT=$Dat.";".$Tim.";".$SQL.";".self::$db_link->error ;
+				$TxT=$Dat.";".$Tim.";".$SQL.";".$Note ;
 				$TxLog=str_replace("\n","",$TxT) ;
 				$TxLog=str_replace("\r\n","",$TxLog) ;
 				$TxLog=str_replace("\r","",$TxLog) ;
@@ -1255,10 +1456,14 @@ Class xNAbySyGS
 			
 			$ErrSQL="insert into ".$this->MasterDataBase.".journal (`".$ChampDate."`,`".$ChampHeure."`,`".$ChampOperation."`,`NOTE`) values(
 			'".$Dat."','".$Tim."','".$Tache."','".$Note."')" ;
-			$OkErr=self::$db_link->query($ErrSQL);
+			if($UseMasterDBLink){
+				$OkErr=self::$master_db_link->query($ErrSQL);
+			}else{
+				$OkErr=self::$db_link->query($ErrSQL);
+			}
 			if (!$OkErr){
 				echo "<h1>Erreur Critique dans le module NAbySyGS, contacter l'administrateur svp !</br>".
-				self::$db_link->error."</br></h1>" ;
+				$UseMasterDBLink ? self::$master_db_link->error : self::$db_link->error."</br></h1>" ;
 				exit ;
 			}
 		}
@@ -1277,8 +1482,12 @@ Class xNAbySyGS
 		}
 		else{
 			if (isset($InsertTable)){
-				$last_id = self::$db_link->insert_id ;
-				$req=$last_id ;
+					if($UseMasterDBLink){
+						$last_id = self::$master_db_link->insert_id ;
+					}else{
+						$last_id = self::$db_link->insert_id ;
+					}
+					$req=$last_id ;
 				}
 			}
 		
@@ -1878,6 +2087,73 @@ Class xNAbySyGS
 				}
 			}
 
+			$rep=self::CurrentFolder(true)."lib" ;
+            $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
+            
+            $ListeDossierH=[] ;
+            if ($DebugLevel>2){
+                self::$Log->AddToLog('Repertoire '.$rep.' Existe ? ',$DebugLevel) ;
+            }            
+            if(self::IsDirectory($rep)){  
+                if ($DebugLevel>2){
+                    self::$Log->AddToLog( 'OUI', $DebugLevel) ;
+                }
+                if($iteration = opendir($rep)){  
+                    
+                    while(($dos = readdir($iteration)) !== false)  
+                    {  
+                        if($dos != "." && $dos != ".." && $dos != "Thumbs.db")  
+                        {  
+                            $pathfile=$rep.DIRECTORY_SEPARATOR.$dos ;
+                            if ($DebugLevel>2){
+                                self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ', $DebugLevel) ;
+                            }
+                            if (is_dir($pathfile)){
+                                $NbModule ++;
+                                if ($DebugLevel>2){
+                                    self::$Log->AddToLog( 'Librairie trouvé: '.$dos, $DebugLevel) ;
+                                }
+                                //Repertoir nom de module
+                                if ($DebugLevel>2){
+                                    self::$Log->AddToLog( 'OUI', $DebugLevel) ;
+                                }
+                                $Mod=[];
+                                $Mod[0]=$dos ;
+                                $Mod[1]=$pathfile ;
+                                $ListeDossierH[]=$Mod ;
+                            }else{
+                                if ($DebugLevel>2){
+                                    self::$Log->AddToLog( 'NON', $DebugLevel) ;
+                                }
+                            }
+                        }
+                    }
+                    closedir($iteration);  
+                }  
+            }else{
+                if ($DebugLevel>2){
+                    self::$Log->AddToLog( 'NON', $DebugLevel) ;
+                }
+            }
+            
+			foreach ($ListeDossierH as $Librairie){
+				$FichierInterface=$Librairie[1].DIRECTORY_SEPARATOR.$Librairie[0].".i.php" ;
+				if (file_exists($FichierInterface)){
+					include_once $FichierInterface ;
+					$ListeDossier[] = $Librairie ;
+				}else{
+					if(self::$LogLevel>3){
+						self::$Log->AddToLog($FichierInterface." introuvable");
+						$Tache="ERREUR CHARGEMENT DES LIBRAIRIES";
+						$Note=$FichierInterface." introuvable";
+						$TxSQL="select * from journal j where j.Note like '%".$Note."%' and j.DateEnreg = '".date('Y-m-d')."'";
+						$Lst=self::$Main->ReadWrite($TxSQL);
+						if ($Lst->num_rows==0){
+							self::$Main->AddToJournal('SYSTEME',0,$Tache,$Note);
+						}
+					}
+				}
+			}
             return $ListeDossier ;
     } 
 
@@ -1954,6 +2230,9 @@ Class xNAbySyGS
 							//self::$Log->Write("Module externe ".$Librairie[0]." chargé.");
 							self::$ListeModuleExterne[]=$Librairie;
 							//var_dump("Module externe ".$Librairie[0]." chargé.");
+							if($ModClass instanceof IEngineHook){
+								self::$ListeModuleWithHook[]=$ModClass ;
+							}
 						}else{
 							self::$Log->Write("La librairie ".$Librairie[0]." n'est pas un module compatible avec NAbySyGS");
 						}
@@ -2011,8 +2290,9 @@ Class xNAbySyGS
 			}
 		}
 		self::$ListeModuleObserv[]=$ModObserveur ;
-		//echo "Observateur ".$ModObserveur->Nom." ajouté </br>";
-		//var_dump(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2));
+		if($ModObserveur instanceof IEngineHook){
+			self::$ListeModuleWithHook[]=$ModObserveur ;
+		}
 		return true ;
 	}
 
@@ -2580,6 +2860,15 @@ Class xNAbySyGS
 		if (PHP_SAPI !== 'cli' && session_status() == PHP_SESSION_NONE) {
 			session_start();
 		}
+
+		if(self::$ListeModuleWithHook && count(self::$ListeModuleWithHook)>0){
+			foreach (self::$ListeModuleWithHook as $Mod) {
+				if($Mod->canRaise()){
+					$Mod->onBeforeConnect($StartInfo);
+				}
+			}
+		}
+
 		if (!isset($StartInfo)){
 			throw new Exception("Error: NAbySyGS StartInfo is required.", ERR_STARTUP_INFO_MISSING);
 			return null ;
@@ -2624,8 +2913,20 @@ Class xNAbySyGS
 			ini_set('display_startup_errors', $StartInfo->DisplayStartUpErrors);
 			error_reporting($StartInfo->ErrorReporting);
 		}
+
+		//On va déclencher les Hook
+
 		$nabysy->ChargeInfos();
 		$nabysy->AutorisationCORS();
+
+		if(self::$ListeModuleWithHook && count(self::$ListeModuleWithHook)>0){
+			foreach (self::$ListeModuleWithHook as $Mod) {
+				if($Mod->canRaise()){
+					$Mod->onAfterConnect($StartInfo);
+				}
+			}
+		}
+
 		return $nabysy ;
 	}
 
@@ -2862,7 +3163,7 @@ Class xNAbySyGS
 				if(isset($nab::$TechnoWEBMgr)){
 					//self::$Log->Write("Je suis ici ".__CLASS__);
 					if($nab::$TechnoWEBMgr->Ready()){
-						self::$Main->LoadDataBaseFromTechnoWEBClient(); ;
+						//self::$Main->LoadDataBaseFromTechnoWEBClient(true); ;
 					}
 				}
 			} catch (\Throwable $th) {
@@ -2978,7 +3279,22 @@ Class xNAbySyGS
 		
 	}
 
-	public function LoadDataBaseFromTechnoWEBClient():xNotification{
+	/**
+	 * Vérifie qu'une connexion MySQLi est fermée ou non
+	 * @param mysqli $link 
+	 * @return bool 
+	 */
+	public static function IsDBlinkClosed(mysqli $link):bool{
+		try {
+				$link->ping()  ;
+				return true;
+			} catch (\Throwable $th) {
+				//throw $th;
+			}
+		return false;
+	}
+
+	public function LoadDataBaseFromTechnoWEBClient(?bool $CreateDynamicBoutique = false):xNotification{
 		$BoutiqueCible=null;
 		$Notif = new xNotification();
 		$Notif->OK=0;
@@ -2993,61 +3309,136 @@ Class xNAbySyGS
 					$CltTechnoWeb->Refresh();
 					if($CltTechnoWeb->Id){
 						//self::$Log->AddToLog("Client TechnoWEB Trouvé ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
+						$IsDynamicBout=false;
 						$CltDataBase=trim($CltTechnoWeb->ServiceDB) ;
 						if ($CltDataBase !==''){
 							if($CltTechnoWeb->DBExiste($CltDataBase)){
-								$BoutiqueCible = self::GetBoutique(-1,$CltTechnoWeb->RaisonSocial, $CltDataBase) ;
-								if(!isset($BoutiqueCible)){
-									self::$Log->Write(__FILE__." LIGNE: ".__LINE__ . ": Client ".$CltTechnoWeb->RaisonSocial." introuvable !");
+								if(isset($CreateDynamicBoutique) && $CreateDynamicBoutique){
+									//On va générer une Boutique sans l'enregistrer dans la base de donnée master
+									if($this->ActiveDebug && self::$LogLevel>2){
+										self::$Log->AddToLog(" Creation dynamique d'une Boutique pour ".$CltTechnoWeb->RaisonSocial." ...");
+									}
 									$IdB=null;
-									self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Création de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
-
+									if($CltTechnoWeb->ServiceDBPort==''){
+										$CltTechnoWeb->ServiceDBPort = 3306;
+										$CltTechnoWeb->Enregistrer();
+									}
+									if($CltTechnoWeb->ServiceDBUser==''){
+										$CltTechnoWeb->ServiceDBUser = "pharmcp";
+										$CltTechnoWeb->Enregistrer();
+									}
+									if($CltTechnoWeb->ServiceDBPwd==''){
+										$CltTechnoWeb->ServiceDBPwd = "microcp";
+										$CltTechnoWeb->Enregistrer();
+									}
+									
+									xORMHelper::$UseMasterLinkOnNextInit=true;
 									$Bout = new xORMHelper($this,$IdB,self::GLOBAL_AUTO_CREATE_DBTABLE,"boutique",$this->MainDataBase);
 									$Bout->DBName = $CltDataBase ;
 									$Bout->Nom = $CltTechnoWeb->RaisonSocial ;
 									$Bout->DBase = $CltDataBase ;
-									$Bout->Serveur = $this->MaBoutique->Serveur ;
-									$Bout->DBUser = "pharmcp";
-									$Bout->DBPassword = "microcp";
+									$Bout->Serveur = $CltTechnoWeb->AdresseIP_VPN ;
+									$Bout->DBPort = (int)$CltTechnoWeb->ServiceDBPort ;
+									$Bout->DBUser = $CltTechnoWeb->ServiceDBUser;
+									$Bout->DBPassword = $CltTechnoWeb->ServiceDBPwd;
+
+									$IsDynamicBout=true;
+									$BoutiqueCible = new xBoutique($Bout->Main,0,false,$Bout->Table, $this->MainDataBase);
+
+									$BoutiqueCible->DBName = $Bout->DBName ;
+									$BoutiqueCible->Nom = $Bout->Nom ;
+									$BoutiqueCible->DBase = $Bout->DBase ;
+									$BoutiqueCible->Serveur = $Bout->Serveur ;
+									$BoutiqueCible->DBPort = (int)$Bout->DBPort ;
+									$BoutiqueCible->DBUser = $Bout->DBUser;
+									$BoutiqueCible->DBPassword = $Bout->DBPassword ;
+
+									$CanAdd=true;
+									if(count($this->Boutiques)){
+										foreach ($this->Boutiques as $BoutX) {
+											if($Bout->Nom == $BoutX->Nom && $Bout->Serveur == $BoutX->Serveur ){
+												$CanAdd=false;
+												break;
+											}
+										}
+									}
+									if($CanAdd){
+										$this->Boutiques[]=$BoutiqueCible ;
+									}
 									
-									if($Bout->Enregistrer()){
-										$BoutiqueCible =  new xBoutique($this, $Bout->Id,false);
-										$CanAdd=true;
-										if(count($this->Boutiques)){
-											foreach ($this->Boutiques as $BoutX) {
-												if($Bout->Id == $BoutX->Id){
-													$CanAdd=false;
-													break;
-												}
+									$CanAdd=true;
+									if(count(self::$ListeBoutique)){
+										foreach (self::$ListeBoutique as $BoutX) {
+											if($Bout->Nom == $BoutX->Nom && $Bout->Serveur == $BoutX->Serveur){
+												$CanAdd=false;
+												break;
 											}
 										}
-										if($CanAdd){
-											$this->Boutiques[]=$BoutiqueCible ;
-										}
+									}
+									if($CanAdd){
+										self::$ListeBoutique[]=$BoutiqueCible ;
+									}
+								}else{
+									$BoutiqueCible = self::GetBoutique(-1,$CltTechnoWeb->RaisonSocial, $CltDataBase) ;
+									if(!isset($BoutiqueCible)){
+										self::$Log->Write(__FILE__." LIGNE: ".__LINE__ . ": Client ".$CltTechnoWeb->RaisonSocial." introuvable !");
+										$IdB=null;
+										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Création de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
+
+										$Bout = new xORMHelper($this,$IdB,self::GLOBAL_AUTO_CREATE_DBTABLE,"boutique",$this->MainDataBase);
+										$Bout->DBName = $CltDataBase ;
+										$Bout->Nom = $CltTechnoWeb->RaisonSocial ;
+										$Bout->DBase = $CltDataBase ;
+										$Bout->Serveur = $this->MaBoutique->Serveur ;
+										$Bout->DBUser = "pharmcp";
+										$Bout->DBPassword = "microcp";
 										
-										$CanAdd=true;
-										if(count(self::$ListeBoutique)){
-											foreach (self::$ListeBoutique as $BoutX) {
-												if($Bout->Id == $BoutX->Id){
-													$CanAdd=false;
-													break;
+										if($Bout->Enregistrer()){
+											$BoutiqueCible =  new xBoutique($this, $Bout->Id,false);
+											$CanAdd=true;
+											if(count($this->Boutiques)){
+												foreach ($this->Boutiques as $BoutX) {
+													if($Bout->Id == $BoutX->Id){
+														$CanAdd=false;
+														break;
+													}
 												}
 											}
+											if($CanAdd){
+												$this->Boutiques[]=$BoutiqueCible ;
+											}
+											
+											$CanAdd=true;
+											if(count(self::$ListeBoutique)){
+												foreach (self::$ListeBoutique as $BoutX) {
+													if($Bout->Id == $BoutX->Id){
+														$CanAdd=false;
+														break;
+													}
+												}
+											}
+											if($CanAdd){
+												self::$ListeBoutique[]=$BoutiqueCible ;
+											}
 										}
-										if($CanAdd){
-											self::$ListeBoutique[]=$BoutiqueCible ;
+
+									}else{
+										//self::$Main::$Log->AddToLog("DB Cible TechnoWEB : ".$BoutiqueCible->ToJSON());
+										if($BoutiqueCible->DBName !== $CltDataBase){
+											self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Mise a jour de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
+											$BoutiqueCible->DBName = $CltDataBase ;
+											$BoutiqueCible->DBase = $CltDataBase ;
+											$BoutiqueCible->Enregistrer() ;
 										}
 									}
 
-								}else{
-									//self::$Main::$Log->AddToLog("DB Cible TechnoWEB : ".$BoutiqueCible->ToJSON());
-									if($BoutiqueCible->DBName !== $CltDataBase){
-										self::$Log->Write(__FILE__." LIGNE: ".__LINE__. ": Mise a jour de la boutique pour: ". $CltTechnoWeb->RaisonSocial . " BD Existant: ".$CltDataBase." | MainDatabase: ".$this->MainDataBase) ;
-										$BoutiqueCible->DBName = $CltDataBase ;
-										$BoutiqueCible->DBase = $CltDataBase ;
-										$BoutiqueCible->Enregistrer() ;
+									$BoutiqueCible->DataBase = $BoutiqueCible->DBName ;
+									if($BoutiqueCible->DataBase !== $BoutiqueCible->DBName){
+										//var_dump($BoutiqueCible->DBName );exit;
+										$BoutiqueCible->DBName = $BoutiqueCible->DataBase ;
 									}
 								}
+
 
 								if($BoutiqueCible){
 									//self::$Log->Write("CltDataBase: ".$CltDataBase." BD=".$BoutiqueCible->DataBase);
@@ -3059,14 +3450,49 @@ Class xNAbySyGS
 										$BoutiqueCible->DBname = $CltDataBase ;
 									}
 
-									$BoutiqueCible->DataBase = $BoutiqueCible->DBName ;
-									$BoutiqueCible->DBName = $BoutiqueCible->DataBase ;
+									//if(!$IsDynamicBout){
+										
+										
+									//}
+
 									$this->MaBoutique = $BoutiqueCible;
+
+									//On ce connnecte via TechnoWEB si Serveur différent de l'adresse IP local
+									if($CltTechnoWeb->AdresseIP_VPN !=='' ){
+										if($CltTechnoWeb->AdresseIP_VPN !== '127.0.0.1' &&
+											$CltTechnoWeb->AdresseIP_VPN !== 'localhost' ){
+												if($CltTechnoWeb->ServiceDBUser == ''){
+													$CltTechnoWeb->ServiceDBUser="pharmcp";
+												}
+												if($CltTechnoWeb->ServiceDBPwd == ''){
+													$CltTechnoWeb->ServiceDBPwd="microcp";
+												}
+												if((int)$CltTechnoWeb->ServiceDBPort == 0){
+													$CltTechnoWeb->ServiceDBPort=3306;
+												}
+												$CltTechnoWeb->Enregistrer();
+												if($this->ActiveDebug && self::$LogLevel>3){
+													self::$Log->AddToLog("Connexion via TechnoWEB ... ".$CltTechnoWeb->ToJSON());
+												}
+												$this->restartConnexion($CltTechnoWeb->AdresseIP_VPN, 
+													$CltTechnoWeb->ServiceDBUser,
+													$CltTechnoWeb->ServiceDBPwd, 
+													$this->MODULE,
+													trim($CltTechnoWeb->ServiceDB),
+													(int)$CltTechnoWeb->ServiceDBPort
+													);
+												self::$TECHNOWEB_ACTIVE = true;
+												if($this->ActiveDebug && self::$LogLevel>3){
+													self::$Log->AddToLog("Client TechnoWEB connecté: ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
+												}
+											}
+									}
+									/******************************************************************************* */
 
 									$this->SelectDB($BoutiqueCible->DBName);
 									$this->DataBase = $BoutiqueCible->DBName;
 									$this->RepWork = $CltDataBase;
-									$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
+									//$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
 									//self::$Log->AddToLog("La boutique en cour est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
 									if(!is_dir($this->RepWork)){
 										try {
@@ -3093,9 +3519,11 @@ Class xNAbySyGS
 						}
 					}
 				}else{
+					var_dump($_REQUEST);
+					var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4));exit;
 					$this->AutorisationCORS();
 					$Err=new xErreur();
-					$Err->TxErreur="ID-TechnoWeb introuvable !";
+					$Err->TxErreur="ID-TechnoWeb ".$IdTechnoWeb." est introuvable !";
 					$Err->SendAsJSON();
 					return $Err ;
 				}
@@ -3153,7 +3581,9 @@ Class xNAbySyGS
 	 */
 	public function RefreshParametre(string $CltDataBase =''):bool{
 		if(trim($CltDataBase) !==''){
-			$this->Parametre=new xORMHelper($this,1,true,"parametre",$CltDataBase);
+			if(!self::$TECHNOWEB_ACTIVE){
+				$this->Parametre=new xORMHelper($this,1,true,"parametre",$CltDataBase);
+			}
 			//self::$Log->Write("RAFRAICHISSEMENT DES PARAMETRE: ".$this->Parametre->FullTableName());
 		}
 
@@ -3168,16 +3598,9 @@ Class xNAbySyGS
 				$this->Parametre->MonnaieLong = "FRANCS CFA";
 				$Date=date('Y-10-01');
 				$Dte=new DateTime($Date);
-				$this->Parametre->DatePremiereScolarite = $Dte->format('Y-m-d');
 				$this->Parametre->Enregistrer();
 			}
 
-		}
-		if ($this->Parametre->DatePremiereScolarite == ''){
-			$Date=date('Y-10-01');
-			$Dte=new DateTime($Date);
-			$this->Parametre->DatePremiereScolarite = $Dte->format('Y-m-d');
-			$this->Parametre->Enregistrer();
 		}
 		return $this->Parametre->Refresh();
 	}

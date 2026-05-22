@@ -7,9 +7,19 @@ use xDBStateFullSet;
 
         public $Main ;
         public $DebugMode ;
-        public function __construct(xNAbySyGS $NAbySyGS){
+
+        /**
+         * Si vrai l'objet utilisera la connexion de la base de donnée master
+         * @var bool
+         */
+        public bool $UseMasterLink = false;
+        
+        public function __construct(xNAbySyGS $NAbySyGS, ?bool $UseMasterDB = false){
             $this->Main = $NAbySyGS ;
             $this->DebugMode=$NAbySyGS->ActiveDebug ;
+            if(isset($UseMasterDB)){
+                $this->UseMasterLink = $UseMasterDB ;
+            }
         }
 
         function ToArray($Reponse){
@@ -67,7 +77,7 @@ use xDBStateFullSet;
                     $TxSQL="SHOW TABLES FROM ".$DBaseName." like '".$Table."' " ;
                 }
             }              
-            $reponse=$this->Main->ReadWrite($TxSQL,true,null,false);
+            $reponse=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink);
             if (count($reponse->fetch_all())>=1){
                 if ($this->DebugMode){
                     echo '</br>Table '.$this->Main->DataBase.'.'.$Table.' présent. </br>' ;
@@ -96,7 +106,7 @@ use xDBStateFullSet;
                 );" ;
             if ($this->DebugMode)
                 echo '</br>Création de la Table '.$NomTable.': ' ;
-            $ok=$this->Main->ReadWrite($TxSQL,true,null,false) ;
+            $ok=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink) ;
             if ($ok>=1){
                 if ($this->DebugMode)
                     echo '...OK' ;
@@ -108,7 +118,7 @@ use xDBStateFullSet;
         }
 
         public function ChampsExiste($Table,$Champ,$DBaseName=null){
-            if($this->Main::$CanUseDBStateFullSet){
+            if($this->Main::$CanUseDBStateFullSet && !$this->UseMasterLink){
                 if($DBaseName==null && $this->Main->MaBoutique != null){
                     $DBaseName=$this->Main->MaBoutique->DBName ;
                 }
@@ -126,7 +136,7 @@ use xDBStateFullSet;
                 */
                 //$this->Main::$Log->Write('Vérifions la présence du champ '.$Table.': '.$Champ." Avec ".$TxSQL);
             }                
-            $reponse=$this->Main->ReadWrite($TxSQL,true,null,false);
+            $reponse=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink);
             if (count($reponse->fetch_all())>=1){
                 if ($this->DebugMode){
                     /* echo '...Présent</br>' ; */                    
@@ -164,7 +174,7 @@ use xDBStateFullSet;
             $TxSQL="ALTER TABLE ".$NomTable." ".$AddOrChange." `".$NomChamp."` ".$TypeVar." NOT NULL DEFAULT '".$ValDefaut."' " ;
             $TxSQL = str_replace("``","`",$TxSQL) ;
 
-            $ok=$this->Main->ReadWrite($TxSQL,true,null,false) ;
+            $ok=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink) ;
             if ($ok>=1){
                 if ($this->DebugMode){
                     //echo '...OK' ;
@@ -202,7 +212,7 @@ use xDBStateFullSet;
             $TxSQL="SHOW DATABASES like '".$DBaseName."' " ;            
             // if ($this->DebugMode)
             //     echo '</br>Vérifions la Présence de la Table '.$Table.': '.$TxSQL ;
-            $reponse=$this->Main->ReadWrite($TxSQL,null,null,null,null,null,false);
+            $reponse=$this->Main->ReadWrite($TxSQL,null,null,null,$this->UseMasterLink);
             if($reponse->num_rows>0){
                 return true;
             }            

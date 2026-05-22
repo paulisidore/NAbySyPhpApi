@@ -1,13 +1,16 @@
 <?php
-namespace NAbySy\Lib\ModuleExterne\TechnoWEB ;
+namespace NAbySy\TechnoWEB ;
 
 use NAbySy\ORM\xORMHelper;
+use NAbySy\xNAbySyGS;
 
 /**
  * Module TechnoWEB
- * @package NAbySy\Lib\ModuleExterne\TechnoWEB
+ * @package NAbySy\TechnoWEB
  */
 interface ITechnoWEB {
+
+    public function  __construct(xNAbySyGS $nabysy ) ;
 
     /**
      * Indique que le module est prêt à travailler

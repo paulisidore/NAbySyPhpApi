@@ -163,7 +163,20 @@ class xDBStateFullSet {
 
     private static function checkFieldInRealTime(string $db, string $table, string $field): bool {
         try {
-            $db_link = self::$NAbySy::$db_link;
+            $db_link = xNAbySyGS::$db_link;
+            try {
+                if(!$db_link->ping()){
+                    echo "Connexion fermée.";
+                    var_dump($db_link->sqlstate);exit;
+                }
+            } catch (\Throwable $th) {
+                if(xNAbySyGS::$TechnoWEBMgr){
+                    $db_link = xNAbySyGS::$master_db_link ;
+                }else{
+                    return false;
+                }
+            }
+            
             // Préparation de la requête
             $stmt = $db_link->prepare("SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
             

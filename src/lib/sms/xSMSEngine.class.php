@@ -1,6 +1,8 @@
 <?php
     namespace NAbySy\Lib\Sms ;
-    use NAbySy\xNAbySyGS;
+
+use NAbySy\ORM\xORMHelper;
+use NAbySy\xNAbySyGS;
 
     /**
      * Moteur de gestion des Envoies d'SMS.
@@ -15,6 +17,7 @@
 
         public function __construct(xNAbySyGS $NAbySy){
             self::$Main=$NAbySy ;
+            xORMHelper::$UseMasterLinkOnNextInit = true;
             self::$SmsRS=new \NAbySy\ORM\xORMHelper(self::$Main,null,self::$Main::GLOBAL_AUTO_CREATE_DBTABLE,'smsenginerpt');
         }
 

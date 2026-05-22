@@ -25,7 +25,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if ($TableName==''){
             $TableName="utilisateur";
         }
-        parent::__construct($NabySy,(int)$IdUser,$CreationChampAuto,$TableName,$NabySy->MaBoutique->DBName);
+        parent::__construct($NabySy,(int)$IdUser,$CreationChampAuto,$TableName);
         //$this->Table="utilisateur" ;
         $this->TEntete=$this->Table;
 		if ($this->EnteteTable==''){
@@ -35,7 +35,11 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         
         $this->TablePageInterdite="pageinterdite" ;
         //$this->Main = $NabySy ;
-        $this->DBase=$NabySy->MaBoutique->DBName ;
+        if(!xNAbySyGS::$TECHNOWEB_ACTIVE){
+            $this->DBase=$NabySy->MaBoutique->DBName ;
+        }else{
+            $this->DBase = $NabySy->DataBase ;
+        }
         $this->Boutique = $NabySy->MaBoutique;
 
         $MySQL=new xDB($this->Main) ;
