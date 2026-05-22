@@ -2023,14 +2023,17 @@ Class xNAbySyGS
 	public static function LoadModuleLib($DebugLevel=0){  
 			$rep=__DIR__ .DIRECTORY_SEPARATOR."lib" ;
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
-            
+			$requireLogLevel=7;
+            if($DebugLevel == 0){
+				$DebugLevel = self::$LogLevel ;
+			}
             $ListeDossier=[] ;
 			$NbModule=0;
-            if ($DebugLevel>2){
+            if ($DebugLevel >= $requireLogLevel){
                 self::$Log->AddToLog('Repertoire '.$rep.' Existe ? ',$DebugLevel) ;
             }            
             if(self::IsDirectory($rep)){  
-                if ($DebugLevel>2){
+                if ($DebugLevel >= $requireLogLevel){
                     self::$Log->AddToLog( 'OUI', $DebugLevel) ;
                 }
                 if($iteration = opendir($rep)){  
@@ -2040,16 +2043,16 @@ Class xNAbySyGS
                         if($dos != "." && $dos != ".." && $dos != "Thumbs.db")  
                         {  
                             $pathfile=$rep.DIRECTORY_SEPARATOR.$dos ;
-                            if ($DebugLevel>2){
+                            if ($DebugLevel >= $requireLogLevel){
                                 self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ', $DebugLevel) ;
                             }
                             if (is_dir($pathfile)){
                                 $NbModule ++;
-                                if ($DebugLevel>2){
+                                if ($DebugLevel >= $requireLogLevel){
                                     self::$Log->AddToLog( 'Librairie trouvé: '.$dos, $DebugLevel) ;
                                 }
                                 //Repertoir nom de module
-                                if ($DebugLevel>2){
+                                if ($DebugLevel >= $requireLogLevel){
                                     self::$Log->AddToLog( 'OUI', $DebugLevel) ;
                                 }
                                 $Mod=[];
@@ -2057,7 +2060,7 @@ Class xNAbySyGS
                                 $Mod[1]=$pathfile ;
                                 $ListeDossier[]=$Mod ;                                
                             }else{
-                                if ($DebugLevel>2){
+                                if ($DebugLevel >= $requireLogLevel){
                                     self::$Log->AddToLog( 'NON', $DebugLevel) ;
                                 }
                             }
@@ -2066,7 +2069,7 @@ Class xNAbySyGS
                     closedir($iteration);  
                 }  
             }else{
-                if ($DebugLevel>2){
+                if ($DebugLevel >= $requireLogLevel){
                     self::$Log->AddToLog( 'NON', $DebugLevel) ;
                 }
             }
@@ -2091,11 +2094,11 @@ Class xNAbySyGS
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
             
             $ListeDossierH=[] ;
-            if ($DebugLevel>2){
+            if ($DebugLevel >= $requireLogLevel){
                 self::$Log->AddToLog('Repertoire '.$rep.' Existe ? ',$DebugLevel) ;
             }            
             if(self::IsDirectory($rep)){  
-                if ($DebugLevel>2){
+                if ($DebugLevel >= $requireLogLevel){
                     self::$Log->AddToLog( 'OUI', $DebugLevel) ;
                 }
                 if($iteration = opendir($rep)){  
@@ -2105,16 +2108,16 @@ Class xNAbySyGS
                         if($dos != "." && $dos != ".." && $dos != "Thumbs.db")  
                         {  
                             $pathfile=$rep.DIRECTORY_SEPARATOR.$dos ;
-                            if ($DebugLevel>2){
+                            if ($DebugLevel >= $requireLogLevel){
                                 self::$Log->AddToLog( 'Repertoire Module '.$pathfile.' ? ', $DebugLevel) ;
                             }
                             if (is_dir($pathfile)){
                                 $NbModule ++;
-                                if ($DebugLevel>2){
+                                if ($DebugLevel >= $requireLogLevel){
                                     self::$Log->AddToLog( 'Librairie trouvé: '.$dos, $DebugLevel) ;
                                 }
                                 //Repertoir nom de module
-                                if ($DebugLevel>2){
+                                if ($DebugLevel >= $requireLogLevel){
                                     self::$Log->AddToLog( 'OUI', $DebugLevel) ;
                                 }
                                 $Mod=[];
@@ -2122,7 +2125,7 @@ Class xNAbySyGS
                                 $Mod[1]=$pathfile ;
                                 $ListeDossierH[]=$Mod ;
                             }else{
-                                if ($DebugLevel>2){
+                                if ($DebugLevel >= $requireLogLevel){
                                     self::$Log->AddToLog( 'NON', $DebugLevel) ;
                                 }
                             }
@@ -2131,7 +2134,7 @@ Class xNAbySyGS
                     closedir($iteration);  
                 }  
             }else{
-                if ($DebugLevel>2){
+                if ($DebugLevel >= $requireLogLevel){
                     self::$Log->AddToLog( 'NON', $DebugLevel) ;
                 }
             }
@@ -2142,7 +2145,7 @@ Class xNAbySyGS
 					include_once $FichierInterface ;
 					$ListeDossier[] = $Librairie ;
 				}else{
-					if(self::$LogLevel>3){
+					if($DebugLevel>= $requireLogLevel){
 						self::$Log->AddToLog($FichierInterface." introuvable");
 						$Tache="ERREUR CHARGEMENT DES LIBRAIRIES";
 						$Note=$FichierInterface." introuvable";
@@ -3472,7 +3475,7 @@ Class xNAbySyGS
 												}
 												$CltTechnoWeb->Enregistrer();
 												if($this->ActiveDebug && self::$LogLevel>3){
-													self::$Log->AddToLog("Connexion via TechnoWEB ... ".$CltTechnoWeb->ToJSON());
+													self::$Log->AddToLog("Connexion via TechnoWEB ... ");
 												}
 												$this->restartConnexion($CltTechnoWeb->AdresseIP_VPN, 
 													$CltTechnoWeb->ServiceDBUser,
