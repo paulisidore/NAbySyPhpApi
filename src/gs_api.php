@@ -289,6 +289,6 @@ if (!class_exists('N')) {
     if (isset($action)){
         $Err->TxErreur .= " ".$action." n'est pas définit." ;
     }
-    echo json_encode($Err);
+    $Err->SendAsJSON();
 
 ?>

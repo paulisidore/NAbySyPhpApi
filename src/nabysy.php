@@ -1151,6 +1151,9 @@ Class xNAbySyGS
 			}
 		}
 
+		if(!isset($this->MaBoutique) && self::$TECHNOWEB_ACTIVE){
+			$this->MaBoutique = new xBoutique($this);
+		}
 		if($this->MaBoutique->Id == 0){
 			$this->MaBoutique->IdCompteClient=0;
 			$this->MaBoutique->Nom = $this->MODULE->MCP_CLIENT;
