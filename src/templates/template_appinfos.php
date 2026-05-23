@@ -4,6 +4,15 @@
      * This file is used to create the database structure for your application.
      * Date: {DATE}
      * Version: 1.0.0
+     * 
+     * INFOS:
+     * You must check this requirement if NAbySyPhpApi is run on LINUX like OS.
+     * From your base folder, run this to change group to be apache group
+     * sudo chown {anyuser}:www-data -R *
+     * From your base folder, run this to aloow right permission to apache group
+     * sudo chmod g+rwx -R *
+     * 
+     * YOU MUST CHECK THIS ALWAYS AFTER run composer update or any other update command
      */
 
     const __DUREE_TOKEN__ = 3600; //Token expire time in second (defaut is 1 hour)
