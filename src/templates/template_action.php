@@ -45,22 +45,22 @@ if (!isset($action)){
 switch ($action) {
     case '[CATEGORIE]_GET': //Lecture: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->TxErreur="Action $action trouvée mais pas encore disponible." ;
         $Reponse->SendAsJSON() ;
 		break;
     case '[CATEGORIE]_CREATE': //Création: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->TxErreur="Action $action trouvée mais pas encore disponible." ;
         $Reponse->SendAsJSON() ;
 		break;
     case '[CATEGORIE]_SAVE': //Enregistrement: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->TxErreur="Action $action trouvée mais pas encore disponible." ;
         $Reponse->SendAsJSON() ;
         break;
     case '[CATEGORIE]_DELETE': //Suppression: {CATEGORIE}...
         $Reponse->OK=0;
-        $Reponse->TxErreur="Action $action trouvée mais encore disponible." ;
+        $Reponse->TxErreur="Action $action trouvée mais pas encore disponible." ;
         $Reponse->SendAsJSON() ;
         break;
     default:
