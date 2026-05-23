@@ -455,7 +455,7 @@ Class xNAbySyGS
 					if(!isset( self::$db_link )){
 						self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link ));
 					}
-					self::createMasterDB($mod);
+					
 					if(isset( self::$db_link )){
 						//Fermeture de la connexion précédente
 						self::$db_link->close()  ;
@@ -816,6 +816,9 @@ Class xNAbySyGS
 	public static function instanceDBExist(string $serveur, string $user ,string $passwd, int $port, ModuleMCP $mod, ?bool $UseMasterLink=false): bool {
 		$DBExist=false ;
 		$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->DataBase."'";
+		if($UseMasterLink){
+			//$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->MasterDataBase."'";
+		}
 		
 		$IsFormasterLink=false;
 		if(isset($UseMasterLink) && $UseMasterLink === true){

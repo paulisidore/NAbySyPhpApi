@@ -432,8 +432,14 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
     public function Signature($NewSignature=null){
         if(isset($NewSignature)){
             //On va modifier la signature de l'utilisateur
+            $PrecAutoC=$this->AutoCreate;
+            if(!$this->ChampsExisteInTable("Signature")){
+                $this->AutoCreate=true;
+            }
             $this->Signature=$this->Main::$db_link->escape_string($NewSignature);
-            return $this->Enregistrer() ;
+            $this->AutoCreate=$PrecAutoC;
+            $Ret=$this->Enregistrer() ;
+            return $Ret ;
         }else{
             //On retourne la signature de l'utilisateur
             //var_dump($this->_Signature) ;
