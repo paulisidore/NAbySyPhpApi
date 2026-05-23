@@ -1228,7 +1228,6 @@ Class xNAbySyGS
 			$Auth=new xAuth($this) ;
 			//echo 'je cherche ici NAbySyMain...' ;
 			$Usr=$Auth->DecodeToken($_REQUEST['Token']);
-			
 			if (isset($Usr)){
 				$TxClass=get_class($Usr);
 				if ($TxClass !== 'xErreur' && $TxClass !== 'NAbySy\xErreur'){
@@ -1250,6 +1249,9 @@ Class xNAbySyGS
 				}else{
 					$this->AllowCORS();
 					http_response_code(401); 
+					if($Usr instanceof xErreur){
+						$Usr->SendAsJSON();
+					}
 					exit ;
 				}
 			}
