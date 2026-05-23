@@ -64,17 +64,18 @@ use NAbySy\xUser;
         //var_dump($UserToken)."</br>" ;
         //var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec UserId = ".$UserToken->user_id);
         if (!isset($UserToken)){            
-            $Err->TxErreur="La session a expirée." ;
+            $Err->TxErreur="(ERR:SESSION_EXP) Votre session a expirée" ;
             $Err->OK=0;
-            echo json_encode($Err) ;
-            http_response_code(401);            
+            $Err->Source="auth.class.php" ;
+            $Err->Extra="Reconnectez-vous svp." ;
+            http_response_code(401);
+            $Err->SendAsJSON();
             exit ;
         }
         if (get_class($UserToken)=='xErreur' || get_class($UserToken)=='NAbySy\xErreur'){
-            $Err->TxErreur="Votre session à expirée." ;
-            $Err->OK=0;
-            echo json_encode($Err) ;
-            http_response_code(401);            
+            $Err=$UserToken ;
+            http_response_code(401);
+            $Err->SendAsJSON();          
             exit ;
         }
         
@@ -88,8 +89,8 @@ use NAbySy\xUser;
             $Err->TxErreur="Compte utilisateur ".$User->Login." bloqué. vérifiez la validité de votre contrat chez ".$nabysy->MODULE->Nom ;
             $Err->OK=0;
             $Err->Source=$User->DataBase ;
-            echo json_encode($Err) ;
-            http_response_code(401);            
+            http_response_code(401);
+            $Err->SendAsJSON();
             exit ;
         }
         

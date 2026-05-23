@@ -142,6 +142,7 @@ Class xAuth
                     if (!$NoRetournError){
                         http_response_code(401); 
                         $this->Main->AllowCORS();
+                        $Err->SendAsJSON();
                         exit ;
                     } 
                 
@@ -152,10 +153,16 @@ Class xAuth
                 
                     // show error message
                     $this->Main->AllowCORS();
-                    echo json_encode(array(
-                        "message" => "Access denied.",
-                        "error" => $e->getMessage()
-                    ));
+                    $Err=new xErreur ;
+                    $Err->TxErreur="Accès refusé" ;
+                    $Err->Autres = $e->getMessage();
+                    $Err->OK=0;
+                    $Err->Source="auth.class.php" ;
+                    $Err->SendAsJSON();
+                    // echo json_encode(array(
+                    //     "message" => "Access denied.",
+                    //     "error" => $e->getMessage()
+                    // ));
                     die();
                 }
             }

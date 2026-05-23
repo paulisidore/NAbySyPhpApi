@@ -1251,6 +1251,12 @@ Class xNAbySyGS
 					http_response_code(401); 
 					if($Usr instanceof xErreur){
 						$Usr->SendAsJSON();
+					}else{
+						$Err = new xErreur();
+						$Err->TxErreur="Token absent ou inconnue" ;
+						$Err->OK=0;
+						$Err->Source="nabysy" ;
+						$Err->SendAsJSON();
 					}
 					exit ;
 				}
@@ -1652,15 +1658,14 @@ Class xNAbySyGS
 			if (!isset($UserToken)){
 				$Err->TxErreur="Utilisateur introuvable !" ;
 				$Err->OK=0;
-				echo json_encode($Err) ;
-				http_response_code(401);            
+				http_response_code(401);
+				$Err->SendAsJSON();
 				exit ;
 			}
-			if (get_class($UserToken)=='xErreur'){
-				$Err->TxErreur="Votre session à expirée." ;
-				$Err->OK=0;
-				echo json_encode($Err) ;
-				http_response_code(401);            
+			if ($UserToken instanceof xErreur){
+				$Err=$UserToken ;
+				http_response_code(401);
+				$Err->SendAsJSON();
 				exit ;
 			}
 			
