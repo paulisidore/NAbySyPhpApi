@@ -167,7 +167,6 @@ Class xAuth
                 }
             }
         }
-
         return $decoded ;
     }
 

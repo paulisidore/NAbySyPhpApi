@@ -40,7 +40,7 @@ Class xProduit extends xORMHelper
 			}
 		}
 		//var_dump($TableName);
-		parent::__construct($NAbySy,$Id,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,$TableName,$NAbySy->DataBase) ;
+		parent::__construct($NAbySy,$Id,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE,$TableName,$NAbySy->DataBase) ;
 		self::UpdateEtatStock();
 	}	
 	

@@ -58,7 +58,6 @@ use NAbySy\xUser;
     
     if (isset($_REQUEST['Token'])){
         $Token=$_REQUEST['Token'] ;
-        //var_dump( __FILE__." Je lis le Token dans auth.php ... </br>" );
         //echo "Token a recherche = ".$Token ; //exit;
         $UserToken=$Auth->DecodeToken($Token) ;
         //var_dump($UserToken)."</br>" ;

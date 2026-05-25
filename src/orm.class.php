@@ -121,18 +121,35 @@ class xORMHelper implements IORM , JsonSerializable{
         $this->Table=$TableName ;
         $this->Main=$NAbySy ;
         self::$xMain=$NAbySy ;
-
+        
         $this->RS=[] ;
         $this->ListeChampDB=[];
         $this->DataBase = $this->Main->MainDataBase ;
         if (isset($NAbySy->MaBoutique)){
-            if(!xNAbySyGS::$TECHNOWEB_ACTIVE){
-                $this->DataBase = $NAbySy->MaBoutique->DBase;
+            $dbDispo = $this->Main->DataBase ;
+            if( xNAbySyGS::$TECHNOWEB_ACTIVE){
+                $dbDispo = $NAbySy->DataBase ;
             }else{
-                $this->DataBase = $NAbySy->DataBase ;
+                $dbDispo = $NAbySy->DataBase ;
+            }
+
+            if($this->Main->MaBoutique->Id>0){
+                //var_dump($this->Main->MaBoutique);exit;
+                if( !xNAbySyGS::$TECHNOWEB_ACTIVE && $this->Main->MaBoutique->Id>0 && trim($this->Main->MaBoutique->DBName) !==''){
+                    $dbDispo = $this->Main->MaBoutique->DBName ?? $this->Main->DataBase ?? $this->Main->MasterDataBase ?? null ;
+                }else{
+                    $dbDispo =  $this->Main->DataBase ?? $this->Main->MasterDataBase ?? null ;
+                }
+            }
+            $this->DataBase = $dbDispo ;
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE){
+                $this->DataBase = $dbDispo ;
+            }else{
+                //$this->DataBase = $NAbySy->DataBase ;
+                $this->DataBase = $dbDispo ?? $NAbySy->DataBase  ;
             }
         }
-        if(xNAbySyGS::$TECHNOWEB_ACTIVE || $this->UseMasterLink){
+        if( $this->UseMasterLink){
             $this->DataBase = $NAbySy->DataBase ;
         }
         $this->AutoCreate=$CreationChampAuto ;
@@ -1495,6 +1512,18 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public function ToArrayAssoc($RemoveFieldList=[]):array{
         $Tableau=[];
+        try{
+            $oobj = $this->ToJSON(false, $RemoveFieldList);
+            $Tableau = json_decode($oobj, true);
+            return $Tableau;
+        }catch(Exception $ex){
+            /* $Err=new xErreur ;
+            $Err->OK=0 ;
+            $Err->TxErreur=$ex->getMessage() ;
+            $Err->Source=__CLASS__.':'.$this->Table.'::'.__FUNCTION__ ;
+            return ["error" => $Err] ; */
+        }
+        
         $AddToReponse = true;
         if (count($this->ListeChampDB)){
             foreach ($this->ListeChampDB as $Champ){

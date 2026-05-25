@@ -173,8 +173,9 @@ use xDBStateFullSet;
             }
             $TxSQL="ALTER TABLE ".$NomTable." ".$AddOrChange." `".$NomChamp."` ".$TypeVar." NOT NULL DEFAULT '".$ValDefaut."' " ;
             $TxSQL = str_replace("``","`",$TxSQL) ;
-
-            $ok=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink) ;
+            
+            $CanDebug = ($this->Main->ActiveDebug<0 || xNAbySyGS::$LogLevel>4) && xNAbySyGS::$LogLevel > 2 ;
+            $ok=$this->Main->ReadWrite($TxSQL,true,null,$CanDebug, $this->UseMasterLink) ;
             if ($ok>=1){
                 if ($this->DebugMode){
                     //echo '...OK' ;
@@ -183,8 +184,15 @@ use xDBStateFullSet;
                 if ($this->DebugMode){
                     //echo '...ERREUR' ;
                     $this->Main::$Log->Write("ERR: Impossible de créer le champ avec ".$TxSQL);
-                    //return false;
-                }                    
+                    $Err=new xErreur ;
+                    $Err->TxErreur="ERR: Impossible de créer le champ ".$NomChamp." dans la table ".$NomTable ;
+                    if(xNAbySyGS::$LogLevel>2){
+                        $Err->Autres = "Avec la requete : ".$TxSQL ;
+                        $Err->Source = __FILE__." LIGNE ". __LINE__ ;
+                        $Err->SendAsJSON();
+                    }
+                }
+                return false;
             }
             return true;
         }

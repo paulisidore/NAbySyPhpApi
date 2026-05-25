@@ -40,9 +40,8 @@ Class xBoutique extends xORMHelper  {
 
 		if(isset($NAbySy->MaBoutique)){
 			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET', $BoutiqueDBName)){
-				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET',$BoutiqueDBName);
+				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET','VARCHAR(255)','ADD','',$BoutiqueDBName);
 			}
-
 			xORMHelper::$UseMasterLinkOnNextInit = true;
 			$this->Parametre=new xORMHelper($NAbySy,1,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
 			if ($this->Parametre->Id > 0){
@@ -348,7 +347,6 @@ Class xBoutique extends xORMHelper  {
 			return null ;
 		
 		$row = $reponse->fetch_assoc() ;
-		
 		$IdDepot = $row['Id'] ;
 		$BoutiqueDepot = new xBoutique($this->Main,$IdDepot,false,'boutique',$this->MasterDataBase) ;
 		return $BoutiqueDepot ;

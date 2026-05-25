@@ -25,7 +25,8 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         if ($TableName==''){
             $TableName="utilisateur";
         }
-        parent::__construct($NabySy,(int)$IdUser,$CreationChampAuto,$TableName);
+        $dbName = null; // $NabySy->MaBoutique->DBName ?? $NabySy->DataBase ?? $NabySy->MasterDataBase ?? null ;        
+        parent::__construct($NabySy,(int)$IdUser,$CreationChampAuto,$TableName, $dbName);
         //$this->Table="utilisateur" ;
         $this->TEntete=$this->Table;
 		if ($this->EnteteTable==''){

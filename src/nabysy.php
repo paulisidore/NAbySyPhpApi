@@ -38,6 +38,7 @@ include_once 'orm.i.php' ;
 include_once 'orm.class.php' ;
 include_once 'user.class.php' ;
 include_once 'technoweb.i.php';
+include_once 'lignearticlebl.i.php' ;
 
 include_once 'photo.class.php';
 include_once 'fileuploader.class.php';
@@ -449,13 +450,12 @@ Class xNAbySyGS
 			$UserMasterDB=false;
 			if(isset(self::$master_db_link)){
 				$UserMasterDB=true ;
-			}
+			}			
 			if(!self::instanceDBExist($Myserveur, $Myuser, $Mypasswd, $port, $mod, $UserMasterDB)){
 				try {
 					if(!isset( self::$db_link )){
 						self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd,null ,$port) or die("Error ".mysqli_error(self::$db_link ));
 					}
-					
 					if(isset( self::$db_link )){
 						//Fermeture de la connexion précédente
 						self::$db_link->close()  ;
@@ -472,6 +472,7 @@ Class xNAbySyGS
 			}
 			
 			self::$db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $db,$port) or die("Error ".mysqli_error(self::$db_link )); // mysql_connect($serveur,$user,$passwd);                        // connection serveur
+			
 			if (!self::$db_link){
 				$Err=new xErreur;
 				$Err->OK=0;
@@ -482,7 +483,6 @@ Class xNAbySyGS
 				return;
 			}
 			$this->db_port=$port ;
-
 			$this->Erreur="" ;
 			$this->ISCONNECTED=true ;
 			$this->db_user=$Myuser ;
@@ -499,7 +499,7 @@ Class xNAbySyGS
 					self::$Log->Write($ex->getMessage());
 				}				
 			}
-
+			
 			$MAJ=$this->MAJ_DB() ;
 			
 			self::$CURL=new xCurlHelper($this);
@@ -1131,6 +1131,7 @@ Class xNAbySyGS
 		}elseif(!self::$TECHNOWEB_ACTIVE){
 			$this->MaBoutique=new xBoutique($this,0);
 			$Depot=$this->MaBoutique->GetDepot();
+			
 			//var_dump($Depot);
 			if (isset($Depot)){
 				if ($Depot->Id>0){
@@ -1415,7 +1416,7 @@ Class xNAbySyGS
 			fputs($F, $TxT);
 			fclose($F);
 
-			if($this->ActiveDebug){
+			if($this->ActiveDebug || self::$LogLevel>4){
 				header('Content-Type: application/json');
 				echo json_encode(["src" => __FILE__." LINE ".__LINE__ , "error" => "SQL Error: " . $e->getMessage(), "sql" => $SQL, "trace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,5)]);
 				exit;
@@ -1471,6 +1472,15 @@ Class xNAbySyGS
 			}else{
 				$OkErr=self::$db_link->query($ErrSQL);
 			}
+
+			if(self::$LogLevel>2){
+				$Err=new xErreur();
+				$Err->Extra="Requête SQL exécutée : ".$SQL ;
+				$Err->TxErreur=$Note ;
+				$Err->Source=__FUNCTION__." dans ". __FILE__." à la ligne ". __LINE__ ;
+				$Err->SendAsJSON(false);
+			}
+
 			if (!$OkErr){
 				echo "<h1>Erreur Critique dans le module NAbySyGS, contacter l'administrateur svp !</br>".
 				$UseMasterDBLink ? self::$master_db_link->error : self::$db_link->error."</br></h1>" ;
@@ -1505,7 +1515,7 @@ Class xNAbySyGS
 			if (!is_dir($logFolder)){
 				mkdir($logFolder,0777,true) ;
 			}
-			if ($DEBUG){	
+			if ($DEBUG){
 				$ignoreRequete=self::$RequetteToIgnoreInLOG;
 				if(self::$LOG_ALL_SQL_REQUETE){
 					$ignoreRequete=array();
@@ -1545,7 +1555,8 @@ Class xNAbySyGS
 		return $req ;
 	}	 
 
-	public function AddToJournal($login=null,$IdTechnicien=null,$Tache='',$Note='', ?xBoutique $Boutique=null){
+	public function AddToJournal($login=null,$IdTechnicien=null,$Tache='',$Note='', 
+		?xBoutique $Boutique=null, ?int $IdProduit=null){
 		//$this->MODULE ;
 		if (!isset($login)){
 			$login="SYSTEME NABYSY" ;
@@ -1555,6 +1566,9 @@ Class xNAbySyGS
 					$IdTechnicien=$this->User->Id ;
 				}
 			}
+		}
+		if(!isset($IdTechnicien)){
+			$IdTechnicien=0 ;
 		}
 
 		$Dat=date("Y-m-d");
@@ -1579,6 +1593,9 @@ Class xNAbySyGS
 		if($Boutique && trim($Boutique->DBName) !==''){
 			$JournalDB = $Boutique->DBName;
 		}
+		if(self::$TECHNOWEB_ACTIVE){
+			$JournalDB = $this->DataBase;
+		}
 
 		if(!$MyDB->ChampsExiste("journal",$ChampDate,$JournalDB)){
 			if($MyDB->ChampsExiste("journal","Date",$JournalDB)){
@@ -1587,22 +1604,41 @@ Class xNAbySyGS
 				$ChampOperation = "Tache" ;
 			}
 		}
+
+		if(!$MyDB->ChampsExiste("journal","Login",$JournalDB)){
+			$MyDB->AlterTable("journal","Login","VARCHAR(255)","ADD","",$JournalDB) ;
+		}
 		if(!$MyDB->ChampsExiste("journal","IdUtilisateur",$JournalDB)){
 			$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","ADD","0",$JournalDB) ;
 		}
+		//$MyDB->AlterTable("journal","IdUtilisateur","VARCHAR(255)","CHANGE","0",$JournalDB) ;
+
 		if(!$MyDB->ChampsExiste("journal","IP",$JournalDB)){
 			$MyDB->AlterTable("journal","IP","VARCHAR(255)","ADD","0.0.0.0",$JournalDB) ;
 		}
+		
 		if(!$MyDB->ChampsExiste("journal",$ChampPortClient,$JournalDB)){
 			$MyDB->AlterTable("journal",$ChampPortClient,"INT(11)","ADD","0",$JournalDB) ;
 		}
-		$sqljo="INSERT INTO ".$JournalDB.".journal (".$ChampDate.", ".$ChampHeure.", IdUtilisateur, IP, ".$ChampPortClient.", ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login','$IpClient','$PortClient','$Tache','$Note')"; 
+		if(!$MyDB->ChampsExiste("journal","IDPRODUIT",$JournalDB)){
+			$MyDB->AlterTable("journal","IDPRODUIT","int(11)","ADD","0",$JournalDB) ;
+		}
+
+		$sqljo="INSERT INTO ".$JournalDB.".journal (".$ChampDate.", ".$ChampHeure.",Login, IdUtilisateur, IP, ".$ChampPortClient.", ".$ChampOperation.",Note) VALUES ('$Dat','$Tim','$login', '$IdTechnicien','$IpClient','$PortClient','$Tache','$Note')"; 
 		$reqJ=$this->ReadWrite($sqljo,true,'journal',false) ;
 		if (!$reqJ)
 			{
 				echo $this->MODULE->Nom."Erreur interne du journal système ...".$reqJ ;
 			}
 		else{
+			if(isset($IdProduit)){
+				$sqljo="UPDATE ".$JournalDB.".journal SET IDPRODUIT='$IdProduit' WHERE ID='$reqJ'"; 
+				$reqUP=$this->ReadWrite($sqljo,true,'journal',false) ;
+				if (!$reqUP)
+					{
+						echo $this->MODULE->Nom."Erreur interne du journal système (update IDPRODUIT)...".$reqUP ;
+					}
+			}
 			//echo $this->MODULE->Nom."N°Enregistrement Journal système ...".$reqJ ;
 			
 		}
@@ -2837,7 +2873,7 @@ Class xNAbySyGS
 				$actual_link = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 				//self::$Log->AddToLog("Requette Recus ".$actual_link.": Variable de Requette = ".json_encode($LISTE_VARIABLE));
 			}
-		}		
+		}
 		return $LISTE_VARIABLE;
 	}
 
@@ -2874,7 +2910,6 @@ Class xNAbySyGS
 		if (PHP_SAPI !== 'cli' && session_status() == PHP_SESSION_NONE) {
 			session_start();
 		}
-
 		if(self::$ListeModuleWithHook && count(self::$ListeModuleWithHook)>0){
 			foreach (self::$ListeModuleWithHook as $Mod) {
 				if($Mod->canRaise()){
@@ -2903,7 +2938,6 @@ Class xNAbySyGS
 		$Conn = $StartInfo->Connexion ;
 
 		self::$LogLevel = $StartInfo->LogLevel ;
-		
 		$nabysy = new xNAbySyGS($Conn->Serveur,$Conn->DBUser,$Conn->DBPwd,$StartInfo->InfoClientMCP,$Conn->DB,$Conn->MasterDB, $Conn->Port, self::$BASEDIR, $StartInfo->DesableTokenAuth)  ;
 		if ($nabysy == false){
 			$Err=new xErreur();
