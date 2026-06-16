@@ -34,7 +34,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
-             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['Action']="{ROUTENAME}_GET" ;
              *  include_once './gs/{routename}/{routename}_action.php';
              */
             $Rep = new xNotification();
@@ -58,7 +58,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
-             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['Action']="{ROUTENAME}_GET" ;
              *  $_REQUEST['ID']=$id ;
              *  include_once './gs/{routename}/{routename}_action.php';
              */
@@ -80,7 +80,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
-             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['Action']="{ROUTENAME}_GET" ;
              *  include_once './gs/{routename}/{routename}_action.php';
              */
             $Rep = new xNotification();
@@ -104,7 +104,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
-             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['Action']="{ROUTENAME}_GET" ;
              *  $_REQUEST['ID']=$id ;
              *  include_once './gs/{routename}/{routename}_action.php';
              */
@@ -129,7 +129,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
-             *  $_REQUEST['Action']="{routename}_GET" ;
+             *  $_REQUEST['Action']="{ROUTENAME}_GET" ;
              *  $_REQUEST['ID']=$id ;
              *  include_once './gs/{routename}/{routename}_action.php';
              */
