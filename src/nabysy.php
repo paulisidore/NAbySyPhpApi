@@ -1283,6 +1283,19 @@ Class xNAbySyGS
 		}
 		if(!self::$TECHNOWEB_ACTIVE){
 			$this->Parametre = new xORMHelper($this,1,true,'parametre');
+			if(!$this->Parametre->TableExisteInDataBase()){
+				//Création de la Table parametre
+				self::$Log->AddToLog("Création de la table Paramètre... ".$this->Parametre->FullTableName());
+				$ParamDef=new xORMHelper($this,1,false,"parametre", $this->MainDataBase);
+				if(!$ParamDef->TableExisteInDataBase()){
+					$ParamDef->MONNAIES="FCFA";
+					$ParamDef->MONNAIES2="FCFA";
+					$ParamDef->Enregistrer();
+				}
+				$Param=$ParamDef->Clone($this->Parametre->DataBase,true);
+				$Param->Enregistrer();
+				$this->Parametre = $Param ;
+			}
 		}
 	}		
 	
