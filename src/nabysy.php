@@ -380,9 +380,11 @@ Class xNAbySyGS
 		self::$dbpass = $Mypasswd ;
 		self::$dbserver = $Myserveur ;
 
-		$Chemin=explode("/",$_SERVER['REQUEST_URI']) ;
-		$this->RacineSite=$Chemin[1] ;
-		$this->BaseSite='/'.$Chemin[1].'/app/web/index.php' ;
+		if(isset($_SERVER['REQUEST_URI'])){
+			$Chemin=explode("/",$_SERVER['REQUEST_URI']) ;
+			$this->RacineSite=$Chemin[1] ;
+			$this->BaseSite='/'.$Chemin[1].'/app/web/index.php' ;
+		}
 
 		$this->MCP_SEPARATEUR="*--*" ;
 		$this->MODULE = $mod;

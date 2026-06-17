@@ -221,6 +221,9 @@ class xGSUrlRouterManager{
 
         // Récupérer la méthode HTTP
         $requestMethod = $_SERVER['REQUEST_METHOD'];
+        if(!isset($requestMethod)){
+            $requestMethod = 'GET';
+        }
 
         // Permettre l'override de la méthode via _method dans POST
         if ($requestMethod === 'POST' && isset($_POST['_method'])) {
