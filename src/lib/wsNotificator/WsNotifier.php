@@ -1,0 +1,75 @@
+<?php
+namespace NAbySy\Lib\Evenement ;
+
+class WsNotifier
+{
+    private static string $wsInternalUrl = 'http://127.0.0.1:8091';
+
+    public function __construct(?string $internalUrl='http://127.0.0.1:8091'){
+        if(isset($internalUrl) && $internalUrl !==''){
+            self::$wsInternalUrl = $internalUrl;
+        }
+    }
+   
+    /**
+     * Permet l'envoie de notification aux utilisateurs connectés au serveur de notification
+     * @param string $event 
+     * @param array $payload 
+     * @param array $userIds 
+     * @return bool 
+     */
+    public static function send(string $event, array $payload, array $userIds = []): bool
+    {
+        $data = json_encode([
+            'event'    => $event,
+            'payload'  => $payload,
+            'user_ids' => $userIds  // vide = broadcast
+        ]);
+
+        $ch = curl_init(self::$wsInternalUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $data,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 3,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        ]);
+
+        $result = curl_exec($ch);
+        $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        return $code === 200;
+    }
+
+    public static function getConnectedUsers(): array
+    {
+        $ch = curl_init(self::$wsInternalUrl . '/connected-users'); // GET
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 3,
+        ]);
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($result, true);
+        return $data['connected_users'] ?? [];
+    }
+
+    // Filtrer par rôle ou boutique directement
+    public static function getConnectedByRole(string $role): array
+    {
+        return array_filter(
+            self::getConnectedUsers(),
+            fn($u) => $u['role'] === $role
+        );
+    }
+
+    public static function getConnectedByBoutique(int $boutiqueId): array
+    {
+        return array_filter(
+            self::getConnectedUsers(),
+            fn($u) => $u['boutique_id'] === $boutiqueId
+        );
+    }
+}

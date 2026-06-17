@@ -57,7 +57,7 @@ use NAbySy\xNAbySyGS;
                         $TxInfo=json_encode($Information);
                     }
                     $this->Message->Information=$TxInfo;
-                    $this->Urgence=(int)$Urgence;
+                    $this->Message->Urgence=(int)$Urgence;
                     if (isset($EmployeDestinataire)){
                         if (count($EmployeDestinataire)){
                             $this->ListeDestinataire=$EmployeDestinataire;
