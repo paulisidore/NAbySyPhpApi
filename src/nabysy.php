@@ -380,10 +380,12 @@ Class xNAbySyGS
 		self::$dbpass = $Mypasswd ;
 		self::$dbserver = $Myserveur ;
 
-		if(isset($_SERVER['REQUEST_URI'])){
-			$Chemin=explode("/",$_SERVER['REQUEST_URI']) ;
-			$this->RacineSite=$Chemin[1] ;
-			$this->BaseSite='/'.$Chemin[1].'/app/web/index.php' ;
+		if (php_sapi_name() !== 'cli'){
+			if(isset($_SERVER['REQUEST_URI'])){
+				$Chemin=explode("/",$_SERVER['REQUEST_URI']) ;
+				$this->RacineSite=$Chemin[1] ;
+				$this->BaseSite='/'.$Chemin[1].'/app/web/index.php' ;
+			}
 		}
 
 		$this->MCP_SEPARATEUR="*--*" ;
@@ -2526,7 +2528,12 @@ Class xNAbySyGS
 	 *
 	 */
 	function AutorisationCORS() {
-		
+		if (php_sapi_name() === 'cli'){
+			if($this->ActiveDebug && self::$LogLevel>3){
+				self::$Log->AddToLog("Ce script fonctionne en mode CLI");
+			}
+		}
+
 		// Allow from any origin
 		if (isset($_SERVER['HTTP_ORIGIN'])) {
 			// Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
@@ -2542,7 +2549,7 @@ Class xNAbySyGS
 		}
 		
 		// Access-Control headers are received during OPTIONS requests
-		if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+		if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 			
 			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])){
 				// may also be using PUT, PATCH, HEAD etc
@@ -2571,7 +2578,11 @@ Class xNAbySyGS
 	 *
 	 */
 	public static function AllowCORS() {
-		
+		if (php_sapi_name() === 'cli'){
+			if(xNAbySyGS::getInstance()->ActiveDebug && self::$LogLevel>3){
+				self::$Log->AddToLog("Ce script fonctionne en mode CLI");
+			}
+		}
 		// Allow from any origin
 		if (isset($_SERVER['HTTP_ORIGIN'])) {
 			// Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
@@ -2588,7 +2599,7 @@ Class xNAbySyGS
 		}
 		
 		// Access-Control headers are received during OPTIONS requests
-		if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+		if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 			
 			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])){
 					// may also be using PUT, PATCH, HEAD etc
