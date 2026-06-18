@@ -2532,6 +2532,7 @@ Class xNAbySyGS
 			if($this->ActiveDebug && self::$LogLevel>3){
 				self::$Log->AddToLog("Ce script fonctionne en mode CLI");
 			}
+			return ;
 		}
 
 		// Allow from any origin
@@ -2582,6 +2583,7 @@ Class xNAbySyGS
 			if(xNAbySyGS::getInstance()->ActiveDebug && self::$LogLevel>3){
 				self::$Log->AddToLog("Ce script fonctionne en mode CLI");
 			}
+			return;
 		}
 		// Allow from any origin
 		if (isset($_SERVER['HTTP_ORIGIN'])) {
@@ -2682,6 +2684,16 @@ Class xNAbySyGS
 		return true;
 	}
 
+	/**
+	 * Indique si le framework est chargé depuis une CLI PHP ou Non
+	 * @return bool 
+	 */
+	public static function isRunFromCLI():bool{
+		if (php_sapi_name() !== 'cli'){
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Retourne la dernière erreur liée à un appel aux fonctions JSON_ENCODE ou DECODE

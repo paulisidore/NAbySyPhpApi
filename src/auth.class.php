@@ -141,16 +141,22 @@ Class xAuth
                     //echo $Reponse ;
                     $decoded=$Err ; //"EXPIRE" ;
                     if (!$NoRetournError){
-                        http_response_code(401); 
+                        if(!xNAbySyGS::isRunFromCLI()){
+                            http_response_code(401); 
+                        }
                         $this->Main->AllowCORS();
                         $Err->SendAsJSON();
-                        exit ;
+                        if(!xNAbySyGS::isRunFromCLI()){
+                            exit ;
+                        }
                     } 
                 
                 } else {
                 
                     // set response code
-                    http_response_code(401);
+                    if(!xNAbySyGS::isRunFromCLI()){
+                        http_response_code(401);
+                    }
                 
                     // show error message
                     $this->Main->AllowCORS();
@@ -160,11 +166,9 @@ Class xAuth
                     $Err->OK=0;
                     $Err->Source="auth.class.php" ;
                     $Err->SendAsJSON();
-                    // echo json_encode(array(
-                    //     "message" => "Access denied.",
-                    //     "error" => $e->getMessage()
-                    // ));
-                    die();
+                    if(!xNAbySyGS::isRunFromCLI()){
+                        die();
+                    }
                 }
             }
         }
