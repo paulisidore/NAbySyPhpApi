@@ -4,6 +4,8 @@ namespace NAbySy\Lib\Evenement ;
 class WsNotifier
 {
     private static string $wsInternalUrl = 'http://127.0.0.1:8091';
+    private static string $appref        = 'nabisy';
+    private static string $appKey        = 'nby_live_xxxxxxxxxxxx';
 
     public function __construct(?string $internalUrl='http://127.0.0.1:8091'){
         if(isset($internalUrl) && $internalUrl !==''){
@@ -16,14 +18,16 @@ class WsNotifier
      * @param string $event 
      * @param array $payload 
      * @param array $userIds 
+     * @param string $topic
      * @return bool 
      */
-    public static function send(string $event, array $payload, array $userIds = []): bool
-    {
+    public static function send(string $event,array  $payload,array  $userIds = [],?string $topic   = null): bool {
         $data = json_encode([
             'event'    => $event,
             'payload'  => $payload,
-            'user_ids' => $userIds  // vide = broadcast
+            'user_ids' => $userIds,
+            'appref'   => self::$appref,
+            'topic'    => $topic
         ]);
 
         $ch = curl_init(self::$wsInternalUrl);
@@ -32,13 +36,16 @@ class WsNotifier
             CURLOPT_POSTFIELDS     => $data,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 3,
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'X-App-Ref: ' . self::$appref,
+                'X-App-Key: ' . self::$appKey,
+            ],
         ]);
 
         $result = curl_exec($ch);
         $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-
         return $code === 200;
     }
 

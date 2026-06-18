@@ -95,6 +95,7 @@ Class xAuth
             "NomPoste" => $NomPoste,
             "user_id" => $User->Id,
             "user_login" => $User->Login,
+            "role" => $User->Profile ?? 'Utilisateur',
             "user_data" => json_encode($User->ToObject()),
             "iss" => "https://groupe-pam.net",
             "aud" => "https://groupe-pam.net",
