@@ -208,11 +208,11 @@ class xGSUrlRouterManager{
         }
 
         // Récupérer l'URL demandée
-        $requestUri = $_SERVER['REQUEST_URI'];
-        $scriptName = dirname($_SERVER['SCRIPT_NAME']);
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+        $scriptName = dirname($_SERVER['SCRIPT_NAME'] ?? '');
 
         // Retirer le chemin du script de l'URI
-        if ($scriptName !== '/') {
+        if ($scriptName !== '' && $scriptName !== '/' && $requestUri !=='') {
             $requestUri = substr($requestUri, strlen($scriptName));
         }
 

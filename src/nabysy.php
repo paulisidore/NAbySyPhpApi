@@ -1590,8 +1590,8 @@ Class xNAbySyGS
 
 		$Dat=date("Y-m-d");
 		$Tim=date("H:i:s");
-		$IpClient=$_SERVER['REMOTE_ADDR'];
-		$PortClient=$_SERVER['REMOTE_PORT'];
+		$IpClient=$_SERVER['REMOTE_ADDR'] ?? '';
+		$PortClient=$_SERVER['REMOTE_PORT'] ?? 0;
 		$IdJ=0 ;
 		$OK=false;
 		$NomETS=$this->MODULE->Nom ;
