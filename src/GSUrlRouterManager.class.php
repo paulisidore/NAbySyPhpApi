@@ -220,7 +220,7 @@ class xGSUrlRouterManager{
         $requestUri = strtok($requestUri, '?');
 
         // Récupérer la méthode HTTP
-        $requestMethod = $_SERVER['REQUEST_METHOD'];
+        $requestMethod = $_SERVER['REQUEST_METHOD'] ?? null;
         if(!isset($requestMethod)){
             $requestMethod = 'GET';
         }
