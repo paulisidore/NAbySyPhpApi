@@ -177,12 +177,12 @@ Class xAuth
 
     /**
      * Extrait le token du header Authorization
-     * 
+     * Dans le Headers placez:
+     *  Authorization = "Bearer TOKEN"
      * @return string|null Token ou null si absent
      */
     public static function extractFromHeader(): ?string {
         $headers = getallheaders();
-
         if (!isset($headers['Authorization'])) {
             return null;
         }
@@ -191,6 +191,9 @@ Class xAuth
         
         // Format attendu : "Bearer TOKEN"
         if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
+            if($matches[1] && trim($matches[1]) !=='' && !isset($_REQUEST['Token'])){
+                $_REQUEST['Token'] = trim($matches[1]) ;
+            }
             return $matches[1];
         }
         

@@ -627,6 +627,8 @@ Class xNAbySyGS
 			if(!self::$TECHNOWEB_ACTIVE || !isset(self::$UrlRouter )){
 				self::$UrlRouter = new xGSUrlRouterManager($this);
 			}
+			//Lecture eventuelle du Token passé dans le Header
+			xAuth::extractFromHeader();
 		}
 
 	}
@@ -2871,16 +2873,18 @@ Class xNAbySyGS
 							$data=explode("=",$lignedata);
 							if (is_array($data)){
 								if ($data[0] !==""){
-									$tableau[$data[0]] = $data[1];
+									if(isset($tableau[$data[0]])){
+										$tableau[$data[0]] = $data[1];
+									}
 								}
 							}
 						}
-						if (count($tableau)){
+						if (is_array($tableau) && count($tableau)){
 							$sortie=$tableau ;
 						}
 					}
 					$postData=$sortie;
-					if($postData){
+					if($postData  && is_array($postData)){
 						if(count($postData)){
 							//self::$Log->AddToLog("Des données POST ont été trouvées: ".json_encode($postData));
 							if(count($_REQUEST)>0){
