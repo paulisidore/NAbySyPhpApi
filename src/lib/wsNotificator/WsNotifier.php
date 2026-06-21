@@ -1,7 +1,9 @@
 <?php
 namespace NAbySy\Lib\Evenement;
 
+use Exception;
 use NAbySy\xNAbySyGS;
+use xErreur;
 
 include_once 'WsNotifications.i.php';
 
@@ -10,6 +12,8 @@ class WsNotifier
     private static string $wsInternalUrl = 'http://127.0.0.1:8091';
     private static string $appref        = 'nabysy';
     private static string $appKey        = 'nby_live_xxxxxxxxxxxx';
+
+    private static bool $dejaSetup = false;
 
     public function __construct(?string $internalUrl = 'http://127.0.0.1:8091', ?string $AppRef='nabysy', ?string  $AppKey='nby_live_xxxxxxxxxxxx')
     {
@@ -22,6 +26,7 @@ class WsNotifier
         if(isset($AppKey) && trim($AppKey) !== ""){
             self::$appKey = trim($AppKey);
         }
+        self::$dejaSetup=true;
     }
 
     public static function Setup(?string $internalUrl = 'http://127.0.0.1:8091', ?string $AppRef='nabysy', ?string  $AppKey='nby_live_xxxxxxxxxxxx'):bool
@@ -34,6 +39,20 @@ class WsNotifier
         }
         if(isset($AppKey) && trim($AppKey) !== ""){
             self::$appKey = trim($AppKey);
+        }
+        self::$dejaSetup=true;
+        return self::$dejaSetup;
+    }
+
+    public static function IsReady():bool{
+        if(!self::$dejaSetup){
+            if(xNAbySyGS::$Main->ActiveDebug && xNAbySyGS::$LogLevel>3){
+                $Err=new xErreur;
+                $Err->Source = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3);
+                $Err->TxErreur = __CLASS__."Non configuré. Executer d'abord un appel à ".__CLASS__."::Setup()";
+                $Err->SendAsJSON();
+                throw new Exception(__CLASS__. "Non configurer. Executer d'abord un appel à ".__CLASS__."::Setup()", 1);
+            }
         }
         return true;
     }
@@ -56,6 +75,10 @@ class WsNotifier
         ?string $titre   = null,
         ?string $message = null
     ): bool {
+        
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
+
         // 1. Sauvegarder en BDD pour chaque destinataire
         if (!empty($userIds)) {
             $Notifs = self::saveToDatabase($event, $payload, $userIds, $titre, $message);
@@ -122,6 +145,9 @@ class WsNotifier
         ?string $titre,
         ?string $message
     ): array {
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
+
         $notifs = [];
         try {
             $nabysy         = xNAbySyGS::getInstance();
@@ -174,6 +200,10 @@ class WsNotifier
         array   $userIds,
         ?string $topic
     ): ?array {
+
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
+
         $data = json_encode([
             'event'    => $event,
             'payload'  => $payload,
@@ -218,6 +248,9 @@ class WsNotifier
         bool $nonLuesUniquement = false,
         int  $limite            = 50
     ): array {
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
+
         try {
             $nabysy  = xNAbySyGS::getInstance();
             $Notif   = new xWSNotifications($nabysy);
@@ -247,8 +280,10 @@ class WsNotifier
      * non encore envoyées d'un utilisateur (il vient de les consulter via GET /notifications)
      * Utilise un UPDATE SQL direct en masse plutôt qu'une boucle objet par objet (perf).
      */
-    private static function marquerRecuesParConsultation($nabysy, int $userId): void
+    private static function marquerRecuesParConsultation(xNAbySyGS $nabysy, int $userId): void
     {
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
         try {
             $NotifModel = new xWSNotifications($nabysy);
             $Table      = $NotifModel->FullTableName();
@@ -270,6 +305,9 @@ class WsNotifier
      */
     public static function countNonLues(int $userId): int
     {
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
+
         try {
             $nabysy  = xNAbySyGS::getInstance();
             $Notif   = new xWSNotifications($nabysy);
@@ -292,6 +330,9 @@ class WsNotifier
      */
     public static function getConnectedUsers(): array
     {
+        //Si le module n'est pas encore configurer on génère une exception
+        self::IsReady();
+
         $ch = curl_init(self::$wsInternalUrl);
         curl_setopt_array($ch, [
             CURLOPT_HTTPGET        => true,
