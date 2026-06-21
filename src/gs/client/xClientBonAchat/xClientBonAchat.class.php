@@ -21,7 +21,7 @@ class xClientBonAchat extends xORMHelper {
     public const ETAT_INACTIF='INACTIF';
     public const ETAT_SUSPENDU='SUSPENDU';
 
-    public function __construct(?xNAbySyGS $NabySy,?int $IdUser=null,$CreationChampAuto=true,$TableName="clientBonAchat",$Tel=null){
+    public function __construct(?xNAbySyGS $NabySy = null,?int $IdUser=null,$CreationChampAuto=true,$TableName="clientBonAchat",$Tel=null){
         if ($TableName==''){
             $TableName="clientBonAchat";
         }

@@ -9,8 +9,8 @@ use NAbySy\xNAbySyGS;
  * Module de Gestion des Modes de Paiement
  */
     class xMethodePaie extends xORMHelper{
-        public function __construct(?xNAbySyGS $NAbySyGS,?int $IdMethode=null,$AutoCreateTable=true,$TableName='methodepaie'){
-            parent::__construct($NAbySyGS,$IdMethode,$AutoCreateTable,$TableName) ;
+        public function __construct(?xNAbySyGS $NabySy = null,?int $IdMethode=null,$AutoCreateTable=true,$TableName='methodepaie'){
+            parent::__construct($NabySy,$IdMethode,$AutoCreateTable,$TableName) ;
             $this->GenerateNewMethodeEspece();
         }
 

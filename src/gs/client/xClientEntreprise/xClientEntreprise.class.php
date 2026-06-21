@@ -21,7 +21,7 @@ use xErreur;
     
         /** Carte Bloquée */
         public const ETAT_BLOQUEE ='BLOQUEE';
-        public function __construct(?xNAbySyGS $NAbySy,?int $Id=null,$AutoCreateTable=false,$TableName="cliententreprise")
+        public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$AutoCreateTable=false,$TableName="cliententreprise")
         {
             if ($TableName == ''){
                 $TableName='cliententreprise';

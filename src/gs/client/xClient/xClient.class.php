@@ -6,7 +6,7 @@ use NAbySy\xNAbySyGS ;
 
 Class xClient extends xORMHelper
 {
-	public function __construct(?xNAbySyGS $NabySy,?int $IdClient=null,$CreationChampAuto=true,$TableName="client"){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdClient=null,$CreationChampAuto=true,$TableName="client"){
 		if ($TableName==''){
             $TableName="client";
         }

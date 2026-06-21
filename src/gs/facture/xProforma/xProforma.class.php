@@ -32,17 +32,17 @@ Class xProforma extends xORMHelper
 
 	public xDetailVente $DetailVente ;
 	
-	public function __construct(?xNAbySyGS $NAbySyGS,?int $IdFacture=null,$AutoCreateTable=false,$TableName='factureproforma',xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdFacture=null,$AutoCreateTable=false,$TableName='factureproforma',xBoutique $Boutique=null){
 		if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
-		$this->Main = $NAbySyGS ;
-		$this->MaBoutique = $NAbySyGS->MaBoutique ;
+		$this->Main = $NabySy ;
+		$this->MaBoutique = $NabySy->MaBoutique ;
 		if (isset($Boutique)){
 			$this->Main = $Boutique->Main ;
 			$this->MaBoutique=$Boutique;
 		}else{
-			$Boutique=$NAbySyGS->MaBoutique;
+			$Boutique=$NabySy->MaBoutique;
 		}
 		if(!$Boutique->MySQL->TableExiste($TableName)){
 			$TbleC="`".$Boutique->DBName."`.`".$TableName."`";
@@ -61,7 +61,7 @@ Class xProforma extends xORMHelper
 			return;
 		}
 
-		parent::__construct($NAbySyGS,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
+		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
 
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
@@ -71,7 +71,7 @@ Class xProforma extends xORMHelper
 		//$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,'detailfacture',$this->MaBoutique);
 		if ($this->Id>0){
 			$this->Client=new xClient($this->Main,$this->IdClient);
-			$this->DetailVente=new xDetailVente($NAbySyGS,null,$AutoCreateTable, "detail".$TableName,$this->MaBoutique,$this->Id);
+			$this->DetailVente=new xDetailVente($NabySy,null,$AutoCreateTable, "detail".$TableName,$this->MaBoutique,$this->Id);
 		}
 		
 	}

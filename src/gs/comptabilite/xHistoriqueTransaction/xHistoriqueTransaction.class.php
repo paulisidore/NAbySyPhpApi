@@ -325,7 +325,7 @@ class xInfosCheque {
  */
 class xCategorieTransaction extends xORMHelper{
     public const CATEGORIE_REGLEMENT_CLIENT = "REGLEMENT BON CLIENT";
-    public function __construct(?xNAbySyGS $NabySy,?int $Id=null,$CreationChampAuto=true,$TableName="categorie"){
+    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreationChampAuto=true,$TableName="categorie"){
 		if ($TableName==''){
             $TableName="categorie";
         }

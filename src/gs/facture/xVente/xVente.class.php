@@ -28,7 +28,7 @@ Class xVente extends xORMHelper
 
 	public xDetailVente $DetailVente ;
 	
-	public function __construct(?xNAbySyGS $NabySy,?int $IdFacture=null,$AutoCreateTable=false,$TableName='facture',xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdFacture=null,$AutoCreateTable=false,$TableName='facture',xBoutique $Boutique=null){
 		if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
