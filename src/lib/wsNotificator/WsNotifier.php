@@ -47,12 +47,27 @@ class WsNotifier
     public static function IsReady():bool{
         if(!self::$dejaSetup){
             if(xNAbySyGS::$Main->ActiveDebug && xNAbySyGS::$LogLevel>3){
-                $Err=new xErreur;
-                $Err->Source = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3);
-                $Err->TxErreur = __CLASS__."Non configuré. Executer d'abord un appel à ".__CLASS__."::Setup()";
-                $Err->SendAsJSON();
-                throw new Exception(__CLASS__. "Non configurer. Executer d'abord un appel à ".__CLASS__."::Setup()", 1);
+                $traces= debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2) ;
+                $trace = $traces[0];
+                if(count($traces)>1){
+                    $trace = $traces[count($traces)-1] ;
+                }
+                //$trace = $traces;
+                $Err=[
+                    "OK" => 0,
+                    "TxErreur" => __CLASS__." n'est pas encore configuré. Executer d'abord un appel à ".__CLASS__."::Setup()",
+                    "Source" => $trace
+                ];
+                echo json_encode($Err);
+            }else{
+                $Err=[
+                    "OK" => 0,
+                    "TxErreur" => "Le service de notification n'est pas encore disponible. Contactez le support technique."
+                ];
+                echo json_encode($Err);
             }
+            exit;
+            return false;
         }
         return true;
     }
