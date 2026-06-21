@@ -1,9 +1,9 @@
 <?php
 namespace NAbySy\Lib\Evenement;
 
-include_once 'WsNotifications.i.php';
-
 use NAbySy\xNAbySyGS;
+
+include_once 'WsNotifications.i.php';
 
 class WsNotifier
 {
