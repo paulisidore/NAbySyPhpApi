@@ -321,9 +321,25 @@ class xGSUrlRouterManager{
         } catch (\Throwable $e) {
             // Gestion des erreurs
             http_response_code(500);
-            $Rep->TxErreur="Erreur d'execution du Router ".$router->routeName().": ".$e->getMessage() ;
+            $Rep->TxErreur="Erreur d'execution du Router ".$router->routeName()." contactez le support Technique pour une résolution immédiate" ;
+            $vDetailErr[]=$e->getFile().' on line '.$e->getLine();
+            $detailerr=[];
+            if(count($e->getTrace())){
+                $trace=$e->getTrace()[0];
+                if(isset($trace['file']) && $trace['line']){
+                    $vDetailErr[]=$trace['file']." on line ".$trace['line'];
+                }
+            }
+            if(xNAbySyGS::getInstance()->ActiveDebug && xNAbySyGS::$LogLevel>2){
+                $Rep->TxErreur="Erreur d'execution du Router ".$router->routeName().": ".$e->getMessage() ;
+                $detailerr = $vDetailErr;
+                $Rep->Autres=$e->getFile().' on line '.$e->getLine();
+            }
+            $Rep->Source = $detailerr;
+            
             echo json_encode($Rep);
-            self::$Main::$Log->Write($Rep->TxErreur." Fichier ".$e->getFile()." Ligne ".$e->getLine());
+            xNAbySyGS::$Log->Write($Rep->TxErreur." trace: ".json_encode($vDetailErr));
+            exit;
             return $Rep;
         }
         return $Rep ;

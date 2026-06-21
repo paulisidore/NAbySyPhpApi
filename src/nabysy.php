@@ -358,6 +358,10 @@ Class xNAbySyGS
 	 */
 	public const NO_AUTH_USER = 'NO_AUTH_USER';
 
+	/**Cette variable est utilisée pour éviter de re-executer les boucles infinies dans le traitement des évènements */
+	private static bool $running_event_loop = false ;
+	private static ?object $last_event_orm_objet = null ;
+
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true){ 
@@ -2366,25 +2370,24 @@ Class xNAbySyGS
 	}
 
 	public static function RaiseEvent(string $ClassName,mixed $Arguments=null){
+		
 		$EventType=null;
 		$nArg=$Arguments ;
 		$Param=[] ;
 		$NbArg=1 ;
 		
-		if (!is_array($Arguments)){
-			var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2));
-			var_dump($Arguments) ;
-		}
-		
+		$oOrm = null;
+
 		if (is_array($Arguments)){
 			$NbArg=count($Arguments) ;
 			if (count($Arguments)){
 				$EventType=$Arguments[0];
-				//var_dump($nArg[2]);
+				if(isset($Arguments[2]) && is_object($Arguments[2])){
+					$oOrm = $Arguments[2];
+				}
 				for ($x=0;$x++;$x<count($Arguments)-1){
 					$Param[$x]=$Arguments[$x];
 				}
-				//var_dump($nArg);
 			}
 		}else{
 			$EventType=$Arguments ;
@@ -2397,7 +2400,22 @@ Class xNAbySyGS
 			$EventType=$TEvent[$nb];
 			$Param[0]=$EventType ;
 		}
-		$EventArg = new xEventArg($ClassName, $EventType, null, null, $Param);
+		$oSource = $oOrm ;
+
+		if(self::$running_event_loop && isset(self::$last_event_orm_objet)){
+			if(isset($oSource ) && $oSource === self::$last_event_orm_objet){
+				if(self::$Main->ActiveDebug && self::$LogLevel>4){
+					$ErrLoop = new xErreur;
+					$ErrLoop->TxErreur = "Impossible d'executer l'évènement... risque de boucle infinit.";
+					$ErrLoop->Source = $Arguments ;
+					$ErrLoop->Autres = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3) ;
+					self::$Log->AddToLog(json_encode($ErrLoop));
+				}				
+				return null;
+			}
+		}
+
+		$EventArg = new xEventArg($ClassName, $EventType, $oOrm, null, $Param);
 
 		foreach (self::$ListeModuleObserv as $ModObserveur){
 			
@@ -2406,14 +2424,17 @@ Class xNAbySyGS
 				if ($EventType==$Observable){	
 					//self::$Log->Write("Event Exection: ".$ClassName.' : '.json_encode($Param).' : '.$nArg[$NbArg-1]) ;
 					if(is_array($Param)	){
+						self::$running_event_loop = true;
+						self::$last_event_orm_objet = $oSource;
 						$Retour=$ModObserveur->Raise($EventArg);
+						self::$running_event_loop = false;
+						self::$last_event_orm_objet = null;
 						if(isset($Retour)){
-							self::$Log->Write("Event Retour: ".$ClassName.' : '.json_encode($Retour) ) ;
 							if ($Retour instanceof xEventArg){
 								if ($Retour->StopPropagation){
 									if($ModObserveur->Main->ActiveDebug){
-										if(self::$LogLevel>2){
-											self::$Log->Write("Event Propagation Stoppé: ".$ClassName.' (Raison: '.$Retour->RaisonStopPropagation.') : '.json_encode($Param) ) ;
+										if(self::$Main->ActiveDebug && self::$LogLevel>2){
+											self::$Log->Write("Event Propagation Stoppé: ".$EventType.' (Raison: '.$Retour->RaisonStopPropagation.') : '.json_encode($Param) ) ;
 										}
 										break;
 									}
@@ -2421,24 +2442,30 @@ Class xNAbySyGS
 							}
 						}
 					}else{
+						self::$running_event_loop = true;
+						self::$last_event_orm_objet = $oSource;
 						$ModObserveur->RaiseEvent($ClassName,$Param,$nArg[$NbArg-1]) ;
+						self::$running_event_loop = false;
+						self::$last_event_orm_objet = null;
 					}
 				}
 			}
 		}
+		self::$running_event_loop = false;
+		self::$last_event_orm_objet = null;
 	}
 
 	public static function RaiseEventWithResponse(string $ClassName, mixed $Arguments=null):?xEventReponse{
+
+		if (!is_array($Arguments)){
+			self::$Log->AddToLog("WARN: Argument Incompatible dans ".__FUNCTION__.". Tableau attendu mais ".gettype($Arguments) . " fournit ici ". json_encode(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2)) );
+		}
+
 		$EventType=null;
 		$oSource=null ;
 		$nArg=$Arguments ;
 		$Param=[] ;
-		$NbArg=1 ;
-		
-		if (!is_array($Arguments)){
-			var_dump(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT,2));
-			var_dump($Arguments) ;
-		}
+		$NbArg=1 ;		
 		
 		if (is_array($Arguments)){
 			$NbArg=count($Arguments) ;
@@ -2459,11 +2486,28 @@ Class xNAbySyGS
 		}
 		$TEvent=explode('\\',$EventType);
 		$nb=count($TEvent) ;
+
+		if(self::$Main->ActiveDebug && self::$LogLevel>4){
+			//self::$Log->AddToLog("Recherche d'evenement ORM ".$EventType." ...");
+		}
 		
 		if ($nb>0){
 			$nb =$nb-1 ;
 			$EventType=$TEvent[$nb];
 			$Param[0]=$EventType ;
+		}
+		
+		if(self::$running_event_loop && isset(self::$last_event_orm_objet)){
+			if(isset($oSource ) && $oSource === self::$last_event_orm_objet){
+				if(self::$Main->ActiveDebug && self::$LogLevel>4){
+					$ErrLoop = new xErreur;
+					$ErrLoop->TxErreur = "Impossible d'executer l'évènement... risque de boucle infinit.";
+					$ErrLoop->Source = $Arguments ;
+					$ErrLoop->Autres = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,3) ;
+					self::$Log->AddToLog(json_encode($ErrLoop));
+				}
+				return null;
+			}
 		}
 		
 		$EventArg = new xEventArg($ClassName, $EventType, $oSource, null, $Param);
@@ -2477,15 +2521,19 @@ Class xNAbySyGS
 						if(is_array($Param)	){
 							if($ModObserveur->Main->ActiveDebug){
 								if(self::$LogLevel>2){
-									$ModObserveur->Main::$Log->AddToLog("Evenement déclenché: ".$ClassName." Handler = ".$ModObserveur->Nom." [Param: ".json_encode($Param)." ]");
+									$ModObserveur->Main::$Log->AddToLog("Evenement déclenché: ".$EventType." Handler = ".$ModObserveur->Nom." [Param: ".json_encode($Param)." ]");
 								}
 							}
+							self::$running_event_loop = true;
+							self::$last_event_orm_objet = $oSource ;
 							$Retour=$ModObserveur->Raise($EventArg);
+							self::$running_event_loop = false;
+							self::$last_event_orm_objet = null ;
 							if(isset($Retour)){
 								if ($Retour instanceof xEventReponse){
 									if($ModObserveur->Main->ActiveDebug){
 										if(self::$LogLevel>2){
-											$ModObserveur->Main::$Log->AddToLog("Reponse Evenement: ".$ClassName." Handler = ".$ModObserveur->Nom." : ".json_encode($Retour)." ");
+											$ModObserveur->Main::$Log->AddToLog("Reponse Evenement: ".$EventType." Handler = ".$ModObserveur->Nom." : ".json_encode($Retour)." ");
 										}
 									}
 									if ($Retour->StopPropagation){
@@ -2498,13 +2546,18 @@ Class xNAbySyGS
 								}
 							}
 						}else{
+							self::$running_event_loop = true;
+							self::$last_event_orm_objet = $oSource ;
 							$ModObserveur->RaiseEvent($ClassName,$Param,$nArg[$NbArg-1]) ;
+							self::$running_event_loop = false;
+							self::$last_event_orm_objet = null ;
 						}
 					}
 				}
 			}
 		}
-
+		self::$running_event_loop = false;
+		self::$last_event_orm_objet = null ;
 		return null;
 	}
 
