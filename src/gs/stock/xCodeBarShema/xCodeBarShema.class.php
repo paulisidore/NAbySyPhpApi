@@ -12,9 +12,9 @@ use NAbySy\ORM\xORMHelper;
 use NAbySy\xNAbySyGS;
 
     class xCodeBarShema extends xORMHelper {
-        public function __construct(?xNAbySyGS $NAbySy,int $Id=null,$AutoCreateTable=false,$TableName='codebarshema', xBoutique $Boutique=null){
+        public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$AutoCreateTable=false,$TableName='codebarshema', xBoutique $Boutique=null){
 
-            parent::__construct($NAbySy,$Id,$AutoCreateTable,$TableName);
+            parent::__construct($NabySy,$Id,$AutoCreateTable,$TableName);
 
             if (!$this->MySQL->ChampsExiste($this->Table,"TVA")){
                 $this->MySQL->AlterTable($this->Table,"TVA","int(11)","ADD","18");

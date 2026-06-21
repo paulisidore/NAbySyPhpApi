@@ -11,8 +11,8 @@ use NAbySy\xNAbySyGS;
         /** Adresse e-mail de l'expéditeur */
         public $SENDER_MAIL ='paulvb@groupe-pam.net' ;
 
-        public function __construct(?xNAbySyGS $NAbySy,int $Id=null,$CreateChampAuto=false,$NomTable='mailrpt',$SenderAdress='nabysy@groupe-pam.net'){
-            parent::__construct($NAbySy,$Id,$CreateChampAuto,$NomTable);            
+        public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreateChampAuto=false,$NomTable='mailrpt',$SenderAdress='nabysy@groupe-pam.net'){
+            parent::__construct($NabySy,$Id,$CreateChampAuto,$NomTable);            
             $this->SENDER_MAIL=$SenderAdress ;
         }
 

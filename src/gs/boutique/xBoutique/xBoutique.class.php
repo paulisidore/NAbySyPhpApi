@@ -19,8 +19,11 @@ Class xBoutique extends xORMHelper  {
 
 	public const TABLE_PARAMETRE = 'parametre';
 
-	public function __construct(?xNAbySyGS $NAbySy, ?int $IdBoutique=0,$AutoCreateTable=false,$NomTable=null, string $BoutiqueDBName=null){
-		if(!isset($NAbySy)){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdBoutique=0,$AutoCreateTable=false,$NomTable=null, string $BoutiqueDBName=null){
+		if(!isset($NabySy)){
+			$NabySy = xNAbySyGS::$Main;
+		}
+		if(!isset($NabySy)){
 			throw new Exception("Passer un objet xNAbySyGS", 1);
 		}
 		$this->Conn = xNAbySyGS::$master_db_link;
@@ -29,21 +32,21 @@ Class xBoutique extends xORMHelper  {
 			$NomTable='boutique';
 		}
 		if (!isset($BoutiqueDBName)){
-			$BoutiqueDBName=$NAbySy->MasterDataBase ;
+			$BoutiqueDBName=$NabySy->MasterDataBase ;
 		}
 		if($BoutiqueDBName==""){
-			$BoutiqueDBName=$NAbySy->MasterDataBase ;
+			$BoutiqueDBName=$NabySy->MasterDataBase ;
 		}
 		xORMHelper::$UseMasterLinkOnNextInit = true;
 		
-		parent::__construct($NAbySy,$IdBoutique,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
+		parent::__construct($NabySy,$IdBoutique,$NabySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
 
-		if(isset($NAbySy->MaBoutique)){
+		if(isset($NabySy->MaBoutique)){
 			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET', $BoutiqueDBName)){
 				$this->MySQL->AlterTable($this->Table,'LOGO_TICKET','VARCHAR(255)','ADD','',$BoutiqueDBName);
 			}
 			xORMHelper::$UseMasterLinkOnNextInit = true;
-			$this->Parametre=new xORMHelper($NAbySy,1,$NAbySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
+			$this->Parametre=new xORMHelper($NabySy,1,$NabySy::GLOBAL_AUTO_CREATE_DBTABLE,self::TABLE_PARAMETRE,$BoutiqueDBName);
 			if ($this->Parametre->Id > 0){
 				//$this->AddToLog("Table Paramètre de la boutique Id ".$IdBoutique."=".$this->Parametre->ToJSON());
 			}else{
