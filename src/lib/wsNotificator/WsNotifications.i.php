@@ -29,4 +29,5 @@ interface IwsNotifications extends IORMHelper {
     );
 }
 
+include_once 'xNotifications.class.php';
 ?>
