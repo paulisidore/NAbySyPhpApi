@@ -13,7 +13,7 @@ use NAbySy\xNAbySyGS;
 use NAbySy\xErreur;
 
 //#[\AllowDynamicProperties] on verra ca une autre fois
-class xORMHelper implements IORM , JsonSerializable{
+class xORMHelper implements IORMHelper {
     /**
      * Nom de la table ratachée à cet ORM
      * @var string
@@ -72,24 +72,6 @@ class xORMHelper implements IORM , JsonSerializable{
      */
     public static string $dataBaseName ='';
 
-    /** Evènement exeuté après ajout d'une nouvelle ligne dans la table */
-    public const EVENTS_ADD = '_ADD' ;
-
-    /** Evènement exectué après modification d'un enregistrement dans la table */
-    public const EVENTS_EDIT = '_EDIT' ;
-
-    /** Evènement exectué après suppression d'un enregistrement dans la table */
-    public const EVENTS_DELETE = '_DEL' ;
-
-    /** Evènement exectué avant ajout d'une nouvelle ligne dans la table */
-    public const EVENTS_BEFORE_ADD = '_BEFORE_ADD' ;
-
-    /** Evènement exectué avant modification d'un enregistrement dans la table */
-    public const EVENTS_BEFORE_EDIT = '_BEFORE_EDIT' ;
-
-    /** Evènement exectué avant suppression d'un enregistrement dans la table */
-    public const EVENTS_BEFORE_DELETE = '_BEFORE_DEL' ;
-
     /**
      * Si vrai l'objet utilisera la connexion de la base de donnée master
      * @var bool
@@ -109,7 +91,7 @@ class xORMHelper implements IORM , JsonSerializable{
      * @param bool $CreationChampAuto Si = vrai, tout les champs non existant dans la table seront créee automatiquement.
      * @param string $DBName : Nom de la Base de donnée. si différente de celle de la base de donnée mère de NAbySyGS
      */
-    public function __construct(?xNAbySyGS $NAbySy,int $Id=null,$CreationChampAuto=true,$TableName=null,$DBName=null){
+    public function __construct(?xNAbySyGS $NAbySy = null,?int $Id=null,?bool $CreationChampAuto=true, ?string $TableName=null,?string $DBName=null){
         if(!isset($NAbySy)){
             $NAbySy = self::$xMain ;
         }

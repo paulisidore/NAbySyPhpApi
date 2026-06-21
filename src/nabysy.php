@@ -35,6 +35,7 @@ include_once 'autoload.i.php' ;
 include_once 'autoload.class.php' ;
 include_once 'log.class.php' ;
 include_once 'orm.i.php' ;
+include_once 'ormhelper.i.php';
 include_once 'orm.class.php' ;
 include_once 'user.class.php' ;
 include_once 'technoweb.i.php';
