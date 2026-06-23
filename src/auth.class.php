@@ -137,17 +137,12 @@ Class xAuth
 
     public function DecodeToken(string $JWT_TOKEN,$Algo='HS256',bool $NoRetournError=true, ?xErreur &$TokenError = null){
         $decoded=null;
+        $TokenError=null;
         if (isset($JWT_TOKEN)){
             try{
-                //echo $JWT_TOKEN ;exit;
-                //echo __FILE__." Key =". $this->Key ;exit;
                 $decoded = JWT::decode($JWT_TOKEN, $this->Key, array($Algo));
-                //var_dump($decoded);//exit;
                 if (!isset($decoded->user_data)){
                     $decoded->user_data=json_decode($decoded->user_data);
-                }else{
-                    //var_dump($decoded);
-                    //var_dump($decoded->user_data);
                 }
             }
             catch (Exception $e){
@@ -159,9 +154,6 @@ Class xAuth
                 if($e->getMessage() == "Expired token"){
                     list($header, $payload, $signature) = explode(".", $JWT_TOKEN);
                     $payload = json_decode(base64_decode($payload));
-                    //$refresh_token = $payload->data->refresh_token;
-                    //print_r($payload->user_data) ;
-                    
                     $Err->TxErreur="(ERR:SESSION_EXP) Votre session a expirée" ;
                     $Err->OK=0;
                     $Err->Source="auth.class.php" ;
