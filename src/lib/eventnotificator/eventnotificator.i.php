@@ -23,8 +23,8 @@ use xORM;
         public function __construct(xNAbySyGS $NAbySy);
 
         /** Crée une nouvelle notification pour être distribuer au réseau */
-        public function NouvelleNotification($Source,int $IdSource=0,$Infos=null,int $NiveauUrgence=0,
-        string $MODULE_DEST_GROUPE='TOUT', array $ListeEmploye=[], string $ACTION_UI=null);
+        public function NouvelleNotification(string $Source,int $IdSource=0,?object $Infos=null,int $NiveauUrgence=0,
+        string $MODULE_DEST_GROUPE='TOUT', array $ListeEmploye=[], ?string $ACTION_UI=null);
 
     }
 

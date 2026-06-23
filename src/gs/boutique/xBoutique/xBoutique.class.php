@@ -19,7 +19,7 @@ Class xBoutique extends xORMHelper  {
 
 	public const TABLE_PARAMETRE = 'parametre';
 
-	public function __construct(?xNAbySyGS $NabySy = null,?int $IdBoutique=0,$AutoCreateTable=false,$NomTable=null, string $BoutiqueDBName=null){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdBoutique=0, ?bool $AutoCreateTable=false,?string $NomTable=null, ?string $BoutiqueDBName=null){
 		if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::$Main;
 		}
@@ -39,7 +39,7 @@ Class xBoutique extends xORMHelper  {
 		}
 		xORMHelper::$UseMasterLinkOnNextInit = true;
 		
-		parent::__construct($NabySy,$IdBoutique,$NabySy::GLOBAL_AUTO_CREATE_DBTABLE,$NomTable,$BoutiqueDBName) ;
+		parent::__construct($NabySy,$IdBoutique,$AutoCreateTable,$NomTable,$BoutiqueDBName) ;
 
 		if(isset($NabySy->MaBoutique)){
 			if (!$this->MySQL->ChampsExiste($this->Table,'LOGO_TICKET', $BoutiqueDBName)){
@@ -208,7 +208,7 @@ Class xBoutique extends xORMHelper  {
 		
 		return $isok ;
 	}	
-	public function ListeArticle($crit = null, xBoutique $Depot=null){
+	public function ListeArticle(?string $crit = null, ?xBoutique $Depot=null){
 		//Correction des date expirations
 		$Article=new xProduit($this->Main);
 		$sql="update ". $Article->Table." A set A.date_expiration='2050-01-01' where date_expiration like ''";
@@ -559,7 +559,7 @@ Class xBoutique extends xORMHelper  {
      * @param string|null $baseUrlPhoto 
      * @return true|string 
      */
-    public function GetLogoEntete($NoSendToClient=false,string $baseUrlPhoto=null){
+    public function GetLogoEntete(bool $NoSendToClient=false,?string $baseUrlPhoto=null){
         $DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$FileName=$this->Id.'logo.png' ;
@@ -642,7 +642,7 @@ Class xBoutique extends xORMHelper  {
 	 * @param string|null $baseUrlPhoto 
 	 * @return true|string 
 	 */
-	public function GetEnteteA4($NoSendToClient=false,string $baseUrlPhoto=null){
+	public function GetEnteteA4(bool $NoSendToClient=false,?string $baseUrlPhoto=null){
         $DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$this->Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$FileName=$this->Id.'-enteteA4.png' ;
@@ -745,7 +745,7 @@ Class xBoutique extends xORMHelper  {
 	 * @param string|null $baseUrlPhoto 
 	 * @return true|string 
 	 */
-	public function GetLogoTicket($NoSendToClient=false,string $baseUrlPhoto=null){
+	public function GetLogoTicket(bool $NoSendToClient=false,?string $baseUrlPhoto=null){
         $DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$this->Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$FileName=$this->Id.'logoticket.png' ;
@@ -822,10 +822,10 @@ Class xBoutique extends xORMHelper  {
 	}
 
 
-	public function AjouterStockBoutique($IdCompteClient,$IdPdt=0,$Qte=0){
+	public function AjouterStockBoutique(int $IdCompteClient,int $IdPdt=0, float $Qte=0){
 		//permet d'ajouter un stock pour un article dans une boutique 
 		if (!$IdCompteClient){
-			$this->AddToJournal($_SESSION['user'],0,"AjouterStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			$this->AddToJournal("AjouterStockBoutique", "Erreur: IdCompteClient= ".$IdCompteClient.". Mise à jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
 			return false;
 		}
 		
@@ -835,12 +835,12 @@ Class xBoutique extends xORMHelper  {
 			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite+".$Qte." " ;
 			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;
 			   $isok=$this->Main->ReadWrite($sql,null,true) ;
-			   $this->AddToJournal($_SESSION['user'],0,"AjouterStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			   $this->AddToJournal("AjouterStockBoutique","Mise a jour de stock Boutique. Mise à jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
 		   }
 		}
 	}
 	
-	public function RetirerStockBoutique($IdCompteClient,$IdPdt=0,$Qte=0){
+	public function RetirerStockBoutique(int $IdCompteClient,int $IdPdt=0, float $Qte=0){
 		//permet d'ajouter un stock pour un article dans une boutique 
 		if (!$IdCompteClient){
 			$this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;

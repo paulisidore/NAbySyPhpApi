@@ -15,9 +15,9 @@ use NAbySy\xNAbySyGS;
         public int $Id =0;
         /**Liste des employés destinataires. Si aucun destinaiare le message est délivré à tout le monde */
         public $ListeDestinataire=[];
-        public $UI_ACTION=null;
-        public $DateEnvoie=null;
-        public $HeureEnvoie=null;
+        public ?string $UI_ACTION=null;
+        public ?string $DateEnvoie=null;
+        public ?string $HeureEnvoie=null;
         public $MODULEDEST='TOUT';
 
         public const URGENCE_NORMAL=0;
@@ -30,8 +30,8 @@ use NAbySy\xNAbySyGS;
         public const DEST_MODULE_RH='RH';
         public const DEST_MODULE_RS='RS';
 
-        public function __construct(xEventNotificator $Notificator,int $IdSource=0, string $Source=null,$Information=null, int $Urgence=0 , 
-            string $MODULE_DEST_GROUPE='TOUT', array $EmployeDestinataire=[], $UI_ACTION=null){
+        public function __construct(xEventNotificator $Notificator,int $IdSource=0, ?string $Source=null,?object $Information=null, int $Urgence=0 , 
+            string $MODULE_DEST_GROUPE='TOUT', array $EmployeDestinataire=[], ?string $UI_ACTION=null){
 
             self::$Main=$Notificator::$Main ;
             $this->Message=new \NAbySy\ORM\xORMHelper(self::$Main,null,self::$Main::GLOBAL_AUTO_CREATE_DBTABLE,'notificator_message');

@@ -31,7 +31,7 @@ use NAbySy\xNAbySyGS;
             $this->Grp=$Groupe;
             //$this->Src=$Source;
             
-            $LstConf=self::$Config->ChargeListe("Id>0","Id","Id");
+            $LstConf=self::$Config->ChargeListe("Id>0");
             if ($LstConf->num_rows==0){
                 self::$Config->NbJourANotifier=30 ;   //Permet de notifier les 30 derniers jours des evenements sauvegardés dans la base de donnée
                 self::$Config->NiveauAccesMinimum ;  //Le niveau d'accès minimum a qui les notifications seront déservit
@@ -39,8 +39,8 @@ use NAbySy\xNAbySyGS;
             }
         }
 
-        public function NouvelleNotification($Source,int $IdSource=0,$Infos=null,int $NiveauUrgence=0,
-            string $MODULE_DEST_GROUPE='TOUT', array $ListeEmploye=[], string $ACTION_UI=null){
+        public function NouvelleNotification(string $Source,int $IdSource=0,?object $Infos=null,int $NiveauUrgence=0,
+            string $MODULE_DEST_GROUPE='TOUT', array $ListeEmploye=[], ?string $ACTION_UI=null){
             $Msg=new xEventNotificatorMessage($this,$IdSource,$Source,$Infos,$NiveauUrgence,$MODULE_DEST_GROUPE,$ListeEmploye,$ACTION_UI);
             //Un observeur devra se charger d'envoyer le message aux personnes conercée lorsqu'elle seront connectées.
 
