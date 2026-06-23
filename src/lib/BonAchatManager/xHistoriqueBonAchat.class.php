@@ -8,10 +8,10 @@ Class xHistoriqueBonAchat extends xORMHelper{
    
     public ?xBonAchatManager $BonAchatManager;
 
-    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$AutoCreateTable=true,$TableName="detailbonachat", xBonAchatManager $BonAMgr=null)
+    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,?bool $AutoCreateTable=true, ?string $TableName="detailbonachat", ?string $DBName=null, xBonAchatManager $BonAMgr=null)
     {
         
-        parent::__construct($NAbySy,$Id,$AutoCreateTable,$TableName) ;
+        parent::__construct($NabySy,$Id,$AutoCreateTable,$TableName, $DBName) ;
         $this->BonAchatManager=$BonAMgr;
 
     }
