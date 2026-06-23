@@ -25,12 +25,37 @@ Class xAuth
      */
     public static array $ColonneToIgnore = []; // ['password', 'CanUseMod_%', 'ACCES_BOUTIQUE_%', 'DebugSelect', 'derniere_connexion', 'connexion']; 
 
-    public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null, string $key="nabysygscloud"){
+    public function __construct(xNAbySyGS $nabysy,$duree_exp_seconde=3600, xUser $User=null, string $key="nabysygscloud", string $Algo='HS256'){
         $token = self::extractFromHeader();
         if (!isset($_REQUEST['Token']) && is_string($token) && $token !=="" ){
             $_REQUEST['Token'] = $token ;
         }
-
+        if(!isset($User) && isset($_REQUEST['Token']) && $_REQUEST['Token'] !==''){
+            //Il ya un token, on va changer la boutique en fonction
+            try {
+                $this->Key = $key;
+                $decoded = $this->DecodeToken($_REQUEST['Token'], $Algo);
+                if(isset($decoded) && is_object($decoded)){
+                    $nabysy->UserConnectedByToken = true;
+                    if(isset($decoded->IdBoutique) && (int)$decoded->IdBoutique>0){
+                        $BoutToken=$nabysy->GetBoutiqueByID((int)$decoded->IdBoutique);
+                        $BoutEnCour = $BoutToken;
+                        if($BoutEnCour && $BoutEnCour->Id>0){
+                            xNAbySyGS::$Main->MaBoutique = $BoutEnCour ;
+                            xNAbySyGS::getInstance()->MaBoutique = $BoutEnCour ;
+                        }
+                        if($BoutEnCour && $BoutEnCour->Id>0 && $BoutEnCour->Id !== $nabysy->MaBoutique->Id){
+                            $nabysy->SelectBoutique($BoutEnCour->Id);
+                            if($nabysy->MaBoutique->Id !== $decoded->IdBoutique){
+                                $nabysy->MaBoutique = $BoutEnCour ;
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable $th) {
+                throw $th;
+            }
+        }
         $this->Main=$nabysy ;
         $this->Key = $key;
         $dateexp=time();
@@ -159,12 +184,16 @@ Class xAuth
                     }
                 
                     // show error message
-                    $this->Main->AllowCORS();
+                    xNAbySyGS::AllowCORS();
                     $Err=new xErreur ;
                     $Err->TxErreur="Accès refusé" ;
                     $Err->Autres = $e->getMessage();
                     $Err->OK=0;
-                    $Err->Source="auth.class.php" ;
+                    $Err->Source="auth.class" ;
+                    if(xNAbySyGS::$LogLevel>3){
+                        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS , 3);
+                        $Err->Source=$trace ;
+                    }
                     $Err->SendAsJSON();
                     if(!xNAbySyGS::isRunFromCLI()){
                         die();

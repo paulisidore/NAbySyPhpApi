@@ -4,6 +4,7 @@ require __DIR__.'/vendor/autoload.php';
 
 use NAbySy\xAuth;
 use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
 use NAbySy\xUser;
 
@@ -31,7 +32,7 @@ use NAbySy\xUser;
         }
     }
 
-    //echo __FILE__." Je lance l'authentification dans auth.php ... </br>" ;
+    //echo __FILE__." Je lance l'authentification dans auth.php ... </br>" ;exit;
     if(isset($nabysy->User)){
         //var_dump("Utilisateur déjà connecté: ".$nabysy->User->Login);
     }
@@ -54,14 +55,13 @@ use NAbySy\xUser;
     $Auth=new xAuth($nabysy, N::$AUTH_DUREE_SESSION) ;
     $UserToken=null ;
     $Err=new xErreur;
-
     
     if (isset($_REQUEST['Token'])){
         $Token=$_REQUEST['Token'] ;
         //echo "Token a recherche = ".$Token ; //exit;
-        $UserToken=$Auth->DecodeToken($Token) ;
+        $UserToken=xNAbySyGS::DecodeJWToken($Token) ;
         //var_dump($UserToken)."</br>" ;
-        //var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec UserId = ".$UserToken->user_id);
+        var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec UserId = ".$UserToken->user_id);
         if (!isset($UserToken)){            
             $Err->TxErreur="(ERR:SESSION_EXP) Votre session a expirée" ;
             $Err->OK=0;
@@ -78,6 +78,18 @@ use NAbySy\xUser;
             exit ;
         }
         
+        if(isset($UserToken->IdBoutique) && $UserToken->IdBoutique >0){
+            if($nabysy->MaBoutique->Id !== $UserToken->IdBoutique){
+                $BoutEnCour = $nabysy->GetBoutique((int)$UserToken->IdBoutique);
+                if($BoutEnCour && $BoutEnCour->Id>0){
+                    $nabysy->SelectBoutique($UserToken->IdBoutique);
+                    if($nabysy->MaBoutique->Id !== $UserToken->IdBoutique){
+                        $nabysy->MaBoutique = $BoutEnCour ;
+                    }
+                }
+            }
+        }
+
         $User=new xUser($nabysy,$UserToken->user_id) ;
         //var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec User = ".$User->Login) ;
 
@@ -100,15 +112,7 @@ use NAbySy\xUser;
         $Notif->OK=1 ;
         $nabysy->User=$User ;
         $ConnectByToken=true ;
-        //echo "Utilisateur connecté par Token  ".$nabysy->User->Login."</br>" ;
-        
-        //Si le token est fournit et valable on ne retourne pas de confirmation sauf si demandé
-         /* if(isset($_REQUEST['AUTH']) && ((int)$_REQUEST['AUTH']>0) ){
-            http_response_code(200);
-            echo json_encode($Notif) ;
-            exit;
-        }
-        exit; */
+        $nabysy->UserConnectedByToken = $ConnectByToken ;
     }
 
     //s'il ne s'agit pas d'une requette vers l'API des Utilisateurs on cherche les parametres Login et Password

@@ -367,12 +367,17 @@ class WsNotifier
 
     /**
      * Filtrer les connectés par rôle
+     * Compatible multi-rôles : le champ 'role' peut être un string ou un tableau
      */
     public static function getConnectedByRole(string $role): array
     {
         return array_values(array_filter(
             self::getConnectedUsers(),
-            fn($u) => $u['role'] === $role
+            fn($u) => isset($u['role']) && (
+                is_array($u['role'])
+                    ? in_array($role, $u['role'], true)
+                    : $u['role'] === $role
+            )
         ));
     }
 
@@ -383,18 +388,24 @@ class WsNotifier
     {
         return array_values(array_filter(
             self::getConnectedUsers(),
-            fn($u) => $u['boutique_id'] === $boutiqueId
+            fn($u) => (int)($u['boutique_id'] ?? 0) === $boutiqueId
         ));
     }
 
     /**
      * Filtrer les connectés par rôle ET boutique
+     * Compatible multi-rôles
      */
     public static function getConnectedByRoleAndBoutique(string $role, int $boutiqueId): array
     {
         return array_values(array_filter(
             self::getConnectedUsers(),
-            fn($u) => $u['role'] === $role && $u['boutique_id'] === $boutiqueId
+            fn($u) => (int)($u['boutique_id'] ?? 0) === $boutiqueId
+                   && isset($u['role']) && (
+                       is_array($u['role'])
+                           ? in_array($role, $u['role'], true)
+                           : $u['role'] === $role
+                   )
         ));
     }
 

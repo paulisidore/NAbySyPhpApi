@@ -67,6 +67,7 @@ include_once 'startupinfo.php' ;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use Firebase\JWT\JWT;
 use mysqli;
 use NAbySy\Events\Engine\Hook\IEngineHook;
 use NAbySy\GS\Boutique\xBoutique;
@@ -362,6 +363,9 @@ Class xNAbySyGS
 	/**Cette variable est utilisée pour éviter de re-executer les boucles infinies dans le traitement des évènements */
 	private static bool $running_event_loop = false ;
 	private static ?object $last_event_orm_objet = null ;
+
+	/**Indique si l'utilisateur a utilisé un TOken pour se connecter */
+	public bool $UserConnectedByToken = false;
 
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
@@ -3831,6 +3835,74 @@ Class xNAbySyGS
 
 		return null;
 	}
+
+	/**
+	 * Permet de décoder un Token JWT
+	 * @param string $JWT_TOKEN 
+	 * @param null|string $Key 
+	 * @param null|string $Algo 
+	 * @param bool $NoRetournError 
+	 * @return object|null 
+	 */
+	public static function DecodeJWToken(string $JWT_TOKEN, ?string $Key="nabysygscloud",?string $Algo='HS256',$NoRetournError=true){
+        $decoded=null;
+        if (isset($JWT_TOKEN)){
+            try{
+                $decoded = JWT::decode($JWT_TOKEN, $Key, array($Algo));
+                //var_dump($decoded);//exit;
+                if (!isset($decoded->user_data)){
+                    $decoded->user_data=json_decode($decoded->user_data);
+                }
+            }
+            catch (Exception $e){
+
+                if($e->getMessage() == "Expired token"){
+                    list($header, $payload, $signature) = explode(".", $JWT_TOKEN);
+                    $payload = json_decode(base64_decode($payload));
+                    //$refresh_token = $payload->data->refresh_token;
+                    //print_r($payload->user_data) ;
+                    $Err=new xErreur ;
+                    $Err->TxErreur="(ERR:SESSION_EXP) Votre session a expirée" ;
+                    $Err->OK=0;
+                    $Err->Source="auth.class.php" ;
+                    $Err->Extra="Reconnectez-vous svp." ;
+                    $Reponse=json_encode($Err) ;
+                    //echo $Reponse ;
+                    $decoded=$Err ; //"EXPIRE" ;
+                    if (!$NoRetournError){
+                        if(!xNAbySyGS::isRunFromCLI()){
+                            http_response_code(401); 
+                        }
+                       self::AllowCORS();
+                        $Err->SendAsJSON();
+                        if(!xNAbySyGS::isRunFromCLI()){
+                            exit ;
+                        }
+                    } 
+                
+                } else {
+                
+                    // set response code
+                    if(!xNAbySyGS::isRunFromCLI()){
+                        http_response_code(401);
+                    }
+                
+                    // show error message
+                    self::AllowCORS();
+                    $Err=new xErreur ;
+                    $Err->TxErreur="Accès refusé" ;
+                    $Err->Autres = $e->getMessage();
+                    $Err->OK=0;
+                    $Err->Source="auth.class.php" ;
+                    $Err->SendAsJSON();
+                    if(!xNAbySyGS::isRunFromCLI()){
+                        die();
+                    }
+                }
+            }
+        }
+        return $decoded ;
+    }
 }
 
 ?>
