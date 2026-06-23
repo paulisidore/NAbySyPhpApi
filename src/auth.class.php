@@ -135,7 +135,7 @@ Class xAuth
         return $jwt ;
     }
 
-    public function DecodeToken($JWT_TOKEN,$Algo='HS256',$NoRetournError=true){
+    public function DecodeToken(string $JWT_TOKEN,$Algo='HS256',bool $NoRetournError=true, ?xErreur &$TokenError = null){
         $decoded=null;
         if (isset($JWT_TOKEN)){
             try{
@@ -151,31 +151,32 @@ Class xAuth
                 }
             }
             catch (Exception $e){
-
+                if(isset($TokenError)){
+                    $Err=$TokenError ;
+                }else{
+                    $Err=new xErreur ;
+                }
                 if($e->getMessage() == "Expired token"){
                     list($header, $payload, $signature) = explode(".", $JWT_TOKEN);
                     $payload = json_decode(base64_decode($payload));
                     //$refresh_token = $payload->data->refresh_token;
                     //print_r($payload->user_data) ;
-                    $Err=new xErreur ;
+                    
                     $Err->TxErreur="(ERR:SESSION_EXP) Votre session a expirée" ;
                     $Err->OK=0;
                     $Err->Source="auth.class.php" ;
                     $Err->Extra="Reconnectez-vous svp." ;
-                    $Reponse=json_encode($Err) ;
-                    //echo $Reponse ;
                     $decoded=$Err ; //"EXPIRE" ;
                     if (!$NoRetournError){
                         if(!xNAbySyGS::isRunFromCLI()){
                             http_response_code(401); 
+                            $this->Main->AllowCORS();
+                            $Err->SendAsJSON();
                         }
-                        $this->Main->AllowCORS();
-                        $Err->SendAsJSON();
                         if(!xNAbySyGS::isRunFromCLI()){
                             exit ;
                         }
-                    } 
-                
+                    }
                 } else {
                 
                     // set response code
@@ -185,7 +186,6 @@ Class xAuth
                 
                     // show error message
                     xNAbySyGS::AllowCORS();
-                    $Err=new xErreur ;
                     $Err->TxErreur="Accès refusé" ;
                     $Err->Autres = $e->getMessage();
                     $Err->OK=0;
