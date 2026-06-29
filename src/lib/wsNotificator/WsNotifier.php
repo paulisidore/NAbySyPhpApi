@@ -269,14 +269,14 @@ class WsNotifier
         try {
             $nabysy  = xNAbySyGS::getInstance();
             $Notif   = new xWSNotifications($nabysy);
-            $Critere = "user_id = " . $userId . " AND appref like '" . self::$appref . "'";
+            $Critere = "userid = " . $userId . " AND appref like '" . self::$appref . "'";
 
             if ($nonLuesUniquement) {
                 $Critere .= " AND lue = '" . xWSNotifications::NOTIFICATION_NON_LUE . "'";
             }
 
             $Order   = "DateCreation DESC";
-            $vLimite = $limite > 0 ? "LIMIT " . $limite : null;
+            $vLimite = $limite > 0 ? "".$limite : null;
 
             $Lst = $Notif->ChargeListe($Critere, $Order, "*", null, $vLimite);
 
@@ -304,7 +304,7 @@ class WsNotifier
             $Table      = $NotifModel->FullTableName();
 
             $sql = "UPDATE " . $Table . " SET ETAT = '" . xWSNotifications::ETAT_ENVOYE . "'"
-                 . " WHERE user_id = " . $userId
+                 . " WHERE userid = " . $userId
                  . " AND appref like '" . self::$appref . "'"
                  . " AND ETAT = '" . xWSNotifications::ETAT_NON_ENVOYE . "'";
 
@@ -326,7 +326,7 @@ class WsNotifier
         try {
             $nabysy  = xNAbySyGS::getInstance();
             $Notif   = new xWSNotifications($nabysy);
-            $Critere = "user_id = " . $userId . " AND appref like '" . self::$appref . "'";
+            $Critere = "userid = " . $userId . " AND appref like '" . self::$appref . "'";
             $Critere .= " AND lue like '" . xWSNotifications::NOTIFICATION_NON_LUE . "'";
 
             $Lst = $Notif->ChargeListe($Critere, "DateCreation ASC", "count(ID) as 'NB'");
