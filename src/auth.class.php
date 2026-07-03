@@ -211,12 +211,18 @@ Class xAuth
      * @param string $Algo 
      * @return string 
      */
-    public static function GetTokenFromPayLoad(string $Key,array $PayLoad,$Algo='HS256'):string{
+    public static function GetTokenFromPayLoad(array $PayLoad, ?string $Key = "nabysygscloud",?string $Algo='HS256'):string{
         if (!is_array($PayLoad)){
             return '';
         }
         if (count($PayLoad) == 0){
             return '';
+        }
+        if(!isset($Key)){
+            $Key = "nabysygscloud";
+        }
+        if(!isset($Algo)){
+            $Algo='HS256';
         }
         $dateexp=time();
         
@@ -231,6 +237,9 @@ Class xAuth
      * @return string|null Token ou null si absent
      */
     public static function extractFromHeader(): ?string {
+        if (xNAbySyGS::isRunFromCLI()){
+			return null ;
+		}
         $headers = getallheaders();
         if (!isset($headers['Authorization'])) {
             return null;
