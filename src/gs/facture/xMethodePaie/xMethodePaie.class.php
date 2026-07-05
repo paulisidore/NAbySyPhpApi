@@ -134,6 +134,12 @@ use NAbySy\xNAbySyGS;
             return false;
         }
 
+        /**
+         * Retourne la méthode espèce.
+         * @param string $TxMethodeEspece 
+         * @param bool $CreateIfNotExist  | Si VRAI et que la méthode est introuvable, elle sera créee.
+         * @return null|xMethodePaie 
+         */
         public static function GetMethodeEspece(string $TxMethodeEspece='Espece', bool $CreateIfNotExist=true):?xMethodePaie{
             $TxMethodeEspece="Espece";
             $Meth = self::GetMethodeByName($TxMethodeEspece);
