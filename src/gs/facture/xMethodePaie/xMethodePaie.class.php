@@ -133,6 +133,18 @@ use NAbySy\xNAbySyGS;
             }
             return false;
         }
+
+        public static function GetMethodeEspece(string $TxMethodeEspece='Espece', bool $CreateIfNotExist=true):?xMethodePaie{
+            $TxMethodeEspece="Espece";
+            $Meth = self::GetMethodeByName($TxMethodeEspece);
+            if(!$Meth){
+                //On creer la méthode par défaut ?
+                if($CreateIfNotExist){
+                    $Meth = self::CreateMethode($TxMethodeEspece,"Paiement en espèce et au comptant");
+                }
+            }
+            return $Meth;
+        }
     }
 
 ?>
