@@ -367,6 +367,9 @@ Class xNAbySyGS
 	/**Indique si l'utilisateur a utilisé un TOken pour se connecter */
 	public bool $UserConnectedByToken = false;
 
+	/**Si Vrai, la création dynamique des champs dans la base de donnée est vérouillée. Activer ce paramètre en Production */
+	public static bool $GLOBAL_LOCK_AUTO_CREATE_FIELD = false;
+
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true){ 
@@ -3903,6 +3906,19 @@ Class xNAbySyGS
         }
         return $decoded ;
     }
+
+	/**
+	 * Retourne ou enregistre l'etat de verroue sur la création des champs dynaminques en base de donnée.
+	 * Il est vivement conseillé d'activer se paramètre après le cycle de devollopement.
+	 * @param null|bool $Lock Si Vrai allors, aucun nouveau champ sera automatiquement créer dans les modules ORM
+	 * @return bool Retourne l'etat en cour du vérroue.
+	 */
+	public static function LockAutoCreateField(?bool $Lock=null):bool{
+		if(isset($Lock)){
+			self::$GLOBAL_LOCK_AUTO_CREATE_FIELD = $Lock ;
+		}
+		return self::$GLOBAL_LOCK_AUTO_CREATE_FIELD ;
+	}
 }
 
 ?>

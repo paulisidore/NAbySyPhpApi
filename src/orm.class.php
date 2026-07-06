@@ -135,6 +135,10 @@ class xORMHelper implements IORMHelper {
             $this->DataBase = $NAbySy->DataBase ;
         }
         $this->AutoCreate=$CreationChampAuto ;
+        if(xNAbySyGS::$GLOBAL_LOCK_AUTO_CREATE_FIELD && $this->AutoCreate){
+            //L'auto creation des champs est désactivé globalement dans NAbySyGSApi
+            $this->AutoCreate=false;
+        }
         $this->DebugMode=false ;
 
         $this->ListeTypeChampDB=[];
