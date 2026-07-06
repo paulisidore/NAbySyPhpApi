@@ -666,10 +666,14 @@ class xORMHelper implements IORMHelper {
             if(!$this->ChampIsPresent($NomChamp)){
                 $TxErreur .=" Absence du champ dans la table.";
             }
-            self::$xMain::$Log->Write($TxErreur);
+            //Rechercke de la ligne d'erreur:
+            $traces=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+            $source = $traces[0]['file'] . " LIGNE " . $traces[0]['line']  ;
+
+            self::$xMain::$Log->Write($TxErreur. " Source: " . $source);
             if($this->DebugMode){
                 header('Content-Type: application/json');
-                echo json_encode(["error" => $TxErreur]);
+                echo json_encode(["error" => $TxErreur, "source" => $source, "traces" => $traces]);
                 exit;
             }
             return ;
