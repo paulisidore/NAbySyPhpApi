@@ -55,10 +55,33 @@ Class xProduit extends xORMHelper
 		$Table=$this->Table;
 		$OK=false;
 		$NbLigne=0;
-		$sql="select P.*, R.Nom as 'Rayon', F.Nom as 'Famille' ";
-		$sql=$sql."from ".$Table." P left outer join famille F on F.Id=P.IdFamille "; 
-		$sql=$sql." left outer join rayon R on R.Id=P.IdFamille ";
-		$sql=$sql." where P.Id>'0' " ;
+		$sql="select P.* ";
+		$TxLeftOuter="";
+		$TxCritFamille="";
+		$TxCritRayon="";
+		$vNom=null;
+		if ($Nom !== null ){
+			$vNom=trim($this->Main::$db_link->real_escape_string($Nom)) ;
+		}
+
+		if($this->Main->TableExiste("rayon")){
+			$sql .=", R.Nom as 'Rayon' " ;
+			$TxLeftOuter .=" left outer join rayon R on R.Id=P.IdFamille ";
+			if($Nom){
+				$TxCritRayon=" or R.NOM like '%".$vNom."%' ";
+			}
+		}
+		if($this->Main->TableExiste("famille")){
+			$sql .=", F.Nom as 'Famille' " ;
+			$TxLeftOuter .=" left outer join famille F on F.Id=P.IdFamille ";
+			if($Nom){
+				$TxCritFamille=" or F.NOM like '%".$vNom."%' ";
+			}
+		}
+
+		$sql=$sql."from ".$Table." P "; 
+
+		$sql=$sql.$TxLeftOuter." where P.Id>'0' " ;
 		$crit="" ;
 		if ($Id>0){
 			$crit=$crit." AND P.Id='".$Id."' " ;
@@ -67,7 +90,7 @@ Class xProduit extends xORMHelper
 		if ($Nom !== null ){
 			$vNom=trim($this->Main::$db_link->real_escape_string($Nom)) ;
 			if(!isset($CodeBar)){
-				$crit = $crit." AND ( P.Designation like '%".trim($vNom)."%' or P.CODEBAR like '".$vNom."' or F.NOM like '%".$vNom."%'  or R.NOM like '%".$vNom."%' ) " ;
+				$crit = $crit." AND ( P.Designation like '%".trim($vNom)."%' or P.CODEBAR like '".$vNom."' ".$TxCritFamille." ".$TxCritRayon." ) " ;
 			}else{
 				$crit=$crit." AND P.Designation like '%".trim($vNom)."%' " ;
 			}
