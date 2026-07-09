@@ -11,6 +11,7 @@ use NAbySy\OBSERVGEN\xObservGen;
 use NAbySy\xDB;
 use NAbySy\xNAbySyGS;
 use NAbySy\xErreur;
+use stdClass;
 
 //#[\AllowDynamicProperties] on verra ca une autre fois
 class xORMHelper implements IORMHelper {
@@ -1416,11 +1417,10 @@ class xORMHelper implements IORMHelper {
      * @return string 
      */
     public function ToJSON($TableStructure=false, $RemoveFieldList=[]): string {
-        $JSonText="{" ;
+        $objet_dynamique = new stdClass();        
         if (!$TableStructure){        
-            $i=1 ;
             foreach ($this->ListeChampDB as $Champ){
-                $Ch=new xChampDB($Champ->Nom,$Champ->Valeur) ;
+                $Ch=$Champ ; //new xChampDB($Champ->Nom,$Champ->Valeur) ;
                 $AddToReponse = true;
                 if ( !is_array($Champ->Valeur) && !is_object($Champ->Valeur) ){
                     foreach ($RemoveFieldList as $ChampSup){
@@ -1437,26 +1437,21 @@ class xORMHelper implements IORMHelper {
                     }
 
                     if ($AddToReponse){
-                        if ($Ch->GetTypeChamp()==$Ch::NUMERIC ){
-                            $col='"'.$Ch->Nom.'":'.(int)$Ch->Valeur.'' ;
+                        $NomCh=$Ch->Nom ;
+                        if(is_object($Ch->Valeur) || $Ch->Valeur instanceof xChampDB){
+                            $objet_dynamique->$NomCh = $Ch->Valeur->ToJSON();
                         }else{
-                            $col='"'.$Ch->Nom.'":"'.$Ch->Valeur.'"' ;
+                            $objet_dynamique->$NomCh = $Ch->Valeur; 
                         }
-                        if ($i>1){
-                            $col =','.$col ;
-                        }
-                        $JSonText .=$col ;
-                        $i++;
                     }
-                    
                 }
                 
             }
-            $JSonText .="}" ;
+            return json_encode($objet_dynamique);
+            
         }else{
             try{
                 $JSonText=json_encode($this->ListeChampDB) ;
-                $JSonText ;
             }catch(Exception $ex){
                 $Err=new xErreur ;
                 $Err->OK=0 ;
@@ -1465,7 +1460,6 @@ class xORMHelper implements IORMHelper {
                 $JSonText=json_encode($Err) ;
             }
         }
-        
        return $JSonText ;
         
     }
@@ -1505,13 +1499,31 @@ class xORMHelper implements IORMHelper {
         try{
             $oobj = $this->ToJSON(false, $RemoveFieldList);
             $Tableau = json_decode($oobj, true);
+            if(!isset($Tableau)){
+                $LSrc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
+                $vErr = $LSrc[1];
+                $Err = new xErreur();
+                $Err->OK=0 ;
+                $Err->TxErreur="La convertion en Tableau à retourné un tableau null.";
+                if(xNAbySyGS::$LogLevel>3 && $this->Main->ActiveDebug){
+                    $Err->Source=$vErr ;
+                }
+                $this->AddToLog("ERREUR AVEC CONVERTION ". __CLASS__.":".__FUNCTION__." LIGNE ".__LINE__ . json_encode($Err),2);
+                return [];
+            }
             return $Tableau;
         }catch(Exception $ex){
-            /* $Err=new xErreur ;
+            $LSrc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
+            $vErr = $LSrc[1];
+            $Err = new xErreur();
             $Err->OK=0 ;
             $Err->TxErreur=$ex->getMessage() ;
-            $Err->Source=__CLASS__.':'.$this->Table.'::'.__FUNCTION__ ;
-            return ["error" => $Err] ; */
+            if(xNAbySyGS::$LogLevel>3 && $this->Main->ActiveDebug){
+                $Err->Source=$vErr ;
+            }
+            $this->AddToLog("ERREUR", json_encode($Err));
+            $Err->SendAsJSON();
+            
         }
         
         $AddToReponse = true;
