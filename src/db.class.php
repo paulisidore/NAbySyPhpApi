@@ -63,7 +63,7 @@ use xDBStateFullSet;
         }
 
         public function TableExiste($Table,$DBaseName=null){
-            if($this->Main::$CanUseDBStateFullSet){
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE && $this->Main::$CanUseDBStateFullSet){
                 if($DBaseName==null && $this->Main->MaBoutique != null){
                     $DBaseName=$this->Main->MaBoutique->DBName ;
                 }
@@ -80,8 +80,8 @@ use xDBStateFullSet;
             $reponse=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink);
             if (count($reponse->fetch_all())>=1){
                 if ($this->DebugMode){
-                    echo '</br>Table '.$this->Main->DataBase.'.'.$Table.' présent. </br>' ;
-                }                    
+                    //xNAbySyGS::$Log->AddToLog( 'Table '.$this->Main->DataBase.'.'.$Table.' présent') ;
+                }
                 return true;
             }
             if ($this->DebugMode && xNAbySyGS::$LogLevel > 2){
@@ -104,21 +104,21 @@ use xDBStateFullSet;
             $TxSQL="CREATE TABLE  IF NOT EXISTS ".$NomTable." (
                 ".$ChampID." INT(11) AUTO_INCREMENT PRIMARY KEY 
                 );" ;
-            if ($this->DebugMode)
+            if ($this->DebugMode && xNAbySyGS::$LogLevel>=4)
                 echo '</br>Création de la Table '.$NomTable.': ' ;
             $ok=$this->Main->ReadWrite($TxSQL,true,null,false, $this->UseMasterLink) ;
             if ($ok>=1){
-                if ($this->DebugMode)
+                if ($this->DebugMode && xNAbySyGS::$LogLevel>=4)
                     echo '...OK' ;
             }else{
-                if ($this->DebugMode)
+                if ($this->DebugMode && xNAbySyGS::$LogLevel>=4)
                     echo '...ERREUR' ;
             }            
             return $ok ;
         }
 
         public function ChampsExiste($Table,$Champ,$DBaseName=null){
-            if($this->Main::$CanUseDBStateFullSet && !$this->UseMasterLink){
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE && $this->Main::$CanUseDBStateFullSet && !$this->UseMasterLink){
                 if($DBaseName==null && $this->Main->MaBoutique != null){
                     $DBaseName=$this->Main->MaBoutique->DBName ;
                 }
@@ -126,6 +126,14 @@ use xDBStateFullSet;
                     return xDBStateFullSet::fieldExists($DBaseName,$Table,$Champ);
                 }
             }
+
+            if(!$this->TableExiste($Table,$DBaseName)){
+                if($this->DebugMode && xNAbySyGS::$LogLevel>=4){
+                    xNAbySyGS::$Log->AddToLog("La table ".$DBaseName.".".$Table." n'existe pas. Impossible de vérifier l'existence du champ ".$Champ);
+                }
+                return false;
+            }
+
             $TxSQL="SHOW COLUMNS FROM ".$Table." like '".$Champ."' "  ;
             if (isset($DBaseName)){
                 $TxSQL="SHOW COLUMNS FROM ".$DBaseName.".".$Table." like '".$Champ."' " ;
@@ -203,7 +211,7 @@ use xDBStateFullSet;
          * @return bool 
          */
         public function DBExiste(string $DBaseName=null):bool{
-            if($this->Main::$CanUseDBStateFullSet){
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE && $this->Main::$CanUseDBStateFullSet){
                 if($DBaseName==null && $this->Main->MaBoutique != null){
                     $DBaseName=$this->Main->MaBoutique->DBName ;
                 }

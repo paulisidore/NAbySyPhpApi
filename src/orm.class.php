@@ -116,12 +116,14 @@ class xORMHelper implements IORMHelper {
                 $dbDispo = $NAbySy->DataBase ;
             }
 
-            if($this->Main->MaBoutique->Id>0){
-                //var_dump($this->Main->MaBoutique);exit;
-                if( !xNAbySyGS::$TECHNOWEB_ACTIVE && $this->Main->MaBoutique->Id>0 && trim($this->Main->MaBoutique->DBName) !==''){
-                    $dbDispo = $this->Main->MaBoutique->DBName ?? $this->Main->DataBase ?? $this->Main->MasterDataBase ?? null ;
-                }else{
-                    $dbDispo =  $this->Main->DataBase ?? $this->Main->MasterDataBase ?? null ;
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE){
+                if($this->Main->MaBoutique->Id>0){
+                    //var_dump($this->Main->MaBoutique);exit;
+                    if( !xNAbySyGS::$TECHNOWEB_ACTIVE && $this->Main->MaBoutique->Id>0 && trim($this->Main->MaBoutique->DBName) !==''){
+                        $dbDispo = $this->Main->MaBoutique->DBName ?? $this->Main->DataBase ?? $this->Main->MasterDataBase ?? null ;
+                    }else{
+                        $dbDispo =  $this->Main->DataBase ?? $this->Main->MasterDataBase ?? null ;
+                    }
                 }
             }
             $this->DataBase = $dbDispo ;

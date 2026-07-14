@@ -1172,6 +1172,11 @@ Class xNAbySyGS
 
 		if(!isset($this->MaBoutique) && self::$TECHNOWEB_ACTIVE){
 			$this->MaBoutique = new xBoutique($this);
+			if(!$this->MaBoutique->TableExisteInDataBase()){
+				xNAbySyGS::$Log->AddToLog("Création de la Table Boutique dans la base du client TechnoWEB ".$this->db_serveur.".".$this->MaBoutique->FullTableName() ) ;
+				echo "Création de la Table Boutique dans la base du client TechnoWEB";
+				$this->MaBoutique->FlushMeToDB();
+			}
 		}
 		if($this->MaBoutique->Id == 0){
 			$this->MaBoutique->IdCompteClient=0;
@@ -1449,7 +1454,9 @@ Class xNAbySyGS
 
 			if($this->ActiveDebug || self::$LogLevel>4){
 				header('Content-Type: application/json');
-				echo json_encode(["src" => __FILE__." LINE ".__LINE__ , "error" => "SQL Error: " . $e->getMessage(), "sql" => $SQL, "trace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,5)]);
+				$tDebug=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
+				$vTrace=$tDebug[1];
+				echo json_encode(["src" => $vTrace['file']." LINE ".$vTrace['line'] , "error" => "SQL Error: " . $e->getMessage(), "sql" => $SQL, "trace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,5)]);
 				exit;
 			}
 		}		
@@ -3637,6 +3644,9 @@ Class xNAbySyGS
 												if($this->ActiveDebug && self::$LogLevel>3){
 													self::$Log->AddToLog("Client TechnoWEB connecté: ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
 												}
+
+												//On s'assure que la Table BOutique est présente chez le client TechnoWEB
+
 											}
 									}
 									/******************************************************************************* */
