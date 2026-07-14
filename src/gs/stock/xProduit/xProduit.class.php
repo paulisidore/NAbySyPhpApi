@@ -27,7 +27,7 @@ Class xProduit extends xORMHelper
 	public const ETAT_CRITIQUE = 'C';
 	public const ETATS_STOCK_GROS_TERMINE = 'T';
 	
-	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$AutoCreateTable=false,$TableName='produits', xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,?bool $AutoCreateTable=false,?string $TableName='produits', ?string $DBName=null){
 		self::$TableConfig=[];
 		if (!isset($TableName)){
 			$TableName="produits";
@@ -39,13 +39,8 @@ Class xProduit extends xORMHelper
 				$TableName=self::$TableConfig['Table'];
 			}
 		}
-		if(!isset($Boutique)){
-			if(isset($NabySy)){
-				$Boutique = $NabySy->MaBoutique;
-			}
-		}
 		//var_dump($TableName);
-		parent::__construct($NabySy,$Id,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE,$TableName,$Boutique->DBName) ;
+		parent::__construct($NabySy,$Id,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE,$TableName,$DBName) ;
 		self::UpdateEtatStock();
 	}	
 	
