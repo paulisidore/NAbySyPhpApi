@@ -258,6 +258,7 @@ PHP;
 
         // ── 6. Initialisation NAbySyGS ───────────────────────
         $log .= "Initialisation de la base de données Master :\n {$masterdb}\n \n";
+        xNAbySyGS::$IsFirstSetup = true;
         xNAbySyGS::createMasterDB(xNAbySyGS::getInstance()->MODULE);
         try {
             //include_once $targetFile;

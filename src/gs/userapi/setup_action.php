@@ -6,6 +6,8 @@
      * By Paul Isidore A. NIAMIE
      */
 
+use NAbySy\xNAbySyGS;
+
 // ============================================================
 //  Classes autonomes pour le contexte Setup
 //  Versions allégées sans dépendance à N — utilisées uniquement
@@ -253,6 +255,8 @@ PHP;
         // ── 6. Initialisation NAbySyGS ───────────────────────
         $log .= "Initialisation de la base de données Master :\n {$masterdb}\n \n";
         try {
+            xNAbySyGS::$IsFirstSetup = true;
+            xNAbySyGS::createMasterDB(xNAbySyGS::getInstance()->MODULE);
             //include_once $targetFile;
             $log .= "OK\n\n";
             $log .= "Création des tables système NAbySyGS :\n \n";
