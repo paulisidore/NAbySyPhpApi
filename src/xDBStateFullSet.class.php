@@ -165,9 +165,12 @@ class xDBStateFullSet {
         try {
             $db_link = xNAbySyGS::$db_link;
             try {
-                if(!$db_link->ping()){
-                    echo "Connexion fermée.";
-                    var_dump($db_link->sqlstate);exit;
+                if(!xNAbySyGS::isRunFromCLI()){
+                    //Déprécié dans Php 8.4
+                    // if(!$db_link->ping()){
+                    //     echo "Connexion fermée.";
+                    //     var_dump($db_link->sqlstate);exit;
+                    // }
                 }
             } catch (\Throwable $th) {
                 if(xNAbySyGS::$TechnoWEBMgr){
