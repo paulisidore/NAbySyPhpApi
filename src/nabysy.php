@@ -446,6 +446,30 @@ Class xNAbySyGS
 		$userGSFolder = self::ModuleGSHostFolder() ; //Provoque la vérification de l'installation Initiale de NAbySyGS et la création du dossier de stockage des Modules GS
 
 		if(!isset(self::$master_db_link)){
+			if(self::$IsFirstSetup){
+				self::$Log->AddToLog("Création éventuelle de la base de donnée Master...");
+				try {
+					//On vérifie la présence de la base de donnée Master
+					self::$master_db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, null,$port) or die("Master DB Connection Error ".mysqli_error(self::$master_db_link ));
+					if(!self::createMasterDB($this->MODULE)){
+						$Err=new xErreur;
+						$Err->OK=0;
+						$Err->TxErreur = "Création impossible de la Base de donnée master ".$this->MasterDataBase.".";
+						$Err->SendAsJSON();
+					}
+					self::$Log->AddToLog("Base de donnée Master OK");
+				} catch (\Throwable $th) {
+					//throw $th;
+					$Err=new xErreur;
+					$Err->OK=0;
+					$Err->TxErreur = "Base de donnée master ".$this->MasterDataBase." impossible à créer: ".$th->getMessage()." dans ".$th->getFile()." ligne ".$th->getLine();
+					$tr=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 7);
+					$oTr=$tr[1];
+					$Err->Source = $tr;
+					$Err->SendAsJSON();
+				}
+			}
+
 			try {
 				self::$master_db_link = new mysqli($Myserveur, $Myuser, $Mypasswd, $MasterDB,$port) or die("Master DB Connection Error ".mysqli_error(self::$master_db_link ));
 			} catch (\Throwable $th) {
@@ -820,7 +844,7 @@ Class xNAbySyGS
 	public static function masterDBExist(): bool {
 		$DBExist=false ;
 		$TxSQL="SHOW DATABASES LIKE '".self::getInstance()->MasterDataBase."'";
-		$Res=self::getInstance()->ReadWrite($TxSQL);
+		$Res=self::getInstance()->ReadWrite($TxSQL,false,null,false,true);
 		if ($Res->num_rows>0){
 			$DBExist=true ;
 		}
@@ -855,6 +879,7 @@ Class xNAbySyGS
 	 */
 	public static function createMasterDB(ModuleMCP $mod): bool {
 		$Created=false ;
+		$CanCreateTable=false;
 		$Rep=new xNotification();
 		$Rep->OK=0;
 		$Tx=[];
@@ -862,15 +887,16 @@ Class xNAbySyGS
 		if (!self::masterDBExist()){
 			$Tx[] = "Création de la Base de donnée Master: \n ".self::getInstance()->MasterDataBase."\n ";
 			$TxSQL="CREATE DATABASE `".self::getInstance()->MasterDataBase."` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
-			$Res=self::getInstance()->ReadWrite($TxSQL,true);
+			$Res=self::getInstance()->ReadWrite($TxSQL,true,null,true,true);
 			if ($Res){
 				$Created=true ;
+				$CanCreateTable=true;
 			}
 		}else{
 			$Created=true ;
 		}
 
-		if ($Created){
+		if ($CanCreateTable){
 			//On crée les tables de la base de donnée master
 			$Tx[] = "Création des tables : \n ";
 			$Tx[] = "Table journal ...";
@@ -895,7 +921,7 @@ Class xNAbySyGS
 				PRIMARY KEY (`ID`),
 				KEY `IndexAcceleration` (`DATEENREG`,`IDUTILISATEUR`)
 			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL, true);
+			self::getInstance()->ReadWrite($TxSQL, true,null,true,true);
 			$Tx[] = "OK\n";
 
 			$Tx[] = "Table boutique ...";
@@ -934,7 +960,7 @@ Class xNAbySyGS
 				`IsDepot` int(11) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`)
 			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL, true);
+			self::getInstance()->ReadWrite($TxSQL, true,null,true,true);
 			$Tx[] = "OK\n";
 
 			$Tx[] = "Table parametre ...";
@@ -1000,7 +1026,7 @@ Class xNAbySyGS
 				`SiteFermeture` varchar(255) NOT NULL DEFAULT 'kssvx',
 				PRIMARY KEY (`ID`)
 			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL, true);
+			self::getInstance()->ReadWrite($TxSQL, true,null,true,true);
 			$Tx[] = "OK\n";
 
 			$Tx[] = "Table utilisateur ...";
@@ -1048,16 +1074,16 @@ Class xNAbySyGS
 				UNIQUE KEY `LOGIN` (`LOGIN`)
 
 			  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-			self::getInstance()->ReadWrite($TxSQL,true);
+			self::getInstance()->ReadWrite($TxSQL,true,null,true,true);
 			$Tx[] = "OK\n";
 
 			$Tx[] = "Création de l'utilisateur par défaut : pharmcp / microcp ...";
 			//Création de l'utilisateur par défaut
 			$TxSQL="SELECT * FROM `".self::getInstance()->MasterDataBase."`.`utilisateur` WHERE LOGIN='pharmcp'";
-			$Res=self::getInstance()->ReadWrite($TxSQL);
+			$Res=self::getInstance()->ReadWrite($TxSQL,false,null,true,true);
 			if ($Res->num_rows==0){
 				$TxSQL="INSERT INTO `".self::getInstance()->MasterDataBase."`.`utilisateur` (NOM,PRENOM,ADRESSE,TEL,LOGIN,PASSWORD,DATEENTREE,DATECREATION,HEURECREATION,NIVEAUACCES,PROFILE) VALUES ('Admin','Admin','', '','pharmcp','microcp','".date('Y-m-d')."','".date('Y-m-d')."','".date('H:i:s')."',1,'Administrateur')";
-				self::getInstance()->ReadWrite($TxSQL,true);
+				self::getInstance()->ReadWrite($TxSQL,true,null,true,true);
 				$Tx[] = "OK\n";
 			}else{
 				$Tx[] = "L'utilisateur par défaut existe déjà\n";
@@ -1067,12 +1093,12 @@ Class xNAbySyGS
 			$Tx[] = "Création de la boutique par défaut : MasterDataBase ...";
 			//Création de la boutique/dépot par défaut
 			$TxSQL="SELECT * FROM `".self::getInstance()->MasterDataBase."`.`boutique` WHERE ID>0 ";
-			$Res=self::getInstance()->ReadWrite($TxSQL);
+			$Res=self::getInstance()->ReadWrite($TxSQL,false,null,true,true);
 			if ($Res->num_rows==0){
 				$db=self::getInstance()->MasterDataBase;
 				$TxSQL="INSERT INTO `".$db."`.`boutique` (NOM, Serveur, DBName,DBUser,DBPassword,IsBoutique,DBase,MasterDataBase,IsDepot,IdCompteClient,Visible) 
 																					VALUES ('SIEGE ".$mod->Nom."', '".self::$dbserver."', '".$db."', '".self::$dbuser."','".self::$dbpass."','0','".$db."','".$db."',1,0,1)";
-				self::getInstance()->ReadWrite($TxSQL,true);
+				self::getInstance()->ReadWrite($TxSQL,true,null,true,true);
 				$Tx[] = "OK\n";
 			}else{
 				$Tx[] = "Boutique par défaut existe déjà\n";
@@ -1081,6 +1107,7 @@ Class xNAbySyGS
 
 			$Rep->OK=$Created ? 1 : 0 ;
 			$Rep->Contenue = implode("\n",$Tx) ;
+			self::$Log->AddToLog("Reponse Creation Master DB: ".json_encode($Tx));
 			$Rep->SendAsJSON();
 
 		}
