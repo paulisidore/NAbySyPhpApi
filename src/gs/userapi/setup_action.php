@@ -208,9 +208,15 @@ const __DUREE_TOKEN__    = {$token}; {$tokenComment}
 if(!defined('__BASEDIR__')){
     define('__BASEDIR__', "{$basedirSafe}"); // Sous dossier d'hebergement si applicable
 }
+if(!defined('__INITIAL_SETUP__')){
+    define('__INITIAL_SETUP__', true); // Permet d'indiquer le setup Initial
+}
+
 \$ACTIVE_DEBUG           = {$debugStr};
 \$DEBUG_LEVEL            = {$debuglevel}; // Niveau de debug (0: Aucun, 1: Erreurs, 2: Avertissements, 3: Informations, 4: Débogage détaillé)
 \$DUREE_SESSION_AUTH     = __DUREE_TOKEN__ ;
+\$INITIAL_SETUP          = true ; //Permet la creation automatique de la base master lors du 1er setup
+
 if (\$ACTIVE_DEBUG) {
     error_reporting(E_ALL);
     ini_set('display_errors', \$DEBUG_LEVEL);
@@ -226,7 +232,8 @@ if (\$ACTIVE_DEBUG) {
         __PROVIDER_TEL__,  __DBNAME__,
         __MASTERDB__,      __DBSERVER__,
         __DBUSER__,        __DBPASSWORD__,
-        __DBPORT__,        __BASEDIR__);
+        __DBPORT__,        __BASEDIR__, 
+        null, null, \$INITIAL_SETUP );
     \$nabysy->ActiveDebug = {$debugStr};
     N::SetShowDebug(\$ACTIVE_DEBUG, \$DEBUG_LEVEL);
     N::SetAuthSessionTime(\$DUREE_SESSION_AUTH);
@@ -255,8 +262,6 @@ PHP;
         // ── 6. Initialisation NAbySyGS ───────────────────────
         $log .= "Initialisation de la base de données Master :\n {$masterdb}\n \n";
         try {
-            xNAbySyGS::$IsFirstSetup = true;
-            xNAbySyGS::createMasterDB(xNAbySyGS::getInstance()->MODULE);
             //include_once $targetFile;
             $log .= "OK\n\n";
             $log .= "Création des tables système NAbySyGS :\n \n";

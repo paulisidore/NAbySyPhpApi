@@ -3133,14 +3133,14 @@ Class xNAbySyGS
 	public static function Init(string $AppName="NAbySyGS-PAM Internal Service API", string $NomClient="Paul & Aïcha Machinerie SARL",
 		string $AdresseClient="Dakar Zack Mbao", string $TelClt="+221 33 836 14 77", string $Database="nabysygs", 
 		string $MasterDataBase="nabysygs", string $Server="127.0.0.1", string $DBUser="root", string $DBPwd="", int $DBPort=3306,
-		?string $baseDir = null, ?bool $DesableTokenAuth=true):xNAbySyGS{
+		?string $baseDir = null, ?bool $DesableTokenAuth=true, ?bool $InitialSetup=false):xNAbySyGS{
 		
 		if(isset($baseDir)){
 			if( $baseDir !==''){
 				self::$BASEDIR = $baseDir ;
 			}
 		}
-
+		self::$IsFirstSetup=$InitialSetup ?? false;
 		$InfoClientMCP = new ModuleMCP();
 		$InfoClientMCP->Nom = $AppName ;
 		$InfoClientMCP->MCP_CLIENT = $NomClient;
