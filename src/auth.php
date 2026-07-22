@@ -61,7 +61,7 @@ use NAbySy\xUser;
         //echo "Token a recherche = ".$Token ; //exit;
         $UserToken=xNAbySyGS::DecodeJWToken($Token) ;
         //var_dump($UserToken)."</br>" ;
-        var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec UserId = ".$UserToken->user_id);
+        //var_dump(__FILE__." L".__LINE__." Je suis maintenant ici avec UserId = ".$UserToken->user_id);
         if (!isset($UserToken)){            
             $Err->TxErreur="(ERR:SESSION_EXP) Votre session a expirée" ;
             $Err->OK=0;
