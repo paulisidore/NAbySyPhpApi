@@ -61,7 +61,7 @@ Class xProforma extends xORMHelper
 			return;
 		}
 
-		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
+		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DBName) ;
 
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);

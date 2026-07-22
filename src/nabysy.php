@@ -370,6 +370,13 @@ Class xNAbySyGS
 	/**Si Vrai, la création dynamique des champs dans la base de donnée est vérouillée. Activer ce paramètre en Production */
 	public static bool $GLOBAL_LOCK_AUTO_CREATE_FIELD = false;
 
+	public static bool $INITIAL_BOOTING = false;
+
+	/**
+	 * Informations liées au compte TechnoWeb en cour d'utilisation
+	 * @var null|xORMHelper
+	 */
+	public static ?xORMHelper $TechnoWEBClient = null;
 
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true){ 
@@ -576,6 +583,7 @@ Class xNAbySyGS
 			self::$CanUseDBStateFullSet = xDBStateFullSet::Ready();
 
 			if (!isset(self::$DBModulePaieMgr)){
+				self::$INITIAL_BOOTING = true;
 				self::LoadModuleGS();
 				self::$DBModulePaieMgr=new xMethodePaie($this);
 				self::LoadModuleLib(self::$LogLevel);
@@ -665,6 +673,7 @@ Class xNAbySyGS
 			}
 			//Lecture eventuelle du Token passé dans le Header
 			xAuth::extractFromHeader();
+			self::$INITIAL_BOOTING = false;
 		}
 
 	}
@@ -675,20 +684,14 @@ Class xNAbySyGS
 			if(isset($_REQUEST['IDTECHNOWEB'])){
 				$nabysy = self::getInstance(null,true);
 				$nabysy->LoadDataBaseFromTechnoWEBClient(true);
-				$nabysy::LoadModuleLib(2);
-				//self::$Log->Write("TechnoWeb: BD Après LoadModuleLib: ".$nabysy->MaBoutique->DataBase,1) ;
+				//self::$Log->Write("TechnoWeb: BD avant LoadModuleLib: ".$nabysy->MaBoutique->DBName,1) ;
+				//$nabysy::LoadModuleLib(2);
+				//self::$Log->Write("TechnoWeb: BD Après LoadModuleLib: ".$nabysy->MaBoutique->DBName,1) ;
 				$nabysy::LoadModuleGS();
-				//self::$Log->Write("TechnoWeb: BD Après LoadModuleGS: ".$nabysy->MaBoutique->DataBase,1) ;
-
-				//self::$Log->Write("TechnoWeb: BD Avant Refresh Parametre: ".$nabysy->MaBoutique->Parametre->DataBase,1) ;
-				//$nabysy->MaBoutique->Parametre = new xORMHelper($nabysy,1,true,'parametre');
-				//self::$Main->ChargeInfos() ;
 				self::$Main = $nabysy ;
-				//self::$Log->Write("TechnoWeb BD Après Refresh Parametre: ".$nabysy->MaBoutique->Parametre->DataBase, 1) ;
-				$nabysy->MaBoutique = $nabysy->MaBoutique->Parametre->Main->MaBoutique ;
 				//self::$Log->Write("BOUTIQUE NNN: ".$nabysy->MaBoutique->Nom);
-				//self::$Log->Write("BOUTIQUE III: ".$nabysy->MaBoutique->DataBase);
-				//self::$Log->Write("TechnoWeb: Resolution terminé Base de donnée du Client: ".$nabysy->MaBoutique->DataBase, 1) ;
+				//self::$Log->Write("BOUTIQUE III: ".$nabysy->MaBoutique->DBName);
+				//self::$Log->Write("TechnoWeb: Resolution terminé Base de donnée du Client: ".$nabysy->MaBoutique->DBName, 1) ;
 			}
 		}
     }
@@ -1436,7 +1439,7 @@ Class xNAbySyGS
 		//$this->SelectDB();
 		$TxBout="MAIN" ;
 		if (isset($this->MaBoutique)){
-			$TxBout=$this->MaBoutique->DataBase ;
+			$TxBout=$this->MaBoutique->DBName ?? "MAIN" ;
 		}
 		$logFolder=self::CurrentFolder(true).'log';
 		if (!is_dir($logFolder)){
@@ -3493,6 +3496,9 @@ Class xNAbySyGS
 				if ($CltTechnoWeb){
 					$CltTechnoWeb->Refresh();
 					if($CltTechnoWeb->Id){
+						self::$TECHNOWEB_ACTIVE=true;
+						self::$TechnoWEBClient = $CltTechnoWeb ;
+						//self::$Log->AddToLog("TechnoWEB en cour d'utilisation ".self::$TECHNOWEB_ACTIVE ? 'OUI' : 'NON');
 						//self::$Log->AddToLog("Client TechnoWEB Trouvé ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
 						$IsDynamicBout=false;
 						$CltDataBase=trim($CltTechnoWeb->ServiceDB) ;
@@ -3522,6 +3528,7 @@ Class xNAbySyGS
 									$Bout->DBName = $CltDataBase ;
 									$Bout->Nom = $CltTechnoWeb->RaisonSocial ;
 									$Bout->DBase = $CltDataBase ;
+									$Bout->DBName = $CltDataBase ;
 									$Bout->Serveur = $CltTechnoWeb->AdresseIP_VPN ;
 									$Bout->DBPort = (int)$CltTechnoWeb->ServiceDBPort ;
 									$Bout->DBUser = $CltTechnoWeb->ServiceDBUser;
@@ -3681,8 +3688,7 @@ Class xNAbySyGS
 									$this->SelectDB($BoutiqueCible->DBName);
 									$this->DataBase = $BoutiqueCible->DBName;
 									$this->RepWork = $CltDataBase;
-									//$this->Parametre = new xORMHelper($this,1,true,$this->Parametre->Table, $CltDataBase);
-									//self::$Log->AddToLog("La boutique en cour est maintenant: ".$this->MaBoutique->Nom." BD=".$this->MaBoutique->DataBase);
+
 									if(!is_dir($this->RepWork)){
 										try {
 											//echo "Création du dossier ".$this->RepWork;
@@ -3721,7 +3727,7 @@ Class xNAbySyGS
 		}
 		if($BoutiqueCible){
 			//self::$Log->Write("IDTechnoWeb: ".$IdTechnoWeb,1) ;
-			$this->RefreshParametre($BoutiqueCible->DataBase);
+			$this->RefreshParametre($BoutiqueCible->DBName);
 			$Notif->Contenue=$BoutiqueCible ;
 			$Notif->OK=1 ;
 		}else{
@@ -3776,6 +3782,9 @@ Class xNAbySyGS
 			}
 			//self::$Log->Write("RAFRAICHISSEMENT DES PARAMETRE: ".$this->Parametre->FullTableName());
 		}
+		if(!isset($this->Parametre)){
+			$this->Parametre=new xORMHelper($this,1,true,"parametre",trim($CltDataBase) != '' ? $CltDataBase : null);
+		}
 
 		if ($this->Parametre->Id==0){
 			$Lst=$this->Parametre->ChargeListe();
@@ -3788,6 +3797,10 @@ Class xNAbySyGS
 				$this->Parametre->MonnaieLong = "FRANCS CFA";
 				$Date=date('Y-10-01');
 				$Dte=new DateTime($Date);
+				$this->Parametre->GARDE_DATE_ACTIVATION = date('Y-01-01 h:i:s');
+				$this->Parametre->GARDE_DATE_NOTIFIEE = $this->Parametre->GARDE_DATE_ACTIVATION ;
+				$this->Parametre->GARDE_DATE_NOTIFIER_LOCALEMENT = $this->Parametre->GARDE_DATE_ACTIVATION ;
+				$this->Parametre->DatePremiereScolarite = $this->Parametre->GARDE_DATE_ACTIVATION ;
 				$this->Parametre->Enregistrer();
 			}
 
@@ -3956,6 +3969,91 @@ Class xNAbySyGS
 		}
 		return self::$GLOBAL_LOCK_AUTO_CREATE_FIELD ;
 	}
+
+
+	/**
+	 * Autocorrection de l'encodage dans une base de donnée.
+	 * @param null|string $dbname 
+	 * @return void 
+	 */
+	public static function AutoCorrectDBCharset(?string $dbname=null): void {
+		$corrigetout=false;
+		if(!isset($dbname)){
+			$dbname = self::getInstance()->MasterDataBase;
+			$corrigetout=true;
+		}
+        self::$Log->AddToLog( "🔍 Analyse de la base de données [{$dbname}] en cours...");
+
+        // 1. Détecter les tables ayant des colonnes avec les mauvais encodages
+        $tablesToConvert = self::detectProblematicTables($dbname);
+
+        if (empty($tablesToConvert)) {
+            self::$Log->AddToLog( "✅ Félicitations ! Aucune table avec du 'latin1_swedish_ci' ou 'utf8_general_ci' n'a été détectée.");
+            return;
+        }
+
+        self::$Log->AddToLog( "⚠️ " . count($tablesToConvert) . " table(s) contenant des encodages mixtes ou obsolètes trouvée(s) :");
+        foreach ($tablesToConvert as $tableName) {
+            self::$Log->AddToLog( "   - Table : {$tableName}");
+        }
+
+        self::$Log->AddToLog( "\n🚀 Lancement de la conversion automatique vers utf8mb4...");
+
+        // 2. Exécuter la conversion uniquement sur les tables détectées
+        foreach ($tablesToConvert as $tableName) {
+            self::convertTable($tableName);
+        }
+
+        self::$Log->AddToLog( "🎉 Optimisation terminée avec succès pour toutes les tables affectées !");
+    }
+
+	/**
+     * Détecte les tables qui possèdent au moins une colonne en latin1_swedish_ci ou utf8_general_ci
+     */
+	public static function detectProblematicTables(string $dbName): array {
+        
+		$sql = "SELECT DISTINCT TABLE_NAME 
+                FROM information_schema.COLUMNS 
+                WHERE TABLE_SCHEMA = ? 
+                AND COLLATION_NAME IN ('latin1_swedish_ci', 'utf8_general_ci')";
+
+        // Préparation de la requête avec MySQLi
+        $stmt = self::$master_db_link->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Erreur de préparation : " . self::$master_db_link->error);
+        }
+
+        $stmt->bind_param("s", $dbName);
+        $stmt->execute();
+        
+        // Récupération des résultats
+        $result = $stmt->get_result();
+		$tables = [];
+        while ($row = $result->fetch_row()) {
+            $tables[] = $row[0]; // Récupère le nom de la table
+        }
+		$stmt->close();
+		return $tables;
+    }
+
+	/**
+     * Applique l'ALTER TABLE de conversion sur une table spécifique
+     */
+    public static function convertTable(string $tableName): void {
+        try {
+			// Protection du nom de la table contre les injections SQL structurelles
+			$escapedTable = self::$master_db_link->real_escape_string($tableName);
+			$sql = "ALTER TABLE `{$escapedTable}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+
+			if (self::$master_db_link->query($sql) === true) {
+				self::$Log->AddToLog( "   ✅ Table `{$tableName}` convertie avec succès.");
+			} else {
+				self::$Log->AddToLog( "   ❌ Erreur lors de la conversion de la table `{$tableName}` : " . self::$master_db_link->error);
+			}
+        } catch (Exception $e) {
+			self::$Log->AddToLog( "   ❌ Erreur lors de la conversion de la table `{$tableName}` : " . $e->getMessage());
+        }
+    }
 }
 
 ?>

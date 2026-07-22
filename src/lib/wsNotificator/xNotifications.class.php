@@ -34,9 +34,9 @@
                 $TableName="notifications";
             }
             if(!isset($DBName)){
-                $DBName=$NabySy->MaBoutique->DataBase;
+                $DBName=$NabySy->MaBoutique->DBName;
             }elseif(trim($DBName)==''){
-                $DBName=$NabySy->MaBoutique->DataBase;
+                $DBName=$NabySy->MaBoutique->DBName;
             }
             parent::__construct($NabySy,(int)$Id,$AutoCreate,$TableName,$DBName);
 

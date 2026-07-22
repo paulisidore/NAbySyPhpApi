@@ -115,6 +115,9 @@ class xCart{
 	}
 
 	$this->Id=$IdSession;
+	if(!isset($this->MaBoutique->Parametre)){
+		$this->MaBoutique->Parametre = $this->MaBoutique->Main->Parametre;
+	}
 	
 	if (!$this->Existe){		
 		$this->PanierId='panier'.$this->Id ;
@@ -399,12 +402,6 @@ class xCart{
 	  $this->Existe=false ;
 	  $this->DejaValider(true);
 	  $nvListe=array() ;
-	//   foreach ($this->MaBoutique->ListePanier as $P){
-	// 	  if ($P->Id !== $this->Id){			  
-	// 		  array_push($nvListe,$P);
-	// 	  }		  
-	//   }
-	  $this->MaBoutique->ListePanier=$nvListe ;
 	  $_SESSION[$InfoC]['IdCmd']=null ;
 	  $_SESSION[$InfoC]['IdBoutiqueCmd']=null ;
 	  unset ($InfoC) ;

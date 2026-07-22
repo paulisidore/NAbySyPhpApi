@@ -4,9 +4,11 @@ use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xDB;
 use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
 
 $nabysy = N::getInstance() ;
+
 switch ($action){
         case 'ETS_GETINFOS': //Retourne les information personnelle de l'entreprise cliente
             $IdBout=N::getInstance()->MaBoutique->Id;
@@ -50,12 +52,17 @@ switch ($action){
                     }
                 }
             }
-            $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
-            if($Bout->SupportArticlePhotos==''){
+            $Bout=xNAbySyGS::getInstance()->MaBoutique ; // new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
+            if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+                $Bout->SupportArticlePhotos = (int)xNAbySyGS::$TechnoWEBClient->SupportArticlePhotos ;
+                $Bout->Nom = xNAbySyGS::$TechnoWEBClient->RaisonSocial ;
+            }
+
+            if($Bout->SupportArticlePhotos=='' && $Bout->Id>0){
                 $Bout->SupportArticlePhotos = 0; //Par defaut les photos d'article ne seront pas authorisé
                 $Bout->Enregistrer();
             }
-            if($Bout->Id==0){
+            if($Bout->Id==0 && !xNAbySyGS::$TECHNOWEB_ACTIVE ){
                 $Err=new xErreur();
                 $Err->Autres = $IdBout ;
                 $Err->TxErreur="Information du client PAM introuvable !";
@@ -113,6 +120,10 @@ switch ($action){
                 $rw['REGION'] = $Param->MaRegion ;
             }
 
+            foreach ($rw as $key => $value) {
+                $rw[$key] = xNAbySyGS::EscapedForJSON($value);
+            }
+
             $Reponse->Contenue = $rw ;
             echo json_encode($Reponse);
             exit;
@@ -127,7 +138,8 @@ switch ($action){
                     $IdConfig = (int)$_REQUEST['ID'];
                 }
             }
-            if(isset($PARAM['IDTECHNOWEB'])){
+
+            /* if(isset($PARAM['IDTECHNOWEB'])){
                 if(trim($PARAM['IDTECHNOWEB']) !==''){
                     if(isset(N::$TechnoWEBMgr)){
                         $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
@@ -153,16 +165,20 @@ switch ($action){
                         }
                     }
                 }
+            } */
+            if(xNAbySyGS::$TECHNOWEB_ACTIVE){
+                $Bout = xNAbySyGS::getInstance()->MaBoutique;
+                $Param=xNAbySyGS::getInstance()->Parametre ;
+            }else{
+                $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
+                $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre", $Bout->DBName);
             }
-            $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
-            if($Bout->Id==0){
+            if($Bout->Id==0 && !xNAbySyGS::$TECHNOWEB_ACTIVE){
                 $Err=new xErreur();
                 $Err->Autres = $IdBout ;
                 $Err->TxErreur="Information du client PAM introuvable !";
                 $Err->SendAsJSON();
             }
-
-            $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre", $Bout->DataBase);
             $Reponse=new xNotification;
             if ($Param->Id==0){
                $NewConfig=true;
@@ -180,13 +196,14 @@ switch ($action){
 
             $YouCanSave=false ;
             $YouCanSaveBout=false;
-            $MySQL=new xDB($nabysy);
-            $MySQL->DebugMode=false;
+            //$MySQL=new xDB($Param->Main);
+            //$MySQL->DebugMode=false;
             $ListeChampIntrouvable=[];
             $ListeVariable=$_REQUEST;
             if(isset($ListeVariable['Config'])){
                 $ListeVariable = json_decode($ListeVariable['Config'],true);
             }
+
             //$Param->AddToLog(__FILE__.":".__LINE__.": Param.".json_encode($ListeVariable));
 
             foreach($ListeVariable as $Champ => $Valeur){
@@ -208,7 +225,7 @@ switch ($action){
                                 $Valeur=(int)$Valeur;
                             }
                         }
-                        if ($MySQL->ChampsExiste($Param->Table,$Champ,$Param->DataBase)){
+                        if ($Param->ChampsExisteInTable($Champ)){
                             //$Param->AddToLog(__FILE__.":".__LINE__." Champ existant: ".$Champ."=".$Valeur);
                             $Param->$Champ=$Valeur;
                             $YouCanSave=true;
@@ -237,9 +254,9 @@ switch ($action){
                 }
             }
 
-            if($YouCanSaveBout){
+            if($YouCanSaveBout && $Bout->Id>0){
                 if($Bout->Enregistrer()){
-                    $Bout->AddToJournal("PARAMETRE-BOUTIQUE","Miase à jour des paramètres pour la boutique ".$Bout->Nom) ;
+                    $Bout->AddToJournal("PARAMETRE-BOUTIQUE","Mise à jour des paramètres pour la boutique ".$Bout->Nom) ;
                 }
             }
 
@@ -266,7 +283,7 @@ switch ($action){
                         $CanSaveBout=true;
                     }
                 }
-                if($CanSaveBout){
+                if($CanSaveBout && $Bout->Id>0){
                     if(!$Bout->Enregistrer()){
                         $Bout->AddToJournal("DEBUG","Mise à jour des paramètres impossible pour la boutique. IdBoutique = ".$Bout->Id) ;
                     }
@@ -281,7 +298,6 @@ switch ($action){
                     $Param->AddToLog(__FILE__.":".__LINE__.": Liste des champs introuvables après vérification dans les paramètres de la boutique: ".json_encode($ListeChampIntrouvable));
                 }
             }
-
             $Reponse->OK=1;
             $Reponse->Extra=json_encode($_REQUEST);
             $Reponse->Contenue=$Param->ToObject();
@@ -321,17 +337,17 @@ switch ($action){
             //Retourne la Liste des Articles de la Boutique
             $Produit=new xProduit($nabysy);
             $IdBoutique=$nabysy->MaBoutique->Id ;
-            $Table=$nabysy->MaBoutique->DataBase.".".$Produit->Table ;
+            $Table=$nabysy->MaBoutique->DBName.".".$Produit->Table ;
 
             if (isset($PARAM['IdBoutique'])){
                 $IdBoutique=$PARAM['IdBoutique'] ;
                 $Bout=new xBoutique($nabysy,$IdBoutique) ;
-                $Table=$Bout->DataBase.".".$Produit->Table ;
+                $Table=$Bout->DBName.".".$Produit->Table ;
             }
             if (isset($PARAM['IDBOUTIQUE'])){
                 $IdBoutique=$PARAM['IDBOUTIQUE'] ;
                 $Bout=new xBoutique($nabysy,$IdBoutique) ;
-                $Table=$Bout->DataBase.".".$Produit->Table ;
+                $Table=$Bout->DBName.".".$Produit->Table ;
             }
             $NbCrit=0 ;
             $TxCritere="" ;

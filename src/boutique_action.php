@@ -2,6 +2,7 @@
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
 
 $ChampAction='Action';
 $action=null ;
@@ -25,6 +26,7 @@ if (!isset($action)){
     echo $reponse ;
     exit;	
 }
+$nabysy = xNAbySyGS::getInstance();
 
 switch ($action){
 		case "LISTE_BOUTIQUE":
@@ -59,17 +61,17 @@ switch ($action){
             //Retourne la Liste des Articles de la Boutique
             $Produit=new xProduit($nabysy);
             $IdBoutique=$nabysy->MaBoutique->Id ;
-            $Table=$nabysy->MaBoutique->DataBase.".".$Produit->Table ;
+            $Table=$nabysy->MaBoutique->DBName.".".$Produit->Table ;
 
             if (isset($PARAM['IdBoutique'])){
                 $IdBoutique=$PARAM['IdBoutique'] ;
                 $Bout=new xBoutique($nabysy,$IdBoutique) ;
-                $Table=$Bout->DataBase.".".$Produit->Table ;
+                $Table=$Bout->DBName.".".$Produit->Table ;
             }
             if (isset($PARAM['IDBOUTIQUE'])){
                 $IdBoutique=$PARAM['IDBOUTIQUE'] ;
                 $Bout=new xBoutique($nabysy,$IdBoutique) ;
-                $Table=$Bout->DataBase.".".$Produit->Table ;
+                $Table=$Bout->DBName.".".$Produit->Table ;
             }
             $NbCrit=0 ;
             $TxCritere="" ;

@@ -19,9 +19,6 @@ Class xPhoto{
             $this->Boutique=$Boutiq ;
         }
         $this->DossierPhoto=$DossierPhoto ;
-        if (!file_exists('path/to/directory')) {
-            mkdir('path/to/directory', 0777, true);
-        }
         if (!file_exists($DossierPhoto)) {
             mkdir($DossierPhoto, 0777, true);
         }

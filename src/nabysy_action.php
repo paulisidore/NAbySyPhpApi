@@ -54,7 +54,7 @@ use NAbySy\xUser;
 				//$Module="xCodeBarEAN13" ;
 			}
 
-			$Table=$nabysy->MaBoutique->DataBase.".utilisateur" ;
+			$Table=$nabysy->MaBoutique->DBName.".utilisateur" ;
 			$TxSQL="select * from ".$Table." where login like '".$UserN."' and (password like MD5('".$Pwd."') or password like '".$Pwd."' ) limit 1" ;
 			if(isset($_REQUEST['IsModuleConnexion'])){
 				if ((int)$_REQUEST['IsModuleConnexion']>0){
@@ -135,7 +135,7 @@ use NAbySy\xUser;
 				$Pwd=$PARAM['Password'] ;
 			}
 			
-			$Table=$nabysy->MaBoutique->DataBase.".utilisateur" ;
+			$Table=$nabysy->MaBoutique->DBName.".utilisateur" ;
 			$TxSQL="select * from ".$Table." where login like '".$UserN."' and password like MD5('".$Pwd."') limit 1" ;
 			
 			$Rep=$nabysy->ReadWrite($TxSQL) ;

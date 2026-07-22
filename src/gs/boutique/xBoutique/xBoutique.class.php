@@ -546,8 +546,12 @@ Class xBoutique extends xORMHelper  {
 	 * Sauvegarde le logo de l'etablissement
 	 */
 	public function SaveLogoEntete($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
-        $NomFichier=$this->Id."logo.png" ;
-		$DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$this->Id;
+		$Id=$this->Id;
+		if($Id==0 && xNAbySyGS::$TechnoWEBClient){
+			$Id=xNAbySyGS::$TechnoWEBClient->Id;
+		}
+        $NomFichier=$Id."logo.png" ;
+		$DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$Id;
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -560,12 +564,16 @@ Class xBoutique extends xORMHelper  {
      * @return true|string 
      */
     public function GetLogoEntete(bool $NoSendToClient=false,?string $baseUrlPhoto=null){
-        $DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$this->Id;
+		$Id=$this->Id;
+		if($Id==0 && xNAbySyGS::$TechnoWEBClient){
+			$Id=xNAbySyGS::$TechnoWEBClient->Id;
+		}
+        $DossierPhoto=$this->Main->CurrentFolder(true). 'logos/entete-logo_'.$Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
-		$FileName=$this->Id.'logo.png' ;
-		$vFileName=$this->Id.'logo.png' ;
+		$FileName=$Id.'logo.png' ;
+		$vFileName=$Id.'logo.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
-		$FileName=$DossierPhotos.$this->Id.'logo.png' ;
+		$FileName=$DossierPhotos.$Id.'logo.png' ;
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
 		//$Debugger->AddToLog($Tx);
 		if (file_exists($FileName)){
@@ -643,12 +651,16 @@ Class xBoutique extends xORMHelper  {
 	 * @return true|string 
 	 */
 	public function GetEnteteA4(bool $NoSendToClient=false,?string $baseUrlPhoto=null){
-        $DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$this->Id;
+		$Id=$this->Id;
+		if($Id==0 && xNAbySyGS::$TechnoWEBClient){
+			$Id=xNAbySyGS::$TechnoWEBClient->Id;
+		}
+        $DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
-		$FileName=$this->Id.'-enteteA4.png' ;
-		$vFileName=$this->Id.'-enteteA4.png' ;
+		$FileName=$Id.'-enteteA4.png' ;
+		$vFileName=$Id.'-enteteA4.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
-		$FileName=$DossierPhotos.$this->Id.'-enteteA4.png' ;
+		$FileName=$DossierPhotos.$Id.'-enteteA4.png' ;
 		
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
 		//$Debugger->AddToLog($Tx);
@@ -721,8 +733,12 @@ Class xBoutique extends xORMHelper  {
 	}
 
 	public function SaveEnteteA4($ChampFichier="fichier"):xNotification|xErreur{
-		$DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$this->Id;
-		$NomFichier=$this->Id."-enteteA4.png" ;
+		$Id=$this->Id;
+		if($Id==0 && xNAbySyGS::$TechnoWEBClient){
+			$Id=xNAbySyGS::$TechnoWEBClient->Id;
+		}
+		$DossierPhoto=$this->Main->CurrentFolder(true).'logos/enteteA4_'.$Id;
+		$NomFichier=$Id."-enteteA4.png" ;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -732,8 +748,12 @@ Class xBoutique extends xORMHelper  {
 	 * Sauvegarde le logo Ticket de caisse de l'etablissement
 	 */
 	public function SaveLogoTicket($ChampFichier="fichier",$NomFichier="monfichierImage.png"){
-        $NomFichier=$this->Id."logoticket.png" ;
-		$DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$this->Id;
+		$Id=$this->Id;
+		if($Id==0 && xNAbySyGS::$TechnoWEBClient){
+			$Id=xNAbySyGS::$TechnoWEBClient->Id;
+		}
+        $NomFichier=$Id."logoticket.png" ;
+		$DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$Id;
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -746,12 +766,16 @@ Class xBoutique extends xORMHelper  {
 	 * @return true|string 
 	 */
 	public function GetLogoTicket(bool $NoSendToClient=false,?string $baseUrlPhoto=null){
-        $DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$this->Id;
+		$Id=$this->Id;
+		if($Id==0 && xNAbySyGS::$TechnoWEBClient){
+			$Id=xNAbySyGS::$TechnoWEBClient->Id;
+		}
+        $DossierPhoto=$this->Main->CurrentFolder(true).'logos/entete-logo_'.$Id;
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
-		$FileName=$this->Id.'logoticket.png' ;
-		$vFileName=$this->Id.'logoticket.png' ;
+		$FileName=$Id.'logoticket.png' ;
+		$vFileName=$Id.'logoticket.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
-		$FileName=$DossierPhotos.$this->Id.'logoticket.png' ;
+		$FileName=$DossierPhotos.$Id.'logoticket.png' ;
 		
 		$Tx="Vérification de l'existance du fichier photo ".$FileName." ...";	
 		//$Debugger->AddToLog($Tx);
@@ -843,13 +867,13 @@ Class xBoutique extends xORMHelper  {
 	public function RetirerStockBoutique(int $IdCompteClient,int $IdPdt=0, float $Qte=0){
 		//permet d'ajouter un stock pour un article dans une boutique 
 		if (!$IdCompteClient){
-			$this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			$this->AddToJournal("RetirerStockBoutique: Erreur: IdCompteClient= ".$IdCompteClient,"Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
 			return false;
 		}
 		
 		foreach ($this->Boutiques as $Bout){
 		   if ($Bout->IdCompteClient == $IdCompteClient){
-			   $this->AddToJournal($_SESSION['user'],0,"RetirerStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
+			   $this->AddToJournal("RetirerStockBoutique: Mise a jour de stock Boutique","Mise a jour du stock id: ".$IdPdt." Qte= ".$Qte) ;
 			   //On met a jour le stock de la boutique
 			   $sql="update ".$Bout->TableArticle." a SET a.quantite=a.quantite-".$Qte." " ;
 			   $sql=$sql." Where a.id='".$IdPdt."' limit 1" ;

@@ -24,9 +24,9 @@ Class xDetailVente extends xORMHelper{
         if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
-        $LaDataBase=$NabySy->MaBoutique->DataBase;
+        $LaDataBase=$NabySy->MaBoutique->DBName;
         if (isset($Boutique)){
-            $LaDataBase=$Boutique->DataBase;
+            $LaDataBase=$Boutique->DBName;
         }
         if (!isset($TableName)){
             $TableName='detailfacture';

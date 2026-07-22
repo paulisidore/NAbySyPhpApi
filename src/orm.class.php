@@ -668,11 +668,16 @@ class xORMHelper implements IORMHelper {
         /* rappel la précédente valeur en vue de sa création automatique s'il n'existe pas */
         $PrecValeur=$this->__get($NomChamp) ;
         if (!isset($PrecValeur)){
-            //Impossible d'affecter la valeur au champ
-            $TxErreur="Impossible d'affecter la valeur ".$Valeur." au champ ".$NomChamp." sur ".$this->FullTableName();
-            if(!$this->ChampIsPresent($NomChamp)){
-                $TxErreur .=" Absence du champ dans la table.";
+            if(is_array($Valeur)){
+                $TxErreur="Impossible d'affecter une valeur de type tableau ".json_encode($Valeur)." au champ ".$NomChamp." sur ".$this->FullTableName();
+            }else{
+                //Impossible d'affecter la valeur au champ
+                $TxErreur="Impossible d'affecter la valeur ".$Valeur." au champ ".$NomChamp." sur ".$this->FullTableName();
+                if(!$this->ChampIsPresent($NomChamp)){
+                    $TxErreur .=" Absence du champ dans la table.";
+                }
             }
+            
             //Rechercke de la ligne d'erreur:
             $traces=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
             $source = $traces[0]['file'] . " LIGNE " . $traces[0]['line']  ;
@@ -946,7 +951,7 @@ class xORMHelper implements IORMHelper {
                     }
                     if($CanUpDate){
                         $NbChamp++;
-                        $col="`".$Ch->Nom."` = '".addslashes($Ch->Valeur)."' " ;
+                        $col="`".$Ch->Nom."` = '".addslashes(xNAbySyGS::utf8ize($Ch->Valeur))."' " ;
                         if ($Ch->GetTypeChamp()==$Ch::NUMERIC){
                             $col="`".$Ch->Nom."` = '".(int)$Ch->Valeur."' " ;
                         }
@@ -1443,7 +1448,7 @@ class xORMHelper implements IORMHelper {
                         if(is_object($Ch->Valeur) || $Ch->Valeur instanceof xChampDB){
                             $objet_dynamique->$NomCh = $Ch->Valeur->ToJSON();
                         }else{
-                            $objet_dynamique->$NomCh = $Ch->Valeur; 
+                            $objet_dynamique->$NomCh = xNAbySyGS::EscapedForJSON( $Ch->Valeur ); 
                         }
                     }
                 }

@@ -38,7 +38,7 @@ Class xVente extends xORMHelper
 			$this->Main = $Boutique->Main ;
 			$this->MaBoutique=$Boutique;
 		}
-		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DataBase) ;
+		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DBName) ;
 
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
@@ -218,7 +218,7 @@ Class xVente extends xORMHelper
 		
 		$Bout=null ;
 		if ($Panier->MaBoutique->IdCompteClient==0){
-			if ($Panier->IdClient >0){
+			if ($Panier->IdClient >0  && !xNAbySyGS::$TECHNOWEB_ACTIVE){
 				//Si client boutique on Le charge
 				$Lst=$this->Main->MaBoutique->ChargeListe("IdCompteClient = ".$Panier->IdClient);
 				if ($Lst->num_rows>0){

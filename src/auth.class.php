@@ -37,6 +37,7 @@ Class xAuth
                 $decoded = $this->DecodeToken($_REQUEST['Token'], $Algo);
                 if(isset($decoded) && is_object($decoded)){
                     $nabysy->UserConnectedByToken = true;
+                    //var_dump($decoded);exit;
                     if(isset($decoded->IdBoutique) && (int)$decoded->IdBoutique>0){
                         $BoutToken=$nabysy->GetBoutiqueByID((int)$decoded->IdBoutique);
                         $BoutEnCour = $BoutToken;
@@ -108,6 +109,10 @@ Class xAuth
         if (isset($this->Main->MaBoutique)){
             $IdBout=(int)$this->Main->MaBoutique->Id;
         }
+        $idTechnoWEB=null;
+        if(isset($_REQUEST['IDTECHNOWEB']) && trim($_REQUEST['IDTECHNOWEB'])!==''){
+            $idTechnoWEB = trim($_REQUEST['IDTECHNOWEB']);
+        }
 
         $this->Payload = array(
             "pam_application" => $this->Main->MODULE->Nom,
@@ -116,6 +121,7 @@ Class xAuth
             "client_tel" => $this->Main->MODULE->MCP_TELCLT,
             "boutique_id" => $IdBout,
             "IdBoutique" => $IdBout,
+            "IDTECHNOWEB" => $idTechnoWEB ?? '',
             "IdPoste" => $IdPoste,
             "NomPoste" => $NomPoste,
             "user_id" => $User->Id,

@@ -170,9 +170,6 @@ use NAbySy\xNotification;
 			$TotalRemise=null;
 			$RefCmd=null;
 
-			//N::$Log->AddToLog("BOUTIQUE EN COUR: ".N::getInstance()->MaBoutique->Nom, 3);
-			//N::$Log->AddToLog("BD EN COUR: ".N::getInstance()->MaBoutique->DataBase, 3 );exit;
-
 			if($IdProforma && $IdProforma>0){
 				$Panier->IdFacture=$IdProforma;
 			}elseif($IdFacture && $IdFacture>0){
