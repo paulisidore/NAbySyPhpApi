@@ -56,6 +56,7 @@ use NAbySy\xNAbySyGS;
             if (is_dir($RepWork)){
                 //self::$Main::$Log->Write("Dossier ".$RepWork." crée !");
             }else{
+                echo "Création Impossible du dossier ".$RepWork."\n" ;
                 self::$Main::$Log->Write("Impossible de créer le dossier ".$RepWork." !");
             }
         }
