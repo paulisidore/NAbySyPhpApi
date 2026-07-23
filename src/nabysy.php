@@ -2076,6 +2076,9 @@ Class xNAbySyGS
 				}
 			}
 			$debg=1;
+			if(self::isRunFromCLI()){
+				$debg=5;
+			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
 			$AutoLoad->Register($LstObs,$debg) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;
@@ -3217,8 +3220,12 @@ Class xNAbySyGS
 	 * @return string 
 	 */
 	public static function CurrentFolder(bool $HostAppFolder=false):string{
-		if (php_sapi_name() === 'cli') {
-			return xNAbySyGS::getHostDirectory();
+		if (xNAbySyGS::isRunFromCLI()) {
+			$repSystem = xNAbySyGS::getHostDirectory() ;
+			if(!$HostAppFolder){
+				$repSystem = xNAbySyGS::getHostDirectory().'vendor'.DIRECTORY_SEPARATOR.'nabysyphpapi'.DIRECTORY_SEPARATOR.'xnabysygs'.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR ;
+			}
+			return $repSystem;
 		}
 		if ($HostAppFolder){
 			$Rep = $_SERVER['DOCUMENT_ROOT'] ;
