@@ -3217,6 +3217,9 @@ Class xNAbySyGS
 	 * @return string 
 	 */
 	public static function CurrentFolder(bool $HostAppFolder=false):string{
+		if (php_sapi_name() === 'cli') {
+			return xNAbySyGS::getHostDirectory();
+		}
 		if ($HostAppFolder){
 			$Rep = $_SERVER['DOCUMENT_ROOT'] ;
 			if(isset(self::$BASEDIR) && self::$BASEDIR !==''){
@@ -4054,6 +4057,24 @@ Class xNAbySyGS
 			self::$Log->AddToLog( "   ❌ Erreur lors de la conversion de la table `{$tableName}` : " . $e->getMessage());
         }
     }
+
+	/**
+	 * Retourne le repertoir principal de l'API en Mode CLI ou en mode APache/Php
+	 * le slash de la fin est ajouté automatiquement
+	 * @return string 
+	 */
+	public static function getHostDirectory():string{
+		if (php_sapi_name() === 'cli') {
+			// ── Contexte CLI (Composer post-install) ──
+			$host_directory = nabysyFindHostRoot(__DIR__);
+			if ($host_directory === null) {
+				return __DIR__;
+			}
+			return $host_directory.DIRECTORY_SEPARATOR ;
+		}else{
+			return self::CurrentFolder(true);
+		}
+	}
 }
 
 ?>

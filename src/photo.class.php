@@ -35,8 +35,19 @@ Class xPhoto{
         $this->maxSize=50*MB ;
 
         $this->DossierPhoto=$DossierPhoto ;
-        if (!file_exists($DossierPhoto)) {
-            mkdir($DossierPhoto, 0777, true);
+         if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+            $this->DossierPhoto .="-".xNAbySyGS::$TechnoWEBClient->IDCLIENT;
+        }
+        if (!file_exists($this->DossierPhoto)) {
+            xNAbySyGS::$Log->AddToLog("Création du dossier des média: ".$this->DossierPhoto. " en cour ...");
+            try {
+                mkdir($this->DossierPhoto, 0777, true);
+                xNAbySyGS::$Log->AddToLog("Dossier média: ".$this->DossierPhoto. " crée correctement.");
+            } catch (\Throwable $th) {
+                xNAbySyGS::$Log->AddToLog("Erreur de création du dossier ".$this->DossierPhoto. ": ".$th->getMessage());
+                //throw $th;
+            }
+            
         }
 
         if (isset($_FILES)){
