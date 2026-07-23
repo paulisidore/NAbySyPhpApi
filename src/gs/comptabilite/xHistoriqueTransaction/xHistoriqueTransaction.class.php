@@ -155,8 +155,8 @@ Class xHistoriqueTransaction extends xTransactionInfos{
 
                 //On annule de la caisse du jour
                 #region Enregitrement de la caisse du jour
-                    $CaisseGlobale=new xJournalCaisse($TransPrec->Main,null,$TransPrec->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,0,$TransPrec->DATEOP);
-                    $CaisseU=new xJournalCaisse($TransPrec->Main,null,$TransPrec->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,$TransPrec->Main->User->Id,$TransPrec->DATEOP);
+                    $CaisseGlobale=new xJournalCaisse($TransPrec->Main,null,$TransPrec->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,null, 0,$TransPrec->DATEOP);
+                    $CaisseU=new xJournalCaisse($TransPrec->Main,null,$TransPrec->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$TransPrec->Main->User->Id,$TransPrec->DATEOP);
                     $CaisseGlobale->TOTAL_ENTREE -= $TransPrec->Montant;
                     $CaisseU->TOTAL_ENTREE -= $TransPrec->Montant;
                     $CaisseGlobale->NB_ENTREE -= 1;
@@ -185,8 +185,8 @@ Class xHistoriqueTransaction extends xTransactionInfos{
             }
 
             #region Enregitrement de la caisse du jour
-                $CaisseGlobale=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,0,$this->DATEOP);
-                $CaisseU=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,$this->Main->User->Id,$this->DATEOP);
+                $CaisseGlobale=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null, null, 0,$this->DATEOP);
+                $CaisseU=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null, null, $this->Main->User->Id,$this->DATEOP);
                 $CaisseGlobale->TOTAL_ENTREE += $this->Montant;
                 $CaisseU->TOTAL_ENTREE += $this->Montant;
                 $CaisseGlobale->NB_ENTREE += 1;
@@ -325,11 +325,11 @@ class xInfosCheque {
  */
 class xCategorieTransaction extends xORMHelper{
     public const CATEGORIE_REGLEMENT_CLIENT = "REGLEMENT BON CLIENT";
-    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreationChampAuto=true,$TableName="categorie"){
+    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null, ?bool $CreationChampAuto=true, ?string $TableName="categorie", ?string $DBName=null){
 		if ($TableName==''){
             $TableName="categorie";
         }
-        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName);
+        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName, $DBName);
         if($this->TableIsEmpty()){
             $TxSQL="insert into `".$TableName."` (`Nom`) value('".self::CATEGORIE_REGLEMENT_CLIENT."')";
             $this->ExecUpdateSQL($TxSQL);

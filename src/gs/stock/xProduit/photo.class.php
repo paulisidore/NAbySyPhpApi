@@ -19,6 +19,9 @@ Class xPhoto{
             $this->Boutique=$Boutiq ;
         }
         $this->DossierPhoto=$DossierPhoto ;
+        if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+            $this->DossierPhoto .="-".xNAbySyGS::$TechnoWEBClient->IDCLIENT;
+        }
         if (!file_exists($DossierPhoto)) {
             mkdir($DossierPhoto, 0777, true);
         }

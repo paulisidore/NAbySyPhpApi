@@ -11,11 +11,11 @@ use NAbySy\xNAbySyGS;
  */
 Class xHistoriqueCompteBancaire extends xORMHelper
 {
-	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreationChampAuto=true,$TableName="transaction"){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null, ?bool $CreationChampAuto=true, ?string $TableName="transaction", ?string $DBName=null){
 		if ($TableName==''){
             $TableName="transaction";
         }
-        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName);
+        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName, $DBName);
 		
 	}
 

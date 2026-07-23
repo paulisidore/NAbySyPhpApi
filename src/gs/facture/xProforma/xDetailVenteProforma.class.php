@@ -11,7 +11,7 @@ use NAbySy\xNAbySyGS;
 /**
  * Gestion des Lignes de facture
  */
-Class xDetailVente extends xORMHelper{
+Class xDetailVenteProforma extends xORMHelper{
 
     /**
      * Contient un tableau des lignes des articles de la facture en cour
@@ -19,14 +19,17 @@ Class xDetailVente extends xORMHelper{
     public array $ListeProduits ;
     public array $ListeMethodePaie ;
     
-    public function __construct(?xNAbySyGS $NAbySyGS,$Id=null,$AutoCreateTable=false,$TableName='detailfacture',
-        xBoutique $Boutique=null,$IdFacture=null, $FullInfos=true){
+    public function __construct(?xNAbySyGS $NAbySyGS = null, ?int $Id=null, ?bool $AutoCreateTable=false, ?string $TableName='detailfactureproforma',
+        ?string $DBname=null, ?xBoutique $Boutique=null,?int $IdFacture=null, ?bool $FullInfos=true){
         if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
         $DataBase=$NAbySyGS->MaBoutique->DBName;
         if (isset($Boutique)){
             $DataBase=$Boutique->DBName;
+        }
+        if(isset($DBname) && trim($DBname) !=''){
+            $DataBase = $DBname;
         }
         if (!isset($TableName)){
             $TableName='detailfacture';

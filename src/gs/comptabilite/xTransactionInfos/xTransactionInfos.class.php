@@ -13,11 +13,11 @@ use NAbySy\xNAbySyGS;
 Class xTransactionInfos extends xORMHelper {
     private static $ChampDispo = [];
 
-	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreationChampAuto=true,$TableName="trans_config"){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null, ?bool $CreationChampAuto=true, ?string $TableName="trans_config", ?string $DBName=null){
 		if ($TableName==''){
             $TableName="trans_config";
         }
-        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName);
+        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName, $DBName);
         if(count(self::$ChampDispo)==0){
             if ($this->TableIsEmpty()){
                 $ListeTableCompatible=[];

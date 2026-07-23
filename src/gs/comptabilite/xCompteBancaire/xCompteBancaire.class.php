@@ -14,11 +14,11 @@ Class xCompteBancaire extends xORMHelper
     public xHistoriqueCompteBancaire $Historique ;
     public string $TableHistoriqueBancaire ="transaction";
 
-	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreationChampAuto=true,$TableName="banque"){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null, ?bool $CreationChampAuto=true, ?string $TableName="banque", ?string $DBName=null){
 		if ($TableName==''){
             $TableName="banque";
         }
-        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName);
+        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$TableName, $DBName);
         $this->Historique = new xHistoriqueCompteBancaire($NabySy,null,true,$this->TableHistoriqueBancaire);
 
 	}

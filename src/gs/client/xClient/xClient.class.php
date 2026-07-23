@@ -6,12 +6,11 @@ use NAbySy\xNAbySyGS ;
 
 Class xClient extends xORMHelper
 {
-	public function __construct(?xNAbySyGS $NabySy = null,?int $IdClient=null,$CreationChampAuto=true,$TableName="client"){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdClient=null,?bool $CreationChampAuto=true, ?string $TableName="client", ?string $DBName=null){
 		if ($TableName==''){
             $TableName="client";
         }
-        parent::__construct($NabySy,(int)$IdClient,$CreationChampAuto,$TableName);
-		
+        parent::__construct($NabySy,(int)$IdClient,$CreationChampAuto,$TableName, $DBName);
 	}
 
 	public function ChargeClient($IdClient){

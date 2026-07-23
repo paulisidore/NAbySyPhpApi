@@ -142,8 +142,8 @@ Class xPanier
 		}
 	
 		#region Suppression dans le journal Caisse
-			$CaisseGlobale=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,0,$PrecFact->DateFacture);
-			$CaisseU=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,$PrecFact->Main->User->Id,$PrecFact->DateFacture);
+			$CaisseGlobale=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null, null,0,$PrecFact->DateFacture);
+			$CaisseU=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null, null,$PrecFact->Main->User->Id,$PrecFact->DateFacture);
 			$CaisseGlobale->TOTAL_FACTURE -= $PrecFact->TotalFacture;
 			$CaisseU->TOTAL_FACTURE -= $PrecFact->TotalFacture;
 
@@ -193,7 +193,7 @@ Class xPanier
 		left outer join ".$this->Main->MaBoutique->DBase.".utilisateur u on u.id=e.IDCAISSIER  
 		where d.IDFACTURE='".$IdVente."' and e.id>0 " ;
 		
-		$liste=$this->Main->ReadWrite($sql,null,null,null,null,null,false) ;
+		$liste=$this->Main->ReadWrite($sql) ;
 		if ($liste)
 			$this->IdFacture=$IdVente ;
 		$c=0 ;

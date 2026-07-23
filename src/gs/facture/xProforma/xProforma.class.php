@@ -15,8 +15,8 @@ use NAbySy\xNAbySyGS;
 //include_once '../NAbySyPhpApi/src/gs/facture/xVente/xDetailVente.class.php';
 //include_once '../xVente/xDetailVente.class.php';
 try {
-	if(!class_exists('NAbySy\GS\Facture\xDetailVente')){
-		include_once 'xDetailVente.class.php';
+	if(!class_exists('NAbySy\GS\Facture\xDetailVenteProforma')){
+		include_once 'xDetailVenteProforma.class.php';
 	}
 } catch (\Throwable $th) {
 
@@ -30,9 +30,9 @@ Class xProforma extends xORMHelper
 	public xClient $Client;	
 	public xBoutique $MaBoutique ;
 
-	public xDetailVente $DetailVente ;
+	public xDetailVenteProforma $DetailVente ;
 	
-	public function __construct(?xNAbySyGS $NabySy = null,?int $IdFacture=null,$AutoCreateTable=false,$TableName='factureproforma',xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdFacture=null,?bool $AutoCreateTable=false,?string $TableName='factureproforma', ?string $DBName=null, ?xBoutique $Boutique=null){
 		if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
@@ -60,8 +60,9 @@ Class xProforma extends xORMHelper
 			$Boutique->AddToLog("ERREUR DE CREATION DE LA TABLE DETAILPROFORMA") ;
 			return;
 		}
+		$DataBase = $DBName ?? $Boutique?->DBName ?? null ;
 
-		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DBName) ;
+		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$DBName) ;
 
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
@@ -71,7 +72,7 @@ Class xProforma extends xORMHelper
 		//$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,'detailfacture',$this->MaBoutique);
 		if ($this->Id>0){
 			$this->Client=new xClient($this->Main,$this->IdClient);
-			$this->DetailVente=new xDetailVente($NabySy,null,$AutoCreateTable, "detail".$TableName,$this->MaBoutique,$this->Id);
+			$this->DetailVente=new xDetailVenteProforma($NabySy,null,$AutoCreateTable, "detail".$TableName,null, $Boutique,$this->Id);
 		}
 		
 	}
@@ -87,7 +88,7 @@ Class xProforma extends xORMHelper
 			$Id = $this->Id;
 		}
 		//Permet de lire une vente par son Id ou IdDetail
-		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detail'.$this->Table,$this->MaBoutique,$Id);
+		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detail'.$this->Table, null,$this->MaBoutique,$Id);
 		return $LDetailVente->ListeProduits;
 	}
 
@@ -199,7 +200,7 @@ Class xProforma extends xORMHelper
 		$TDetail=null;
 		try {
 			$Vente=new xVente($this->Main); //Force le chargement de xDetailVente
-			$TDetail=new xDetailVente($this->Main, null,true,"detail".$this->Table, $this->MaBoutique);
+			$TDetail=new xDetailVente($this->Main, null,true,"detail".$this->Table,null, $this->MaBoutique);
 		} catch (\Throwable $th) {
 			$this->AddToLog("ERREUR: ".$th->getMessage());
 		}
@@ -679,7 +680,7 @@ Class xProforma extends xORMHelper
 		//Supprime un panier. Si le Panier à une Facture liée alors on supprime la facture aussi
 		if ($PanierToSup->IdFacture>0){
 			$PrecFact=new xProforma($this->Main,$PanierToSup->IdFacture);
-			$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$PrecFact->Table,$this->MaBoutique,$this->Id);
+			$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$PrecFact->Table, null,$this->MaBoutique,$this->Id);
 			//Le panier est lié à une facture
 			//On supprime la facture ligne par ligne ->getList()
 			$NbFois=0 ;
@@ -747,7 +748,7 @@ Class xProforma extends xORMHelper
 		$this->Main->MaBoutique->AddToJournal($Tache,$Note) ;
 		
 		//On va supprimer la la facture pro forma
-		$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$this->Table,$this->MaBoutique,$this->Id);
+		$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$this->Table, null,$this->MaBoutique,$this->Id);
 
 		$TxTableDet=$DetailVente->FullTableName() ;
 		$TxSQL="delete from ".$TxTableDet." where IDFACTURE='".$IdFacture."' " ;
@@ -780,7 +781,7 @@ Class xProforma extends xORMHelper
 	{
 		$Reponse=json_encode([]);;
 		if ($FullDetail){
-			$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$this->Table,$this->MaBoutique,$this->Id);
+			$DetailVente =new xDetailVente($this->Main,null,$this->AutoCreate, "detail".$this->Table, null,$this->MaBoutique,$this->Id);
 			$DetailV=$DetailVente->GetFullInfosProformaByLine($this->Id);
 		}else{
 			$DetailV=$this->GetVente($this->Id);

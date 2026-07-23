@@ -20,7 +20,7 @@ Class xDetailVente extends xORMHelper{
     public array $ListeMethodePaie ;
     
     public function __construct(?xNAbySyGS $NabySy = null,?int$Id=null,$AutoCreateTable=false,$TableName='detailfacture',
-        xBoutique $Boutique=null,$IdFacture=null, $FullInfos=true){
+        ?string $DBName=null, xBoutique $Boutique=null,$IdFacture=null, $FullInfos=true){
         if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
@@ -28,6 +28,10 @@ Class xDetailVente extends xORMHelper{
         if (isset($Boutique)){
             $LaDataBase=$Boutique->DBName;
         }
+        if(isset($DBName) && trim($DBName) !=''){
+            $LaDataBase = $DBName;
+        }
+
         if (!isset($TableName)){
             $TableName='detailfacture';
         }

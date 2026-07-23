@@ -29,7 +29,7 @@ class xJournalCaisse extends xORMHelper {
      * @return void 
      * @throws Exception 
      */
-    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,$CreationChampAuto=true,$TableName="caisse",int $IdCaissier=0, string $dateCaisse=null){
+    public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null, ?bool $CreationChampAuto=true, ?string $TableName="caisse", ?string $DBName=null, ?int $IdCaissier=0, ?string $dateCaisse=null){
         if ($TableName==''){
             $TableName="caisse";
         }
@@ -51,7 +51,7 @@ class xJournalCaisse extends xORMHelper {
             }
         }
 
-        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$vTableName);
+        parent::__construct($NabySy,(int)$Id,$CreationChampAuto,$vTableName, $DBName);
         if (!$this->TableExiste()){
             //Création de la table
             $TxSQL="create table `".$this->Table."` like caisse";

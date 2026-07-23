@@ -28,7 +28,7 @@ Class xVente extends xORMHelper
 
 	public xDetailVente $DetailVente ;
 	
-	public function __construct(?xNAbySyGS $NabySy = null,?int $IdFacture=null,$AutoCreateTable=false,$TableName='facture',xBoutique $Boutique=null){
+	public function __construct(?xNAbySyGS $NabySy = null,?int $IdFacture=null,?bool $AutoCreateTable=false, ?string $TableName='facture',?string $DBName=null, ?xBoutique $Boutique=null){
 		if(!isset($NabySy)){
 			$NabySy = xNAbySyGS::getInstance();
 		}
@@ -38,7 +38,8 @@ Class xVente extends xORMHelper
 			$this->Main = $Boutique->Main ;
 			$this->MaBoutique=$Boutique;
 		}
-		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$this->MaBoutique->DBName) ;
+		$Database = $DBName ?? $this->MaBoutique->DBName ;
+		parent::__construct($NabySy,$IdFacture,$AutoCreateTable,$TableName,$Database) ;
 
 		if(!$this->ChampsExisteInTable('REFCMD')) {
 			$this->MySQL->AlterTable($this->Table, "REFCMD",'TEXT','ADD','',$this->DataBase);
@@ -48,7 +49,7 @@ Class xVente extends xORMHelper
 		//$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,'detailfacture',$this->MaBoutique);
 		if ($this->Id>0){
 			$this->Client=new xClient($this->Main,$this->IdClient);
-			$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,null,null,$this->Id);
+			$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,null,null,null,$this->Id);
 		}
 		
 	}
@@ -64,7 +65,7 @@ Class xVente extends xORMHelper
 			$Id = $this->Id;
 		}
 		//Permet de lire une vente par son Id ou IdDetail
-		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detailfacture',$this->MaBoutique,$Id);
+		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detailfacture',null,$this->MaBoutique,$Id);
 		return $LDetailVente->ListeProduits;
 	}
 
@@ -166,6 +167,9 @@ Class xVente extends xORMHelper
 	}
 	
 	public function Valider(xCart $Panier){
+		error_reporting(E_ALL);
+        ini_set('display_errors', 4);
+
 		$Err=new xErreur;
 		$Err->OK=0;
 		$Err->TxErreur="Impossible de valider.";
@@ -181,6 +185,7 @@ Class xVente extends xORMHelper
 		if (!$this->MySQL->ChampsExiste($TDetail->Table,'StockSuiv', $TDetail->DataBase)){
 			$this->MySQL->AlterTable($TDetail->Table,'StockSuiv',"INT(11)","ADD","0", $TDetail->DataBase);
 		}
+
 		/*
 			Si IdFacture dans panier <=0 alors on creer une nouvelle facture
 			si non il sagit d'une modification de facture
@@ -203,22 +208,23 @@ Class xVente extends xORMHelper
 				$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
 			}
 		}else{
-				if ((float)$Panier->MontantVerse == 0){
-					$Panier->MontantVerse=$Panier->getTotalNetAPayer() ;
-				}
-				//echo "Total Versé: ".$Panier->MontantVerse." et TotalNet: ".$Panier->getTotalNetAPayer();exit;
+			//echo "Ligne ". __LINE__."  Montant = ".$Panier->MontantVerse."\n" ;
+			if((float)$Panier->MontantVerse == 0){
+				$Panier->MontantVerse=$Panier->getTotalNetAPayer() ;
+			}
 
-				if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
-					//Montant inferieur a la facture
-					$Err->TxErreur="Montant versé incomplet pour solder la facture !!! ".$Panier->MontantVerse." <> ".$Panier->getTotalNetAPayer() ;
-					return $Err ;		
-				}
-				$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
+			if ($Panier->MontantVerse < $Panier->getTotalNetAPayer()){
+				//Montant inferieur a la facture
+				$Err->TxErreur="Montant versé incomplet pour solder la facture !!! ".$Panier->MontantVerse." <> ".$Panier->getTotalNetAPayer() ;
+				return $Err ;		
+			}
+			$Panier->MontantRendu=$Panier->MontantVerse - $Panier->getTotalNetAPayer();
 		}
+		
 		
 		$Bout=null ;
 		if ($Panier->MaBoutique->IdCompteClient==0){
-			if ($Panier->IdClient >0  && !xNAbySyGS::$TECHNOWEB_ACTIVE){
+			if ($Panier->IdClient >0 && !xNAbySyGS::$TECHNOWEB_ACTIVE){
 				//Si client boutique on Le charge
 				$Lst=$this->Main->MaBoutique->ChargeListe("IdCompteClient = ".$Panier->IdClient);
 				if ($Lst->num_rows>0){
@@ -227,8 +233,6 @@ Class xVente extends xORMHelper
 				}
 			}
 		}
-		
-		//var_dump($Panier->getList());
 
 		if ($Panier->IdFacture >0){	//Une facture en modification
 			$Tache="Modification de la facture numero ".$Panier->IdFacture." avec ".$Panier->getNbProductsInCart()." article(s) " ;
@@ -588,7 +592,6 @@ Class xVente extends xORMHelper
 	private function SavePanierToDB(xCart $Panier,$GetIdFacture=null){
 		//Enregistre ou met á jour reelement le panier dans la base de donnee
 		//Enregistrons l'entete de la facture
-		
 		if (!$Panier->getList()){
 			return false ;
 		}
@@ -614,6 +617,7 @@ Class xVente extends xORMHelper
 			//$Panier->MontantRendu=$SoldeSuivant ;
 		}
 		$TxTable=$this->FullTableName() ;
+		
 		if (!$this->MySQL->ChampsExiste($this->Table,'MontantReduction', $this->DataBase)){
 			$PrecAutoC=$this->AutoCreate ;
 			$this->AutoCreate=true;
@@ -707,7 +711,7 @@ Class xVente extends xORMHelper
 		}
 
 		#region Enregitrement de la caisse du jour
-			$CaisseGlobale=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,0,$this->DateFacture);
+			$CaisseGlobale=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,null,0,$this->DateFacture);
 			if (is_string($CaisseGlobale->TOTALFACTURE)){
 				if ($CaisseGlobale->TOTALFACTURE=="0" || $CaisseGlobale->TOTALFACTURE==""){
 					$CaisseGlobale->TOTALFACTURE=0;
@@ -716,7 +720,7 @@ Class xVente extends xORMHelper
 				}
 			}
 			
-			$CaisseU=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,$this->Main->User->Id,$this->DateFacture);
+			$CaisseU=new xJournalCaisse($this->Main,null,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$this->Main->User->Id,$this->DateFacture);
 			if (is_string($CaisseU->TOTALFACTURE)){
 				if ($CaisseU->TOTALFACTURE=="0" || $CaisseU->TOTALFACTURE==""){
 					$CaisseU->TOTALFACTURE=0;
@@ -862,8 +866,8 @@ Class xVente extends xORMHelper
 		}
 
 		#region Suppression dans le journal Caisse
-			$CaisseGlobale=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,0,$PrecFact->DateFacture);
-			$CaisseU=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,$PrecFact->Main->User->Id,$PrecFact->DateFacture);
+			$CaisseGlobale=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,null,0,$PrecFact->DateFacture);
+			$CaisseU=new xJournalCaisse($PrecFact->Main,null,$PrecFact->Main::GLOBAL_AUTO_CREATE_DBTABLE,null,null,$PrecFact->Main->User->Id,$PrecFact->DateFacture);
 			$CaisseGlobale->TOTAL_FACTURE -= $PrecFact->TotalFacture;
 			$CaisseU->TOTAL_FACTURE -= $PrecFact->TotalFacture;
 

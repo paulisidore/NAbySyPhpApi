@@ -93,7 +93,7 @@ switch ($action){
 
             $lien_logo = $Bout->GetLogoTicket(true);
             $rw['LOGO_TICKET'] = $lien_logo ;
-            $rw['SupportArticlePhotos'] = (int)$Bout->SupportArticlePhotos ?? 0;
+            $rw['SupportArticlePhotos'] = 1;// (int)$Bout->SupportArticlePhotos ?? 0;
             //unset($rw['LOGO_TICKET']);
             if(trim($rw['LOGO_TICKET']) !== ""){
                $rw['ENTETE_TICKET'] = $rw['LOGO_TICKET'];
