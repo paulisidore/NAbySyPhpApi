@@ -59,6 +59,10 @@ class xLog{
                     $Trace=$Dte." ".$dbg['file']." Ligne: ".$dbg['line'].": " ;
                 }
             }
+            if(xNAbySyGS::isRunFromCLI()){
+                echo  "[LOG] Ecriture dans: ".xNAbySyGS::getHostDirectory()."\n" ;
+                echo $Trace."\n";
+            }
             fputs($monfichier, $Trace); 
             $TxLog=$LogInfos; // str_replace("\n","",$LogInfos) ;
             //$TxLog=str_replace("\r\n","",$TxLog) ;
