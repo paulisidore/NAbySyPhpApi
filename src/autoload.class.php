@@ -51,6 +51,9 @@ use NAbySy\xNAbySyGS;
 
         public function Load($ClassName):bool{
             $cr = '</br>';
+            if(xNAbySyGS::isRunFromCLI()){
+                $cr='\n';
+            }
             if ($this->NbModule==0){
                 if ($this->DebugLevel>1){
                     foreach ( $this->ListeObservation as $ClassToObserv){
