@@ -49,12 +49,13 @@ use NAbySy\xNAbySyGS;
             }
         }
 
-        public function Load($ClassName):bool{            
+        public function Load($ClassName):bool{
+            $cr = '</br>';
             if ($this->NbModule==0){
                 if ($this->DebugLevel>1){
                     foreach ( $this->ListeObservation as $ClassToObserv){
                         if ($ClassToObserv == $ClassName){
-                            echo $ClassName.' : AutoLoad NbModule = 0 dans '.$this->ModuleFolder.'</br>' ;
+                            echo $ClassName.' : AutoLoad NbModule = 0 dans '.$this->ModuleFolder.''.$cr ;
                         }
                     }                   
                 }
@@ -63,7 +64,7 @@ use NAbySy\xNAbySyGS;
             if (class_exists($ClassName,false)){
                 return false ;
             }
-            //var_dump($ClassName.'</br>') ;
+            //var_dump($ClassName.''.$cr) ;
 
             try{
                 
@@ -88,7 +89,7 @@ use NAbySy\xNAbySyGS;
                 if ($this->DebugLevel>1){
                     foreach ( $this->ListeObservation as $ClassToObserv){
                         if ($ClassToObserv == $vDos){
-                            echo $ClassName.' : AutoLoad dans '.$this->ModuleFolder.'</br>' ;
+                            echo $ClassName.' : AutoLoad dans '.$this->ModuleFolder.''.$cr ;
                         }
                     }                   
                 }
@@ -97,7 +98,7 @@ use NAbySy\xNAbySyGS;
                     foreach ( $this->ListeObservation as $ClassToObserv){
                         if ($ClassToObserv == $vDos){
                             if ($this->DebugLevel>1){
-                                echo '<h6>'.$vDos.'</h6>Recherche de la class dans le dossier '.$this->ModuleFolder.'</br>' ;
+                                echo '<h6>'.$vDos.'</h6>Recherche de la class dans le dossier '.$this->ModuleFolder.''.$cr ;
                             }
                         }
                     }
@@ -116,7 +117,7 @@ use NAbySy\xNAbySyGS;
                             }
                         }
                         //Chargement
-                        //var_dump(__NAMESPACE__.'</br>') ;
+                        //var_dump(__NAMESPACE__.''.$cr) ;
                         $fichier=$nClass[1].DIRECTORY_SEPARATOR.$nClass[0].'.class.php' ;
                         if ($this->DebugLevel){
                             foreach ( $this->ListeObservation as $ClassToObserv){
@@ -124,9 +125,9 @@ use NAbySy\xNAbySyGS;
                                     if ($this->DebugLevel>1){
                                         echo '<h5>'.$ClassName.': Chargement de '.$fichier.'</h5>' ;
                                         if (!file_exists($fichier)){
-                                            echo 'Le '.$fichier.' n\'existe pas</br>' ;
+                                            echo 'Le '.$fichier.' n\'existe pas'.$cr ;
                                         }else{
-                                            echo 'Le fichier '.$fichier.' existe :)</br>' ;
+                                            echo 'Le fichier '.$fichier.' existe :)'.$cr ;
                                         }
                                     }                                    
                                 }
@@ -144,7 +145,7 @@ use NAbySy\xNAbySyGS;
                     foreach ( $this->ListeObservation as $ClassToObserv){
                         if ($ClassToObserv == $vDos){
                             if ($this->DebugLevel>1){
-                                echo $vDos.'Impossible de trouver '.$vDos.'</br>' ;
+                                echo $vDos.'Impossible de trouver '.$vDos.''.$cr ;
                             }                             
                         }
                     }
@@ -157,7 +158,7 @@ use NAbySy\xNAbySyGS;
                 }
             }
             if ($this->DebugLevel){
-                echo 'AutoLoad Terminé dans '.$this->ModuleFolder.'</br>' ;
+                echo 'AutoLoad Terminé dans '.$this->ModuleFolder.''.$cr ;
             }
             return false ;
             
@@ -172,6 +173,10 @@ use NAbySy\xNAbySyGS;
          */
         public function GetListeDossier($rep=null): array  
         {  
+            $cr = '</br>';
+            if(xNAbySyGS::isRunFromCLI()){
+                $cr='\n';
+            }
             if (!isset($rep)){
                 $rep=$this->ModuleFolder ;
             }
@@ -183,7 +188,7 @@ use NAbySy\xNAbySyGS;
             }            
             if($this->Main::IsDirectory($rep)){  
                 if ($this->DebugLevel>1){
-                    echo 'OUI</br>' ;
+                    echo 'OUI'.$cr ;
                 }
                 if($iteration = opendir($rep)){  
                     
@@ -198,11 +203,11 @@ use NAbySy\xNAbySyGS;
                             if (is_dir($pathfile)){
                                 $this->NbModule ++;
                                 if ($this->DebugLevel>1){
-                                    echo 'Module trouvé: '.$dos.'</br>' ;
+                                    echo 'Module trouvé: '.$dos.''.$cr ;
                                 }
                                 //Repertoir nom de module
                                 if ($this->DebugLevel>1){
-                                    echo 'OUI</br>' ;
+                                    echo 'OUI'.$cr ;
                                 }
                                 $Mod=[];
                                 $Mod[0]=$dos ;
@@ -211,7 +216,7 @@ use NAbySy\xNAbySyGS;
                                 
                             }else{
                                 if ($this->DebugLevel>1){
-                                    echo 'NON</br>' ;
+                                    echo 'NON'.$cr ;
                                 }
                             }
                         }
@@ -220,7 +225,7 @@ use NAbySy\xNAbySyGS;
                 }  
             }else{
                 if ($this->DebugLevel>1){
-                    echo 'NON</br>' ;
+                    echo 'NON'.$cr ;
                 }
             }
             $this->ListeModule=$this->ListeDossier ;
