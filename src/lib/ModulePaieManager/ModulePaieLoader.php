@@ -47,17 +47,19 @@ use NAbySy\xNAbySyGS;
         self::LoadModulePaiement();
     }
 
+    private static function createFolder(string $RepWork):bool{
+        if (!is_dir($RepWork)) {
+            return xNAbySyGS::createFolder($RepWork);
+        }
+        return true;
+    }
+
     public static function LoadModulePaiement(){
 
         $RepWork=self::$DossierModulePaie ;
-        if (!is_dir($RepWork)){
-            //self::$Main::$Log->Write("Création du dossier ".$RepWork);
-            mkdir($RepWork,0777,true);
-            if (is_dir($RepWork)){
-                //self::$Main::$Log->Write("Dossier ".$RepWork." crée !");
-            }else{
-                echo "Création Impossible du dossier ".$RepWork."\n" ;
-                self::$Main::$Log->Write("Impossible de créer le dossier ".$RepWork." !");
+        if (!is_dir($RepWork)) {
+            if(!self::createFolder($RepWork)){
+                return;
             }
         }
        
@@ -83,7 +85,7 @@ use NAbySy\xNAbySyGS;
             $ModName="NAbySy\Lib\ModulePaie\\".$methodePaie[0] ;
             $Mod=new $ModName(self::$Main);
             self::$ListeModule[]=$Mod ;
-            self::$Main::$ListeModulePaiement=self::$ListeModule ;
+            xNAbySyGS::$ListeModulePaiement=self::$ListeModule ;
 
             if($Mod instanceof IModulePaieManager){
                 //Si l'alias du Module n'existe pas dans la liste des Méthode de PAiement on le rajoute

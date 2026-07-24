@@ -4079,6 +4079,43 @@ Class xNAbySyGS
 			return self::CurrentFolder(true);
 		}
 	}
+
+	/**
+	 * Permet la création automatique d'un dossier avec tous les droits pour 
+	 * permettre la lecture/écriture en mode CLI/HTTP
+	 * @param string $RepWork : Chemin d'accès complet ou relative
+	 * @return bool 
+	 */
+	public static function createFolder(string $RepWork):bool{
+        if (!is_dir($RepWork)) {
+            // 1. Sauvegarde et modification de l'umask global (0002 donne les droits 775 au dossier)
+            $oldumask = umask(0002);
+
+            // 2. Tentative de création du dossier
+            // On utilise un bloc try/catch ou une vérification classique
+            if (@mkdir($RepWork, 0777, true)) {
+                
+                // 3. Force le bit SGID (2775) pour l'héritage futur des fichiers et dossiers
+                chmod($RepWork, 02775);
+                
+                // Restauration de l'umask immédiatement après l'opération réussie
+                umask($oldumask);
+                
+                // self::$Main::$Log->Write("Dossier ".$RepWork." créé !");
+            } else {
+                // Restauration de l'umask en cas d'échec
+                umask($oldumask);
+                if(xNAbySyGS::isRunFromCLI()){
+                    echo "Création Impossible du dossier ".$RepWork.PHP_EOL;
+                }else{
+					nabysyBootstrapLog("Création Impossible du dossier ".$RepWork);
+				}
+                xNAbySyGS::$Log->Write("Impossible de créer le dossier ".$RepWork." !");
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 ?>
