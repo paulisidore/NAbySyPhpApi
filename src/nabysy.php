@@ -2680,7 +2680,7 @@ Class xNAbySyGS
 	 */
 	public static function AllowCORS() {
 		if (php_sapi_name() === 'cli'){
-			if(xNAbySyGS::getInstance()->ActiveDebug && self::$LogLevel>3){
+			if(xNAbySyGS::getInstance()->ActiveDebug && self::$LogLevel>4){
 				self::$Log->AddToLog("Ce script fonctionne en mode CLI");
 			}
 			return;
