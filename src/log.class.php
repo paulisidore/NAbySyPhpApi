@@ -59,13 +59,19 @@ class xLog{
             $Dte = date("d/m/Y H:i:s");
             $Fichier = $this->Dossier.DIRECTORY_SEPARATOR.$this->File;    
             
+            // On vérifie si le fichier existe AVANT l'ouverture pour savoir si on doit lui appliquer le chmod
+            $isNewFile = !file_exists($Fichier);
+
             $monfichier = fopen($Fichier, 'a');
             if (!$monfichier) {
                 if(xNAbySyGS::isRunFromCLI()){
-                    echo "[LOG]: Erreur: Impossible d'ouvrir le fichier en écriture: ".$monfichier.". ".PHP_EOL;
+                    echo "[LOG]: Erreur: Impossible d'ouvrir le fichier en écriture: ".$Fichier.PHP_EOL;
                 }
                 throw new Exception("Impossible d'ouvrir le fichier en écriture.");
             }
+            
+            // 1. Verrouille le fichier de manière exclusive (attend son tour si déjà utilisé)
+            flock($monfichier, LOCK_EX);
 
             $Traces = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $DebugTraceLevel);
             $Trace = $Dte." ".__FILE__." Ligne: ".__LINE__."-> ";
@@ -77,10 +83,19 @@ class xLog{
 
             fputs($monfichier, $Trace); 
             fputs($monfichier, $LogInfos."\r\n");
+
+            // 2. Force l'écriture physique sur le disque avant de libérer le verrou
+            fflush($monfichier);
+
+            // 3. Libère le verrou pour le processus suivant
+            flock($monfichier, LOCK_UN);
+            
             fclose($monfichier);
 
-            // Assure les droits 664 pour le groupe
-            chmod($Fichier, 0664);
+            // N'applique le chmod QUE si c'est ce script qui vient de créer le fichier
+            if ($isNewFile) {
+                chmod($Fichier, 0664);
+            }
 
             // Restauration de l'umask initial en fin de succès
             umask($oldumask);
@@ -97,7 +112,8 @@ class xLog{
     }
 
 
-    public function AddToJournalODBC($LogInfos, int $DebugTraceLevel=2):bool{
+
+    public function AddToJournalODBC(string $LogInfos, ?int $DebugTraceLevel=2):bool{
         $Journal=new xORMHelper($this->Main,null,false,"journal");
         return $Journal->AddToLog($LogInfos, $DebugTraceLevel);
     }
@@ -107,7 +123,7 @@ class xLog{
      * @param string $Note : Note à inscrire
      * @return bool
      */
-    public function AddToLog(string $Note, int $DebugTraceLevel=2):bool{
+    public function AddToLog(string $Note, ?int $DebugTraceLevel=2):bool{
         if ($Note==''){
             return false;
         }
