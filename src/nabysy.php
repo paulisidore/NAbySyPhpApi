@@ -4120,7 +4120,7 @@ Class xNAbySyGS
     }
 
 	/**
-     * S'assure que l'utilisateur en cour est bien dans le groupe apache (www-data)
+     * S'assure que l'utilisateur en cour en mode CLI est bien dans le groupe apache (www-data)
      * si nous sommes sur des machine Linux/Unix/macOS
      * @return bool 
      * @throws Exception 
@@ -4132,7 +4132,7 @@ Class xNAbySyGS
         if(!self::isRunFromCLI()){
 			return true;
 		}
-		
+
         $currentUserInfo = posix_getpwuid(posix_getuid());
 		$currentUsername = $currentUserInfo['name'];
 
