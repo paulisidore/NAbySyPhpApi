@@ -10,13 +10,13 @@ use NAbySy\ORM\xORMHelper;
 class xLog{
 
     public xNAbySyGS $Main ;
-    public $File ;
-    public $Dossier ;
+    public string $File ;
+    public string $Dossier ;
 
-    public function __construct(xNAbySyGS $NabySy,$LogFile="Log.csv"){
+    public function __construct(xNAbySyGS $NabySy,?string $LogFile="Log.csv"){
         $this->Main=$NabySy ;
         $this->File=$LogFile ;
-        $this->Dossier= $NabySy::CurrentFolder(true).'log' ;
+        $this->Dossier= xNAbySyGS::CurrentFolder(true).'log' ;
     }
 
     /**
@@ -41,6 +41,9 @@ class xLog{
                 mkdir($this->Dossier, 0777, true) ;
             }
         }catch(Exception $ex){
+            if(xNAbySyGS::isRunFromCLI()){
+                echo  "[LOG]: "."Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage().PHP_EOL ;
+            }
             throw new Exception("Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage(), ERR_FILE_SYSTEM);
             return false ;
         }
@@ -72,6 +75,9 @@ class xLog{
             return true ;
         }
         catch(Exception $ex){
+            if(xNAbySyGS::isRunFromCLI()){
+                echo  "[LOG]: "."Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage().PHP_EOL ;
+            }
             throw new Exception("Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage(), ERR_FILE_SYSTEM);
         }				
     
