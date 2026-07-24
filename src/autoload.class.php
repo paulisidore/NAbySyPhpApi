@@ -52,7 +52,7 @@ use NAbySy\xNAbySyGS;
         public function Load($ClassName):bool{
             $cr = '</br>';
             if(xNAbySyGS::isRunFromCLI()){
-                $cr='\n';
+                $cr=PHP_EOL;
             }
             if ($this->NbModule==0){
                 if ($this->DebugLevel>1){
@@ -178,13 +178,13 @@ use NAbySy\xNAbySyGS;
         {  
             $cr = '</br>';
             if(xNAbySyGS::isRunFromCLI()){
-                $cr='\n';
+                $cr=PHP_EOL;
             }
             if (!isset($rep)){
                 $rep=$this->ModuleFolder ;
             }
             $rep=str_replace('\\', DIRECTORY_SEPARATOR, $rep) ;
-            //$rep="./main/rh/zoneaffectation" ;
+
             $this->ListeDossier=[] ;
             if ($this->DebugLevel>1){
                 echo 'Repertoire '.$rep.' ? ' ;

@@ -2076,9 +2076,6 @@ Class xNAbySyGS
 				}
 			}
 			$debg=1;
-			if(self::isRunFromCLI()){
-				$debg=5;
-			}
 			$AutoLoad=new \NAbySy\AutoLoad\xAutoLoad(self::$Main,$categorie,$RepWork);
 			$AutoLoad->Register($LstObs,$debg) ;
 			self::$ListeModuleAutoLoader[]=$AutoLoad ;
