@@ -450,6 +450,8 @@ Class xNAbySyGS
 			}
 		}
 
+		self::verifierGroupeApache(); //Vérifie uniquement en mode CLI que l'utilisateur à bien les droits apaches
+
 		$userGSFolder = self::ModuleGSHostFolder() ; //Provoque la vérification de l'installation Initiale de NAbySyGS et la création du dossier de stockage des Modules GS
 
 		if(!isset(self::$master_db_link)){
@@ -4115,6 +4117,54 @@ Class xNAbySyGS
             }
         }
         return true;
+    }
+
+	/**
+     * S'assure que l'utilisateur en cour est bien dans le groupe apache (www-data)
+     * si nous sommes sur des machine Linux/Unix/macOS
+     * @return bool 
+     * @throws Exception 
+     */
+    public function verifierGroupeApache():bool {
+        if (PHP_OS_FAMILY === 'Windows') {
+            return true; 
+        }
+        if(!self::isRunFromCLI()){
+			return true;
+		}
+		
+        $currentUserInfo = posix_getpwuid(posix_getuid());
+		$currentUsername = $currentUserInfo['name'];
+
+		// 2. Détection dynamique du groupe (Apache ou Nginx selon la distribution)
+		$webGroupInfo = posix_getgrnam('www-data') 
+					?: posix_getgrnam('nginx') 
+					?: posix_getgrnam('apache');
+
+		if (!$webGroupInfo) {
+			throw new Exception("Erreur de déploiement : Impossible de trouver le groupe système du serveur Web (www-data, nginx ou apache) sur ce serveur.");
+		}
+
+		$webGid = $webGroupInfo['gid'];
+		$nomGroupeCible = $webGroupInfo['name'];
+
+		// 3. Vérification de l'appartenance
+		$userGroupIds = posix_getgroups();
+
+		if (!in_array($webGid, $userGroupIds)) {
+			$message = PHP_EOL . "=====================================================================" . PHP_EOL;
+			$message .= "❌ ERREUR DE CONFIGURATION SYSTÈME SÉCURITÉ" . PHP_EOL;
+			$message .= "=====================================================================" . PHP_EOL;
+			$message .= "L'utilisateur actuel '$currentUsername' ne fait pas partie du groupe Web '$nomGroupeCible'." . PHP_EOL;
+			$message .= "Pour corriger cela, exécutez la commande suivante :" . PHP_EOL . PHP_EOL;
+			$message .= "    sudo usermod -aG $nomGroupeCible $currentUsername" . PHP_EOL . PHP_EOL;
+			$message .= "⚠️  IMPORTANT : Déconnectez-vous et reconnectez-vous à votre session SSH" . PHP_EOL;
+			$message .= "   pour appliquer les changements, puis relancez le script." . PHP_EOL;
+			$message .= "=====================================================================" . PHP_EOL;
+
+			throw new Exception($message);
+		}
+		return true;
     }
 }
 
