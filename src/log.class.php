@@ -28,61 +28,74 @@ class xLog{
      */
     public function Write($LogInfos, int $DebugTraceLevel=2, bool $LogToDB=false){
         if (!isset($LogInfos)){
-            return false ;
+            return false;
         }
         if(xNAbySyGS::isRunFromCLI()){
-            echo  "[LOG]: ".$LogInfos.PHP_EOL ;
+            echo "[LOG]: ".$LogInfos.PHP_EOL;
         }
         if($LogToDB){
-            $this->AddToLog($LogInfos) ;
+            $this->AddToLog($LogInfos);
         }
-        try{
+
+        // Gestion sécurisée de l'umask pour la création de dossier et fichier
+        $oldumask = umask(0002);
+
+        try {
             if (!is_dir($this->Dossier)){
-                mkdir($this->Dossier, 0777, true) ;
+                // Crée le dossier avec les droits 775 réels grâce à l'umask(0002)
+                mkdir($this->Dossier, 0777, true);
+                // Force le bit SGID (2775) pour que les futurs fichiers héritent du groupe parent
+                chmod($this->Dossier, 02775);
             }
-        }catch(Exception $ex){
+        } catch(Exception $ex) {
+            umask($oldumask); // Toujours restaurer avant de throw
             if(xNAbySyGS::isRunFromCLI()){
-                echo  "[LOG]: "."Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage().PHP_EOL ;
+                echo "[LOG]: Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage().PHP_EOL;
             }
             throw new Exception("Erreur: Impossible de créer le dossier ".$this->Dossier.". ".$ex->getMessage(), ERR_FILE_SYSTEM);
-            return false ;
         }
-        						
-        // 1 : on ouvre le fichier
+                                
         try {
-            $Dat=date("d/m/Y");
-            $Tim=date("H:i:s");
-            $Dte=$Dat." ".$Tim ;
-            $Fichier=$this->Dossier.DIRECTORY_SEPARATOR.$this->File ;		
+            $Dte = date("d/m/Y H:i:s");
+            $Fichier = $this->Dossier.DIRECTORY_SEPARATOR.$this->File;    
+            
             $monfichier = fopen($Fichier, 'a');
-            $nbTraceArr= $DebugTraceLevel;
-            $Traces=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,$nbTraceArr);
-            $niv=0;
-            $Trace=$Dte." ". __FILE__." Ligne: ".__LINE__."-> ";
-            foreach ($Traces as $dbg) {
-                $niv++ ;
-                if($niv==$nbTraceArr){
-                    $Trace=$Dte." ".$dbg['file']." Ligne: ".$dbg['line'].": " ;
+            if (!$monfichier) {
+                if(xNAbySyGS::isRunFromCLI()){
+                    echo "[LOG]: Erreur: Impossible d'ouvrir le fichier en écriture: ".$monfichier.". ".PHP_EOL;
                 }
+                throw new Exception("Impossible d'ouvrir le fichier en écriture.");
             }
+
+            $Traces = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $DebugTraceLevel);
+            $Trace = $Dte." ".__FILE__." Ligne: ".__LINE__."-> ";
+            
+            if (!empty($Traces)) {
+                $lastTrace = end($Traces);
+                $Trace = $Dte." ".($lastTrace['file'] ?? 'Unknown')." Ligne: ".($lastTrace['line'] ?? '0').": ";
+            }
+
             fputs($monfichier, $Trace); 
-            $TxLog=$LogInfos; // str_replace("\n","",$LogInfos) ;
-            //$TxLog=str_replace("\r\n","",$TxLog) ;
-            //$TxLog=str_replace("\r","",$TxLog) ;
-            $TxT=$TxLog."\r\n" ;	
-            fputs($monfichier, $TxT);
+            fputs($monfichier, $LogInfos."\r\n");
             fclose($monfichier);
-            return true ;
+
+            // Assure les droits 664 pour le groupe
+            chmod($Fichier, 0664);
+
+            // Restauration de l'umask initial en fin de succès
+            umask($oldumask);
+            return true;
         }
         catch(Exception $ex){
+            // Restauration de l'umask initial en cas d'erreur
+            umask($oldumask);
             if(xNAbySyGS::isRunFromCLI()){
-                echo  "[LOG]: "."Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage().PHP_EOL ;
+                echo "[LOG]: Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage().PHP_EOL;
             }
             throw new Exception("Erreur systeme de fichier sur ".$this->File.". ".$ex->getMessage(), ERR_FILE_SYSTEM);
-        }				
-    
-        return false ;
+        }                
     }
+
 
     public function AddToJournalODBC($LogInfos, int $DebugTraceLevel=2):bool{
         $Journal=new xORMHelper($this->Main,null,false,"journal");
