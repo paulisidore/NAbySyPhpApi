@@ -216,7 +216,7 @@ $templateDir = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR
 // Ce fichier gère le setup initial (?Action=SETUP) puis se remplace lui-même
 // par le vrai template_index.php une fois appinfos.php généré.
 $main_entry_file = $host_directory . 'index.php';
-if (!file_exists($main_entry_file)) {
+if (!xNAbySyGS::isRunFromCLI() && !file_exists($main_entry_file)) {
     nabysyBootstrapLog("Génération de index.php (setup temporaire) dans {$host_directory}", 'INFO');
     try {
         $templateSetup = $templateDir . 'template_setup.php';
@@ -235,7 +235,7 @@ if (!file_exists($main_entry_file)) {
 // template_setup.php (chargé en index.php) le renommera en index.php
 // après un setup réussi, sans dépendance à N::CurrentFolder().
 $index_new_file = $host_directory . 'index_new.php';
-if (!file_exists($index_new_file) && !file_exists($host_directory . 'appinfos.php')) {
+if (!xNAbySyGS::isRunFromCLI() && !file_exists($index_new_file) && !file_exists($host_directory . 'appinfos.php')) {
     nabysyBootstrapLog("Copie de index_new.php dans {$host_directory}", 'INFO');
     try {
         $templateIndex = $templateDir . 'template_index.php';
@@ -261,7 +261,7 @@ $appinfos_file = $host_directory . 'appinfos.php';
 $setup_dest    = $host_directory . 'setup.html';
 $setup_src     = __DIR__ . DIRECTORY_SEPARATOR . 'setup.html';
 
-if (!file_exists($appinfos_file) && !file_exists($setup_dest)) {
+if (!xNAbySyGS::isRunFromCLI() && !file_exists($appinfos_file) && !file_exists($setup_dest)) {
     nabysyBootstrapLog("Copie de setup.html dans {$host_directory}", 'INFO');
     try {
         if (!file_exists($setup_src)) {
@@ -276,7 +276,7 @@ if (!file_exists($appinfos_file) && !file_exists($setup_dest)) {
 
 // ── .htaccess racine ───────────────────────────────────────
 $htaccess_file = $host_directory . '.htaccess';
-if (!file_exists($htaccess_file)) {
+if (!xNAbySyGS::isRunFromCLI() && !file_exists($htaccess_file)) {
     $templatePath = $templateDir . 'template_htaccess';
     try {
         $template = file_get_contents($templatePath);
@@ -302,7 +302,7 @@ try {
 }
 
 $htaccess_tmpfile = $tmpDir . '.htaccess';
-if (!file_exists($htaccess_tmpfile) && is_dir($tmpDir)) {
+if (!xNAbySyGS::isRunFromCLI() && !file_exists($htaccess_tmpfile) && is_dir($tmpDir)) {
     $templatePath = $templateDir . 'templateimagetmp_htaccess';
     try {
         $template = file_get_contents($templatePath);

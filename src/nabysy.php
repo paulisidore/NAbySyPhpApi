@@ -378,6 +378,11 @@ Class xNAbySyGS
 	 */
 	public static ?xORMHelper $TechnoWEBClient = null;
 
+	/**
+	 * Liste des entête à ajouter aux authorisations CORS
+	 */
+	public static array $CORS_ALLOW_HEADER = [];
+
 	public function __construct($Myserveur,$Myuser,$Mypasswd,ModuleMCP $mod,$db,$MasterDB="nabysygs", int $port=3306, 
 		string $baseDir=null, ?bool $desableTokenAuth=true){ 
 		self::$Main = $this ;
@@ -2630,43 +2635,7 @@ Class xNAbySyGS
 	 *
 	 */
 	function AutorisationCORS() {
-		if (php_sapi_name() === 'cli'){
-			if($this->ActiveDebug && self::$LogLevel>4){
-				self::$Log->AddToLog("Ce script fonctionne en mode CLI");
-			}
-			return ;
-		}
-
-		// Allow from any origin
-		if (isset($_SERVER['HTTP_ORIGIN'])) {
-			// Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
-			// you want to allow, and if so:
-			header("Access-Control-Allow-Origin: *");
-			//header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-			header('Access-Control-Allow-Credentials: true');
-			header('Access-Control-Max-Age: 86400');    // cache for 1 day
-		}else{
-			header("Access-Control-Allow-Origin: *");
-			header('Access-Control-Allow-Credentials: true');
-			header('Access-Control-Max-Age: 86400');    // cache for 1 day
-		}
-		
-		// Access-Control headers are received during OPTIONS requests
-		if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-			
-			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])){
-				// may also be using PUT, PATCH, HEAD etc
-				header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS, DELETE");
-			}
-			
-			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])){
-				header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
-			}
-		
-			exit(0);
-		}
-		
-		//echo "You have CORS!";
+		self::AllowCORS();
 	}
 
 	/**
@@ -2695,7 +2664,15 @@ Class xNAbySyGS
 			//header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
 			header('Access-Control-Allow-Credentials: true');
 			header('Access-Control-Max-Age: 86400');    // cache for 1 day
-			header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+			$header="'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With' ";
+			if(self::$CORS_ALLOW_HEADER && count(self::$CORS_ALLOW_HEADER)){
+				foreach(self::$CORS_ALLOW_HEADER as $key => $value){
+					if($value == 1){
+						$header .=", ".$key ;
+					}
+				}
+			}
+			header($header);
 		}else{
 			header("Access-Control-Allow-Origin: *");
 			header('Access-Control-Allow-Credentials: true');
@@ -2719,6 +2696,31 @@ Class xNAbySyGS
 		}
 		
 		//echo "You have CORS!";
+	}
+
+	/**
+	 * Ajoute un champ d'entete dans le Header des requette HTTP pour passer le test CORS
+	 */
+	public static function AddHeaderToCORS(string $HeaderName):bool{
+		if($HeaderName==''){ return false;}
+		if(isset(self::$CORS_ALLOW_HEADER[$HeaderName])){
+			self::$CORS_ALLOW_HEADER[$HeaderName] = 1;
+			return true;
+		}
+		self::$CORS_ALLOW_HEADER[$HeaderName]=1;
+		return true;
+	}
+
+	/**
+	 * Retire un champ d'entete dans le Header des requette HTTP
+	 */
+	public static function RemoveHeaderToCORS(string $HeaderName):bool{
+		if($HeaderName==''){ return false;}
+		if(isset(self::$CORS_ALLOW_HEADER[$HeaderName])){
+			unset(self::$CORS_ALLOW_HEADER[$HeaderName]);
+			return true;
+		}
+		return true;
 	}
 
 	/**
