@@ -296,8 +296,9 @@ Class xNAbySyGS
 
 	/**
 	 * Si VRAI, Le module d'authentification ignorera l'authentification de l'Utilisateur.
-	 * Utile pour l'affichage des données d'une Boutique en Ligne. Activez cette optionuniquement si les utilisateurs
-	 * doivent être authentifiés.
+	 * Utile pour l'affichage des données d'une Boutique en Ligne. Activez cette option uniquement 
+	 * pour ignorer l'authentification des utilisateurs.
+	 * Par défaut tous les utilisateurs doivent s'authentifier pour accéder aux différents API
 	 * @var bool
 	 */
 	public static bool $NO_AUTH = false;
@@ -2734,7 +2735,7 @@ Class xNAbySyGS
 			$this->ChargeInfos();
 		}
 		
-		if(!self::$NO_AUTH){
+		if(self::$NO_AUTH){
 			if (!isset($this->User)){
 				//Definition d'un utilisateur par défaut en mode NO_AUTH
 				$this->User=new xUser($this,null,self::GLOBAL_AUTO_CREATE_DBTABLE) ;
