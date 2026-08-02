@@ -38,7 +38,7 @@ class rAuth extends xNAbySyUrlRouterHelper {
         });
 
         $this->post('/auth', function() {
-            N::$NO_AUTH = true ;
+            //N::$NO_AUTH = true ;
             $Rep = new xNotification();
             $Rep->OK=0;
             $Rep->Contenue = [];
@@ -48,7 +48,7 @@ class rAuth extends xNAbySyUrlRouterHelper {
 
         //On va en profiter pour ajouter les chemins pour les autres tâches administratives
         $this->get("/api/describe", function(){
-            N::$NO_AUTH=false;
+            N::$NO_AUTH=true;
             $_REQUEST['Action']="USERAPI_DESCRIBE_URL_API_ROUTE" ;
             include_once 'gs/userapi/userapi_action.php';
         });
