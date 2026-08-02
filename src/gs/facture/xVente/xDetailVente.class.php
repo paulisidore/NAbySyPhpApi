@@ -41,7 +41,7 @@ Class xDetailVente extends xORMHelper{
 
 		$Facture=new xVente($this->Main);
         
-		if ($IdFacture>0){
+		if ($IdFacture>0 && $this->TableExiste() && $this->count()){
 			$sql="select E.ID as 'IdFacture',E.DateFacture, E.HeureFacture,E.TotalFacture,
 			E.IdClient,E.MODEREGLEMENT,
 			E.IDCAISSE, E.MontantVerse, E.MontantRendu, ";
