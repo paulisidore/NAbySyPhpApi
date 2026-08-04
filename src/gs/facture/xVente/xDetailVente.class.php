@@ -41,25 +41,14 @@ Class xDetailVente extends xORMHelper{
 
 		$Facture=new xVente($this->Main);
         
-		if ($IdFacture>0 && $this->TableExiste() && $this->count()){
-			$sql="select E.ID as 'IdFacture',E.DateFacture, E.HeureFacture,E.TotalFacture,
-			E.IdClient,E.MODEREGLEMENT,
-			E.IDCAISSE, E.MontantVerse, E.MontantRendu, ";
-            $sql .="C.Prenom as 'PrenomClt', C.Nom as 'NomClt',D.IdProduit,u.Login as 'Caissier',E.IdCaissier,
-                D.Designation,D.PrixVente,D.PRIXCESSION,
-                D.Qte,D.VenteDetaillee,C.Tel,C.Solde, C.Avoir, D.* ";
-            $sql .=" from ".$this->Table." D left outer join ".$Facture->Table." E on D.IdFacture=E.ID "; 
-            $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".".$Facture->Client->Table." C on C.Id=E.IdClient " ;
-            $sql .=" left outer join ".$this->Main->MaBoutique->DBase.".utilisateur u on u.id=E.IdCaissier " ;
-            $sql .=" where E.ID = ".$IdFacture ;
-
+		if ($IdFacture>0 && $this->TableExiste() && $this->ChampsExisteInTable("IdFacture") && $this->count()){
+			$sql="select * from ".$this->FullTableName()." where IDFACTURE = ".$IdFacture ;
             $Lst=$this->ExecSQL($sql);
             if ($Lst->num_rows){
                 while ($row=$Lst->fetch_assoc()){
                     $this->ListeProduits[]=$row;
                 }
             }
-
             /** On Ajoute la liste des Méthodes de Paiement */
 
             /* @var ClassName[] $ModPaie xNAbySyGS\GS\Facture\IModulePaieManager */

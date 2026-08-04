@@ -200,7 +200,11 @@ use NAbySy\xUser;
         
         $Notif->Source='auth-'.$User->Id.':'.$Login;
         $nabysy->User=$User ;
-        if($User->Main::$SendAuthReponse && !$ConnectByToken){
+        $SendToken=true ;
+        if(isset($_REQUEST['NO_TOKEN']) && (int)$_REQUEST['NO_TOKEN']>0){
+            $SendToken=false;
+        }
+        if($SendToken && $User->Main::$SendAuthReponse && !$ConnectByToken){
             http_response_code(200);
             echo json_encode($Notif) ;
             exit ;

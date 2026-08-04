@@ -2,6 +2,7 @@
 namespace NAbySy\Media ;
 use NAbySy\xNAbySyGS;
 use NAbySy\xPhoto;
+use Throwable;
 
 /**
  * Gestionnaire des Medias pour NAbySyGS
@@ -11,13 +12,22 @@ class xMediaRessource {
     public xNAbySyGS $Main ;
     public string $DossierMedia ='media' ;
 
+    /**
+     * GEstionnaire de média.
+     * @param xNAbySyGS $nabysy 
+     * @param string $LocalDir | dossier de stockage des média. Il sera créee automatiquement s'il n'existe pas
+     * dans le dossier root de l'application hôte. LocalDir est donc relatif au dossier root de l'API
+     * @return void 
+     * @throws Throwable 
+     */
     public function __construct(xNAbySyGS $nabysy, string $LocalDir="media"){
         $this->Main = $nabysy;
         $this->DossierMedia = $LocalDir;
         $vDirectorie = $this->GetFullFolderPath();
         if(!is_dir($vDirectorie)){
             try {
-                mkdir($vDirectorie,0777,true);
+                xNAbySyGS::createFolder($vDirectorie);
+                //mkdir($vDirectorie,0777,true);
             } catch (\Throwable $th) {
                 throw $th;
             }
@@ -110,22 +120,18 @@ class xMediaRessource {
 	
 	/**
 	 * Retourne l'url d'un media accessible à l'extérieur via HTTP/HTTPS
-	 * @param bool $NoSendToClient | Si VRAI, le média sera envoyé directement au client via HTTP/HTTPS
+     * @param string $FileName | Le nom du fichier sans le repoertoir
+	 * @param bool $SendToClient | Si VRAI, le média sera envoyé directement au client via HTTP/HTTPS
 	 * @param string|null $baseUrl 
 	 * @return true|string 
 	 */
-	public function GetMediaURL(string $FileName, $NoSendToClient=false,string $baseUrl=null){
+	public function GetMediaURL(string $FileName, $SendToClient=false,string $baseUrl=null){
         $DossierPhoto=$this->GetFullFolderPath();
 		$Photo=new xPhoto($this->Main, $DossierPhoto);
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
         $vFileName=$FileName ;
 		$FileName=$DossierPhotos.$FileName ;
-		
-		//if (file_exists($FileName)){
-			//$this->Main::$Log->AddToLog("Fichier ".$FileName." existe.",4);
-		//}else{
-			//$this->Main::$Log->AddToLog("Fichier ".$FileName." absent.",4);
-		//}
+
 		//On copie dans un dossier temporaire pour la sécurité
 		$httpX='http://' ;
 		if (isset($_SERVER['HTTPS'])){
@@ -138,7 +144,7 @@ class xMediaRessource {
 			mkdir($DosTmp) ;
 		}
 
-		if (!$NoSendToClient){
+		if (!$SendToClient){
 			$Photo->SendFile($FileName) ;
 			return true ;
 		}
