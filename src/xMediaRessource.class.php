@@ -144,7 +144,7 @@ class xMediaRessource {
 			mkdir($DosTmp) ;
 		}
 
-		if (!$SendToClient){
+		if ($SendToClient){
 			$Photo->SendFile($FileName) ;
 			return true ;
 		}
