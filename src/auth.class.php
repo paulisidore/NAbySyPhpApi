@@ -141,19 +141,30 @@ Class xAuth
         return $jwt ;
     }
 
-    public function DecodeToken($JWT_TOKEN,$Algo='HS256',$NoRetournError=true){
+    public function DecodeToken(string $JWT_TOKEN,$Algo='HS256', bool $NoRetournError=true, ?xErreur $LastTokenErr = null){
         $decoded=null;
+        
         if (isset($JWT_TOKEN)){
             try{
+                xNAbySyGS::$Log->AddToLog('Token non décodé: '. $JWT_TOKEN);
                 //echo $JWT_TOKEN ;exit;
                 //echo __FILE__." Key =". $this->Key ;exit;
                 $decoded = JWT::decode($JWT_TOKEN, $this->Key, array($Algo));
                 //var_dump($decoded);//exit;
-                if (!isset($decoded->user_data)){
+                xNAbySyGS::$Log->AddToLog("Reponse décodage Token reçu: ".json_encode($decoded));
+                if (isset($decoded->user_data) && is_string($decoded->user_data)){
+                    xNAbySyGS::$Log->AddToLog('User_Data était un string, on va le décoder ici ... ');
                     $decoded->user_data=json_decode($decoded->user_data);
                 }else{
                     //var_dump($decoded);
                     //var_dump($decoded->user_data);
+                    $Err = new xErreur;
+                    $Err->TxErreur = "Token invalid ou erreur de signature.";
+                    $LastTokenErr = $Err ;
+                    $Err->SendAsJSON();
+                    if(!xNAbySyGS::isRunFromCLI()){
+                        die();
+                    }
                 }
             }
             catch (Exception $e){
@@ -170,6 +181,7 @@ Class xAuth
                     $Err->Extra="Reconnectez-vous svp." ;
                     $Reponse=json_encode($Err) ;
                     //echo $Reponse ;
+                    $LastTokenErr = $Err;
                     $decoded=$Err ; //"EXPIRE" ;
                     if (!$NoRetournError){
                         if(!xNAbySyGS::isRunFromCLI()){
@@ -200,6 +212,7 @@ Class xAuth
                         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS , 3);
                         $Err->Source=$trace ;
                     }
+                    $LastTokenErr=$Err;
                     $Err->SendAsJSON();
                     if(!xNAbySyGS::isRunFromCLI()){
                         die();
