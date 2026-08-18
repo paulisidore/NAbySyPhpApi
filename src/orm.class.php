@@ -783,7 +783,7 @@ class xORMHelper implements IORMHelper {
                 $Arg[0]=$ActualClass.self::EVENTS_ADD ;
                 $Arg[1]=$LastId ;
                 $Arg[2]=$this ;
-                $this->Main->RaiseEvent($ActualClass,$Arg) ;
+                xNAbySyGS::RaiseEventWithResponse($ActualClass, $Arg);
 
                 return true ;
             }
