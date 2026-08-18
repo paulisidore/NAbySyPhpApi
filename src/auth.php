@@ -217,6 +217,9 @@ use NAbySy\xUser;
         }
         
     }else{
+        if(isset($_REQUEST['Action']) && $_REQUEST['Action']=='NABYSY_STRUCURE_UPDATE'){
+            N::$NO_AUTH = true;
+        }
         if(!N::$NO_AUTH){
             //Authentification a échouée
             //var_dump(__FILE__. " "." L".__LINE__." Token = ". $Token);
