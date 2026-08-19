@@ -201,5 +201,47 @@ Class xPhoto{
         return $vDest ;
     }
 
+    /**
+     * Ajoute une extension de fichier à prendre en charge
+     * @param string $Extention 
+     * @return bool 
+     */
+    public function AddFileExtension(string $Extention):bool{
+        $canAdd=true;
+        foreach ($this->ExtentionAccepte as $ext) {
+            if(strtolower($ext) == strtolower($Extention)){
+                $canAdd=false;
+                break;
+            }
+        }
+        if($canAdd){
+            $this->ExtentionAccepte[]=$Extention ;
+        }
+        return true;
+    }
 
+    /**
+     * Ajoute l'extension du fichier s'il n'est pas déjà ^pris en charge
+     * @param string $FileName 
+     * @return bool 
+     */
+    public function AddExtentionFromFileName(string $FileName):bool{
+        if($FileName && is_string($FileName)){
+            if($FileName == ''){
+                return false;
+            }
+            $part=explode(".",$FileName);
+            if(count($part) == 0 ){
+                return false;
+            }
+            $lastIndex=count($part) -1;
+            if($lastIndex < 1){
+                return false;
+            }
+            $ext = $part[$lastIndex];
+            return $this->AddFileExtension($ext);
+
+        }
+        return false;
+    }
 }

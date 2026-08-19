@@ -114,6 +114,7 @@ class xMediaRessource {
 	public function SaveMediaFromRequest($ChampFichier="fichier",$NomFichier="monfichierMedia.png"){
 		$DossierPhoto=$this->GetFullFolderPath();
 		$Photo=new xPhoto($this->Main,$DossierPhoto);
+        $Photo->AddExtentionFromFileName($NomFichier);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
 	}
