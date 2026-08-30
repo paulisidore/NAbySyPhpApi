@@ -41,5 +41,33 @@ interface ITechnoWEB {
      */
     public static function GenerateNewDBaseClient(xORMHelper $Clt):bool ;
 
+    /**
+     * Retourne les Informations de facturation du client TechnoWEB
+     * @param xORMHelper $CltTechnoWEB 
+     * @return null|xORMHelper 
+     */
+    public static function GetClientBillingInfos(xORMHelper $CltTechnoWEB):?xORMHelper;
+
+    /**
+     * Indique si le client TechnoWEB à un abonnement Actif
+     * @param xORMHelper $CltTechnoWEB 
+     * @return bool 
+     */
+    public static function BillingIsOK(xORMHelper $CltTechnoWEB):bool;
+
+    /**
+     * Retourne le montant de l'abonnement au service TechnoWEB
+     * @param xORMHelper $CltTechnoWEB 
+     * @return float 
+     */
+    public static function GetMontantAbonnement(xORMHelper $CltTechnoWEB):float;
+
+    /**
+     * Retourne la durée normale d'un abonnement TechnoWEB
+     * @param xORMHelper $CltTechnoWEB 
+     * @return int 
+     */
+    public static function GetDureeAbonnement(xORMHelper $CltTechnoWEB):int ;
+
 }
 ?>
