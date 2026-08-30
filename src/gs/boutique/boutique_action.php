@@ -1,17 +1,18 @@
 <?php
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Stock\xProduit;
+use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xDB;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
 
-$nabysy = N::getInstance() ;
+$nabysy = xNAbySyGS::getInstance() ;
 
 switch ($action){
         case 'ETS_GETINFOS': //Retourne les information personnelle de l'entreprise cliente
-            $IdBout=N::getInstance()->MaBoutique->Id;
+            $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
             $nabysy->AutorisationCORS();
             if (isset($PARAM['ID'])){
                 $IdBout=(int)$PARAM['ID'] ;
@@ -19,28 +20,28 @@ switch ($action){
             if (isset($PARAM['IDBOUTIQUE'])){
                 $IdBout=(int)$PARAM['IDBOUTIQUE'] ;
             }
-            //echo(N::getInstance()->MaBoutique->Nom);exit;
+            //echo(xNAbySyGS::getInstance()->MaBoutique->Nom);exit;
 
-            if(isset($PARAM['IDTECHNOWEB'])){
+/*             if(isset($PARAM['IDTECHNOWEB'])){
                 if(trim($PARAM['IDTECHNOWEB']) !==''){
-                    if(isset(N::$TechnoWEBMgr)){
-                        $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
+                    if(isset(xNAbySyGS::$TechnoWEBMgr)){
+                        $ClientTechnoWeb=xNAbySyGS::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
                         if($ClientTechnoWeb){
-                            //N::getInstance()::$Log->AddToLog("NAbySyGS Client IdTechnoWeb ".$PARAM['IDTECHNOWEB']." DB Trouvé: " . json_encode($ClientTechnoWeb)) ;
+                            //xNAbySyGS::getInstance()::$Log->AddToLog("NAbySyGS Client IdTechnoWeb ".$PARAM['IDTECHNOWEB']." DB Trouvé: " . json_encode($ClientTechnoWeb)) ;
                             $IdBTrouve=null;
-                            if($ClientTechnoWeb->ServiceDB == N::getInstance()->MaBoutique->DBName ){
-                                $IdBout=N::getInstance()->MaBoutique->Id;
+                            if($ClientTechnoWeb->ServiceDB == xNAbySyGS::getInstance()->MaBoutique->DBName ){
+                                $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
                                 $IdBTrouve = $IdBout ;
-                                //N::getInstance()::$Log->AddToLog("NAbySyGS DB MainTable: " . N::getInstance()->MainDataBase ) ;
-                                //N::getInstance()::$Log->AddToLog("Maint DB Table Boutique: " . N::getInstance()->MaBoutique->FullTableName() ) ;
-                                //N::getInstance()::$Log->AddToLog("Boutique déjà en cour IdBout = ".$IdBout." : DB=>".N::getInstance()->MaBoutique->DBName);
+                                //xNAbySyGS::getInstance()::$Log->AddToLog("NAbySyGS DB MainTable: " . xNAbySyGS::getInstance()->MainDataBase ) ;
+                                //xNAbySyGS::getInstance()::$Log->AddToLog("Maint DB Table Boutique: " . xNAbySyGS::getInstance()->MaBoutique->FullTableName() ) ;
+                                //xNAbySyGS::getInstance()::$Log->AddToLog("Boutique déjà en cour IdBout = ".$IdBout." : DB=>".xNAbySyGS::getInstance()->MaBoutique->DBName);
                             }else{
                                 $IdBout = $ClientTechnoWeb->Id ;
                                 //$Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
                                 //echo "DB Recherché = ".$Critere . "</p>";
-                                foreach (N::getInstance()::$ListeBoutique as $BoutX) {
+                                foreach (xNAbySyGS::getInstance()::$ListeBoutique as $BoutX) {
                                     //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
-                                    //N::getInstance()::$Log->AddToLog("Recherche ... ".$BoutX->Nom." : DB=>".$BoutX->DBName);
+                                    //xNAbySyGS::getInstance()::$Log->AddToLog("Recherche ... ".$BoutX->Nom." : DB=>".$BoutX->DBName);
                                     if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
                                         $IdBout = $BoutX->Id;
                                         $IdBTrouve = $IdBout ;
@@ -51,13 +52,13 @@ switch ($action){
                         }
                     }
                 }
-            }
-            $Bout=xNAbySyGS::getInstance()->MaBoutique ; // new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
+            } */
+            $Bout=xNAbySyGS::getInstance()->MaBoutique ; // new xBoutique($nabysy,$IdBout,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE);
             if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
                 $Bout->SupportArticlePhotos = (int)xNAbySyGS::$TechnoWEBClient->SupportArticlePhotos ;
                 $Bout->Nom = xNAbySyGS::$TechnoWEBClient->RaisonSocial ;
             }
-
+            
             if($Bout->SupportArticlePhotos=='' && $Bout->Id>0){
                 $Bout->SupportArticlePhotos = 0; //Par defaut les photos d'article ne seront pas authorisé
                 $Bout->Enregistrer();
@@ -72,9 +73,11 @@ switch ($action){
             $Reponse = new xNotification ;
             $Reponse->OK=1;
             $rw = $Bout->ToArrayAssoc();
+
+            
             //$rw['DBASE'] = $Bout->DBname;
-            //N::getInstance()::$Log->AddToLog("Boutique trouvée: ".json_encode($rw));
-                    
+            //xNAbySyGS::getInstance()::$Log->AddToLog("Boutique trouvée: ".json_encode($rw));
+
             $rw['URL_ENTETE'] = $Bout->GetLogoEntete(true);
             $rw['ENTETE_TICKET'] =  $rw['URL_ENTETE'] ;
             $rw['ENTETE_A4'] = $Bout->GetEnteteA4(true);
@@ -92,14 +95,16 @@ switch ($action){
             unset($rw['ListePanier']);
 
             $lien_logo = $Bout->GetLogoTicket(true);
+
             $rw['LOGO_TICKET'] = $lien_logo ;
-            $rw['SupportArticlePhotos'] = 1;// (int)$Bout->SupportArticlePhotos ?? 0;
+            $rw['SupportArticlePhotos'] = (int)$rw['SupportArticlePhotos'];
             //unset($rw['LOGO_TICKET']);
             if(trim($rw['LOGO_TICKET']) !== ""){
                $rw['ENTETE_TICKET'] = $rw['LOGO_TICKET'];
             }
 
             $Param=$nabysy->Parametre;
+            
             if(isset($Param) && $Param->Id){
                 if(!$Param->ChampsExisteInTable("PIED_A4")){
                     $PrecAutoCreate=$Param->AutoCreate;;
@@ -110,6 +115,7 @@ switch ($action){
                     $Param->AutoCreate=$PrecAutoCreate;
                 }
             }
+
             if(isset($Param) && $Param->Id){
                 $rw['Tel'] = $Param->Tel ;
                 $rw['PIED_TICKET'] = $Param->PIED_TICKET ;
@@ -119,20 +125,54 @@ switch ($action){
                 $rw['PAYS'] = $Param->MonPays ;
                 $rw['REGION'] = $Param->MaRegion ;
             }
-
             foreach ($rw as $key => $value) {
                 $rw[$key] = xNAbySyGS::EscapedForJSON($value);
             }
-
             $Reponse->Contenue = $rw ;
-            echo json_encode($Reponse);
+
+            //On ajoute éventuellement les donnée de renouvellement Abonnement TechnoWeb
+            if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+                $Billing = xNAbySyGS::$TechnoWEBMgr::GetClientBillingInfos(xNAbySyGS::$TechnoWEBClient);
+                $BillOK = xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient);
+                $Reponse->Contenue['bill'] = [];
+                $Reponse->Contenue['bill']['active'] = $BillOK ? 1 : 0 ;
+                $Reponse->Contenue['bill']['infos'] = $Billing->ToObject() ;
+                $Reponse->Contenue['bill']['tarifs']['Montant'] =xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient) ;
+                $Reponse->Contenue['bill']['tarifs']['Type'] = "ABONNEMENT";
+                $Reponse->Contenue['bill']['tarifs']['Duree'] = xNAbySyGS::$TechnoWEBMgr::GetDureeAbonnement(xNAbySyGS::$TechnoWEBClient);
+                //On va ajouter la liste des méthodes de paiement et leurs Handles
+                $Reponse->Contenue['bill']['tarifs']['methodepaies']=[];
+                if(count(xNAbySyGS::$ListeModulePaiement)){
+                    foreach(self::$ListeModulePaiement as $Mod){
+                        try{
+                            if ($Mod instanceof IModulePaieManager){
+                                if ($Mod->HandleModuleName() != ""){
+                                    $Meth=[
+                                        "Nom" => $Mod->UIName() ,
+                                        "Description" => $Mod->Description(),
+                                        "HandleName" => $Mod->HandleModuleName(),
+                                        "Logo" => $Mod->LogoURL(),
+                                    ];
+                                   $Reponse->Contenue['bill']['tarifs']['methodepaies'][] = $Meth ;
+                                }
+                            }
+                        }
+                        catch (Exception $ex){
+
+                        }
+                    }
+                }
+
+            }
+            $Reponse->SendAsJSON();
+            //echo json_encode($Reponse);
             exit;
             break;
         
         case 'ETS_CONFIG_SAVE': //Retourne une configuration
             $IdConfig=1;
             $NewConfig=false;
-            $IdBout=N::getInstance()->MaBoutique->Id;
+            $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
             if(isset($_REQUEST['ID'])){
                 if ((int)($_REQUEST['ID'])){
                     $IdConfig = (int)$_REQUEST['ID'];
@@ -141,19 +181,19 @@ switch ($action){
 
             /* if(isset($PARAM['IDTECHNOWEB'])){
                 if(trim($PARAM['IDTECHNOWEB']) !==''){
-                    if(isset(N::$TechnoWEBMgr)){
-                        $ClientTechnoWeb=N::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
+                    if(isset(xNAbySyGS::$TechnoWEBMgr)){
+                        $ClientTechnoWeb=xNAbySyGS::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
                         if($ClientTechnoWeb){
                             $IdBTrouve=null;
-                            if($ClientTechnoWeb->ServiceDB == N::getInstance()->MaBoutique->DBName ){
-                                $IdBout=N::getInstance()->MaBoutique->Id;
+                            if($ClientTechnoWeb->ServiceDB == xNAbySyGS::getInstance()->MaBoutique->DBName ){
+                                $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
                                 $IdBTrouve = $IdBout ;
                             }else{
                                 $IdBout = $ClientTechnoWeb->Id ;
                                 $Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
                             
                                 //echo "DB Recherché = ".$Critere . "</p>";
-                                foreach (N::getInstance()::$ListeBoutique as $BoutX) {
+                                foreach (xNAbySyGS::getInstance()::$ListeBoutique as $BoutX) {
                                     //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
                                     if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
                                         $IdBout = $BoutX->Id;
@@ -170,8 +210,8 @@ switch ($action){
                 $Bout = xNAbySyGS::getInstance()->MaBoutique;
                 $Param=xNAbySyGS::getInstance()->Parametre ;
             }else{
-                $Bout=new xBoutique($nabysy,$IdBout,N::GLOBAL_AUTO_CREATE_DBTABLE);
-                $Param=new xORMHelper($nabysy,$IdConfig,N::GLOBAL_AUTO_CREATE_DBTABLE,"parametre", $Bout->DBName);
+                $Bout=new xBoutique($nabysy,$IdBout,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE);
+                $Param=new xORMHelper($nabysy,$IdConfig,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE,"parametre", $Bout->DBName);
             }
             if($Bout->Id==0 && !xNAbySyGS::$TECHNOWEB_ACTIVE){
                 $Err=new xErreur();
@@ -204,8 +244,6 @@ switch ($action){
                 $ListeVariable = json_decode($ListeVariable['Config'],true);
             }
 
-            //$Param->AddToLog(__FILE__.":".__LINE__.": Param.".json_encode($ListeVariable));
-
             foreach($ListeVariable as $Champ => $Valeur){
                 
                 if (strtolower($Champ) !== 'id' and strtolower($Champ) !== 'token' 
@@ -233,9 +271,13 @@ switch ($action){
                                 $Bout->$Champ = $Valeur ;
                                 $YouCanSaveBout = true;
                             }
-                        }elseif($Bout->ChampsExisteInTable($Champ)){
+                        }elseif(!xNAbySyGS::$TECHNOWEB_ACTIVE && $Bout->ChampsExisteInTable($Champ)){
                             $Bout->$Champ = $Valeur ;
                             $YouCanSaveBout = true;
+                        }elseif(xNAbySyGS::$TECHNOWEB_ACTIVE && xNAbySyGS::$TechnoWEBClient){
+                            $Bout->$Champ = $Valeur ;
+                            //var_dump("Champ introuvable dans la base du client TechnoWeb: ".$Champ." Valeur: ".$Valeur);
+                            $YouCanSaveBout = false;
                         }
                         else{
                             $ListeChampIntrouvable[]=$Champ;
@@ -244,22 +286,26 @@ switch ($action){
                 }
             }
 
-            if ($YouCanSave){
-                //var_dump($Param->ToJSON());
-                //exit;                
+            if ($YouCanSave){            
+                //echo($Param->ToJSON());
+                //exit;
+                $Param->AutoCreate=true;
                 if ($Param->Enregistrer()){
                     if ($NewConfig){
                         $Param->AddToJournal("PARAMETRE","Enregistrement d'un nouveau paramètre. IdParam = ".$Param->Id) ;
                     }
+                }else{
+                    $Param->AddToLog(__FILE__.":".__LINE__.": Param Err.".json_encode($Param->ToJSON()));
                 }
             }
 
-            if($YouCanSaveBout && $Bout->Id>0){
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE && $YouCanSaveBout && $Bout->Id>0){
                 if($Bout->Enregistrer()){
                     $Bout->AddToJournal("PARAMETRE-BOUTIQUE","Mise à jour des paramètres pour la boutique ".$Bout->Nom) ;
                 }
             }
-
+            
+            
             if($ListeChampIntrouvable && count($ListeChampIntrouvable)>0){
                 $ListeChampParamBoutique=[];
                 $Bout = $nabysy->MaBoutique ;
@@ -300,8 +346,8 @@ switch ($action){
             }
             $Reponse->OK=1;
             $Reponse->Extra=json_encode($_REQUEST);
-            $Reponse->Contenue=$Param->ToObject();
-            echo json_encode($Reponse);
+            $Reponse->Contenue=$Param->ToArrayAssoc();
+            $Reponse->SendAsJSON();
             exit;
             break;
 
@@ -428,7 +474,7 @@ switch ($action){
         case "ETS_SAVE_ENTETE_A4": //
             $Rep=new xNotification() ;
             $Rep->OK=0 ;
-            if(N::getInstance()->User->NiveauAcces < 4){
+            if(xNAbySyGS::getInstance()->User->NiveauAcces < 4){
                 $Rep->TxErreur="Accès refusé. Niveau d'accès insuffisant pour effectuer cette opération." ;
                 $Rep->SendAsJSON();
                 exit ;
@@ -437,9 +483,14 @@ switch ($action){
             if (isset($PARAM['CHAMPFICHIER'])){
                 $ChampFichier=$PARAM['CHAMPFICHIER'] ;
             }
-            if(N::getInstance()->MaBoutique->Id>0){
-                $Rep=N::getInstance()->MaBoutique->SaveEnteteA4($ChampFichier) ;
-                N::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête A4:".json_encode($Rep) );
+            if(xNAbySyGS::getInstance()->MaBoutique->Id>0){
+                $Rep=xNAbySyGS::getInstance()->MaBoutique->SaveEnteteA4($ChampFichier) ;
+                xNAbySyGS::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête A4:".json_encode($Rep) );
+            }elseif(xNAbySyGS::$TECHNOWEB_ACTIVE && xNAbySyGS::$TechnoWEBClient?->Id>0){
+                xNAbySyGS::getInstance()->MaBoutique->Id=xNAbySyGS::$TechnoWEBClient->IDCLIENT;
+                $Rep=xNAbySyGS::getInstance()->MaBoutique->SaveEnteteA4($ChampFichier) ;
+                xNAbySyGS::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête A4:".json_encode($Rep) );
+                xNAbySyGS::getInstance()->MaBoutique->Id=0;
             }else{
                 $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête A4." ;
             }
@@ -448,7 +499,7 @@ switch ($action){
         case "ETS_SAVE_ENTETE_TICKET": //
             $Rep=new xNotification() ;
             $Rep->OK=0 ;
-            if(N::getInstance()->User->NiveauAcces < 4){
+            if(xNAbySyGS::getInstance()->User->NiveauAcces < 4){
                 $Rep->TxErreur="Accès refusé. Niveau d'accès insuffisant pour effectuer cette opération." ;
                 $Rep->SendAsJSON();
                 exit ;
@@ -457,9 +508,14 @@ switch ($action){
             if (isset($PARAM['CHAMPFICHIER'])){
                 $ChampFichier=$PARAM['CHAMPFICHIER'] ;
             }
-            if(N::getInstance()->MaBoutique->Id>0){
-                $Rep=N::getInstance()->MaBoutique->SaveLogoTicket($ChampFichier) ;
-                N::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête Logo Ticket:".json_encode($Rep) );
+            if(xNAbySyGS::getInstance()->MaBoutique->Id>0){
+                $Rep=xNAbySyGS::getInstance()->MaBoutique->SaveLogoTicket($ChampFichier) ;
+                xNAbySyGS::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête Logo Ticket:".json_encode($Rep) );
+            }elseif(xNAbySyGS::$TECHNOWEB_ACTIVE && xNAbySyGS::$TechnoWEBClient?->Id>0){
+                xNAbySyGS::getInstance()->MaBoutique->Id=xNAbySyGS::$TechnoWEBClient->IDCLIENT;
+                $Rep=xNAbySyGS::getInstance()->MaBoutique->SaveLogoTicket($ChampFichier) ;
+                xNAbySyGS::getInstance()::$Log->Write(__FILE__." L".__LINE__." Réponse Enregistrement entête Logo Ticket:".json_encode($Rep) );
+                 xNAbySyGS::getInstance()->MaBoutique->Id = 0;
             }else{
                 $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête Logo Ticket." ;
             }
