@@ -2,6 +2,7 @@
 
 require __DIR__.'/vendor/autoload.php';
 
+use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\xAuth;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
@@ -190,6 +191,45 @@ use NAbySy\xUser;
     }
 
     if ($Token){
+        if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+            if(!xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient)){
+                $Reponse=new xNotification();
+                $Reponse->OK=0;
+                $Reponse->Extra = $Token ;
+                $Reponse->TxErreur = "Abonnement expiré. Renouveller votre abonnement svp" ;
+                $Billing = xNAbySyGS::$TechnoWEBMgr::GetClientBillingInfos(xNAbySyGS::$TechnoWEBClient);
+                $BillOK = xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient);
+                $Reponse->Contenue['bill'] = [];
+                $Reponse->Contenue['bill']['active'] = $BillOK ? 1 : 0 ;
+                $Reponse->Contenue['bill']['infos'] = $Billing->ToObject() ;
+                $Reponse->Contenue['bill']['tarifs']['Montant'] =xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient) ;
+                $Reponse->Contenue['bill']['tarifs']['Type'] = "ABONNEMENT";
+                $Reponse->Contenue['bill']['tarifs']['Duree'] = xNAbySyGS::$TechnoWEBMgr::GetDureeAbonnement(xNAbySyGS::$TechnoWEBClient);
+                //On va ajouter la liste des méthodes de paiement et leurs Handles
+                $Reponse->Contenue['bill']['tarifs']['methodepaies']=[];
+                if(count(xNAbySyGS::$ListeModulePaiement)){
+                    foreach(self::$ListeModulePaiement as $Mod){
+                        try{
+                            if ($Mod instanceof IModulePaieManager){
+                                if ($Mod->HandleModuleName() != ""){
+                                    $Meth=[
+                                        "Nom" => $Mod->UIName() ,
+                                        "Description" => $Mod->Description(),
+                                        "HandleName" => $Mod->HandleModuleName(),
+                                        "Logo" => $Mod->LogoURL(),
+                                    ];
+                                   $Reponse->Contenue['bill']['tarifs']['methodepaies'][] = $Meth ;
+                                }
+                            }
+                        }
+                        catch (Exception $ex){
+
+                        }
+                    }
+                }
+                $Reponse->SendAsJSON();
+            }
+        }
         $Auth->EnteteAPI() ;
         $Notif=new xErreur;
         $Notif->OK=1;
