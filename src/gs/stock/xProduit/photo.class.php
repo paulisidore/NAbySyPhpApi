@@ -13,13 +13,13 @@ Class xPhoto{
     public $ExtentionAccepte ;
     public $maxSize = 400000;
 
-    public function __construct(xBoutique $Boutiq,$DossierPhoto= 'photos'){
+    public function __construct(xBoutique $Boutiq,$DossierPhoto= 'photos', ?bool $IgnoreCltTechnoWEBFolder=false){
         $this->Boutique=$Boutiq ;
         if (isset($Boutiq)){
             $this->Boutique=$Boutiq ;
         }
         $this->DossierPhoto=$DossierPhoto ;
-        if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+        if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient) && !$IgnoreCltTechnoWEBFolder){
             $this->DossierPhoto .="-".xNAbySyGS::$TechnoWEBClient->IDCLIENT;
         }
         if (!file_exists($this->DossierPhoto)) {

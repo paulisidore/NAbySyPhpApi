@@ -1,6 +1,8 @@
 <?php
 use NAbySy\GS\Boutique\xBoutique;
+use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Stock\xProduit;
+use NAbySy\Lib\ModuleExterne\TechnoWEB\xTechnoWEB;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xDB;
@@ -9,6 +11,7 @@ use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
 
 $nabysy = xNAbySyGS::getInstance() ;
+$Reponse = new xNotification();
 
 switch ($action){
         case 'ETS_GETINFOS': //Retourne les information personnelle de l'entreprise cliente
@@ -21,38 +24,6 @@ switch ($action){
                 $IdBout=(int)$PARAM['IDBOUTIQUE'] ;
             }
             //echo(xNAbySyGS::getInstance()->MaBoutique->Nom);exit;
-
-/*             if(isset($PARAM['IDTECHNOWEB'])){
-                if(trim($PARAM['IDTECHNOWEB']) !==''){
-                    if(isset(xNAbySyGS::$TechnoWEBMgr)){
-                        $ClientTechnoWeb=xNAbySyGS::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
-                        if($ClientTechnoWeb){
-                            //xNAbySyGS::getInstance()::$Log->AddToLog("NAbySyGS Client IdTechnoWeb ".$PARAM['IDTECHNOWEB']." DB Trouvé: " . json_encode($ClientTechnoWeb)) ;
-                            $IdBTrouve=null;
-                            if($ClientTechnoWeb->ServiceDB == xNAbySyGS::getInstance()->MaBoutique->DBName ){
-                                $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
-                                $IdBTrouve = $IdBout ;
-                                //xNAbySyGS::getInstance()::$Log->AddToLog("NAbySyGS DB MainTable: " . xNAbySyGS::getInstance()->MainDataBase ) ;
-                                //xNAbySyGS::getInstance()::$Log->AddToLog("Maint DB Table Boutique: " . xNAbySyGS::getInstance()->MaBoutique->FullTableName() ) ;
-                                //xNAbySyGS::getInstance()::$Log->AddToLog("Boutique déjà en cour IdBout = ".$IdBout." : DB=>".xNAbySyGS::getInstance()->MaBoutique->DBName);
-                            }else{
-                                $IdBout = $ClientTechnoWeb->Id ;
-                                //$Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
-                                //echo "DB Recherché = ".$Critere . "</p>";
-                                foreach (xNAbySyGS::getInstance()::$ListeBoutique as $BoutX) {
-                                    //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
-                                    //xNAbySyGS::getInstance()::$Log->AddToLog("Recherche ... ".$BoutX->Nom." : DB=>".$BoutX->DBName);
-                                    if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
-                                        $IdBout = $BoutX->Id;
-                                        $IdBTrouve = $IdBout ;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } */
             $Bout=xNAbySyGS::getInstance()->MaBoutique ; // new xBoutique($nabysy,$IdBout,xNAbySyGS::GLOBAL_AUTO_CREATE_DBTABLE);
             if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
                 $Bout->SupportArticlePhotos = (int)xNAbySyGS::$TechnoWEBClient->SupportArticlePhotos ;
@@ -520,6 +491,145 @@ switch ($action){
                 $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête Logo Ticket." ;
             }
             $Rep->SendAsJSON();
+
+        case "ETS_PAIE_TECHNOWEB": //Renouvelle l'abonnement TechnoWEB
+            $Reponse->OK=0;
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE || !isset(xNAbySyGS::$TechnoWEBMgr)){
+                $Err->TxErreur="Absence du module TechnoWEB";
+                $Err->SendAsJSON();
+            }
+
+            $oBj = xNAbySyGS::$LastJsonObjectInBody ;
+            if(!isset($oBj)){
+                $Err->TxErreur = "Absence du corps de message.";
+                $Err->SendAsJSON();
+            }
+            $IdClient = $oBj->idClient ?? null;
+            if(!isset($IdClient)){
+                $IdClient = $oBj->IdClient ?? null;
+            }
+            
+            if($Clt->Id==0){
+                $Err->TxErreur="Client introuvable ou non définit.";
+                $Err->SendAsJSON();
+            }
+
+            if(!isset(xNAbySyGS::$TechnoWEBClient)){
+                $Err->TxErreur="IdTechnoWEB ou CLient TechnoWEB non reconnue.";
+                $Err->SendAsJSON();
+            }
+            if(xNAbySyGS::$TechnoWEBClient->Id !== $Clt->Id){
+                $Err->TxErreur="IdTechnoWEB et IdCLient TechnoWEB ne correspondent pas.";
+                $Err->SendAsJSON();
+            }
+
+            $HandleModName = $oBj->methode?->handleName ?? null ;
+            $Mode = xNAbySyGS::getInstance()->GetModulePaie($HandleModName);
+            if(!isset($Mode)){
+                $Err->TxErreur="Méthode de paiement introuvable.";
+                $Err->SendAsJSON();
+            }
+
+            $MethodeP = $Mode;
+            
+            //On prépare le ChekOut
+            $Fact = new xVente(xNAbySyGS::getInstance(),null,true,null,xNAbySyGS::$TechnoWEBClient->DataBase);
+            $Fact->IdClient = xNAbySyGS::$TechnoWEBClient->Id;
+            $Fact->IdTechnoWEB = xNAbySyGS::$TechnoWEBClient->TechnoWEB_ID ;
+            $Fact->DateFacture = date('Y-m-d H:i:s');
+            $Fact->HeureFacture = date('H:i:s');
+            $Fact->Montant = xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient);
+            if(xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($Fact->Montant) != 0){
+                //On prends en charge la TVA
+                $Fact->Montant = xNAbySyGS::$TechnoWEBMgr::GetMontantTTC($Fact->Montant);
+                $Fact->TotalTVA = xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($Fact->Montant);
+            }else{
+                $Fact->TotalTVA=0;
+            }
+            $Fact->DureeAbonnement = xNAbySyGS::$TechnoWEBMgr::GetDureeAbonnement(xNAbySyGS::$TechnoWEBClient);
+            $Fact->PAYER = 'NON';
+            
+            $Fact->ModePaiement = $Mode->Nom();
+            $Fact->ModeReglement = $Mode->UIName();
+            $Fact->Enregistrer();
+
+            $InfosCaisse = [];
+            //Si abonnement pas encore expiré, on part ç partir de la fin de l'abonnement actuel si non à partir du momet ou ça sera payé
+            $RefPanier =$Fact->Id."-UNI-".date('dmYHis');
+            $InfosCaisse['REFFACTURE']=$Fact->Id;
+            $InfosCaisse['ISGROUPE']=0;
+            $InfosCaisse['IDCLIENT']=$Fact->IdClient;
+            $InfosCaisse['MONTANT']=$Fact->Montant ;
+            $InfosCaisse['CAISSE']=$Fact->Main->MODULE->MCP_CLIENT ;
+            $InfosCaisse['CAISSIER']="SYSTEME";
+
+            if (isset($PARAM['IDCAISSE'])){
+                $InfosCaisse['IDCAISSE']=$PARAM['IDCAISSE'];
+            }
+            if (isset($PARAM['IDCAISSIER'])){
+                $InfosCaisse['IDCAISSIER']=$PARAM['IDCAISSIER'];
+            }
+            $InfosCaisse['LISTEFACTURE'] = $Fact->Id ;
+
+            $RefPanier = '';
+            $TotalASolder = $Fact->Montant ;
+            $Reponse = $Mode->GetCheckOut($TotalASolder, $InfosCaisse);
+            if(isset($_REQUEST['TRACKERID'])){
+                $Reponse->Source = $_REQUEST['TRACKERID'];
+            }
+            if($Reponse->OK>0){
+                $Reponse->Contenue = $Reponse->Autres;
+                $Reponse->Autres = null;
+            }
+            $Reponse->SendAsJSON() ;
+            break;
+
+        case "PAIEMENT_REUSSIT": //EN cas de reussite d'un paiement
+            $PARAM['SHOW_HTML']=1;
+            include "./paiementwave_ok.php";
+            exit;
+        
+        case "PAIEMENT_ERREUR": //En cas d'erreur de paiement
+            $PARAM['SHOW_HTML']=1;
+            include "./paiementwave_err.php";
+            exit;
+
+        case "TECHNOWEB_PRINT_PAIEMENTA4": //Imprime le reçus de paiement TechnoWEB
+            $IdFacture=null;
+            $IdDemande = $PARAM['IdDemande'] ?? null;
+            $HandleModName = $PARAM["HandleName"] ?? null ;
+            $Mode = xNAbySyGS::getInstance()->GetModulePaie($HandleModName);
+            if(!isset($Mode)){
+                $Err->TxErreur="Méthode de paiement introuvable.";
+                $Err->SendAsJSON();
+            }
+            $Demande = $Mode->GetCheckOutByID( $IdDemande);
+            if( !isset($Demande) || $Demande->Id==0){
+                $Err->TxErreur="Module de Paiement introuvable !";
+                $Err->SendAsJSON();
+            }
+            $ListeIdFacture=[];
+            if((int)$Demande->IsGroupe > 0){
+                $ListeIdFacture = explode(",", $Demande->LISTEFACTURE);
+            }else {
+                $ListeIdFacture[]=$Demande->REFFACTURE ;
+            }
+            
+            if (count($ListeIdFacture) == 0){
+                $Err->TxErreur="Aucune facture ratachée au paiement.";
+                $Err->SendAsJSON();
+            }
+
+            $Reponse->Extra ="Préparation du document PDF avec eventuellement plusieur page/facture soldée";
+            $Reponse->OK=1;
+            $Reponse->SendAsJSON();
+            /**
+             * On va creer une function comme celui des factures pour générer le doc Pdf en regroupant eventuellement
+             * Les différent moratoir/machine
+             */
+
+            exit;
+
 
 		default:
 			//Retourne();	

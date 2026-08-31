@@ -30,12 +30,12 @@ Class xPhoto{
     public $ExtentionAccepte ;
     public $maxSize ;    //Voir dans le Constructor
 
-    public function __construct(xNAbySyGS $NAbySY,$DossierPhoto= 'photos'){
+    public function __construct(xNAbySyGS $NAbySY,$DossierPhoto= 'photos', ?bool $IgnoreCltTechnoWEBFolder=false){
         self::$Main=$NAbySY ;
         $this->maxSize=50*MB ;
 
         $this->DossierPhoto=$DossierPhoto ;
-         if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
+        if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient) && !$IgnoreCltTechnoWEBFolder){
             $this->DossierPhoto .="-".xNAbySyGS::$TechnoWEBClient->IDCLIENT;
         }
         if (!file_exists($this->DossierPhoto)) {

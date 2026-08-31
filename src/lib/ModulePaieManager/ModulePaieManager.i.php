@@ -50,6 +50,13 @@ use NAbySy\xNotification;
         public function GetEtatCheckOut(ICheckOutParam $CheckOutInfo):xNotification ;
 
         /**
+         * Retourne une demande de paiement (CheckOut) selon son Id
+         * @param int $IdDemande 
+         * @return null|ICheckOutParam 
+         */
+        public function GetCheckOutByID(int $IdDemande): ?ICheckOutParam ;
+
+        /**
          * Valide ou non de la vente par le odule de paiement
          * @param array $MethodePaie : Le tableau contenant les Informations de la validation du paiemnt avec le mode choisit
          * @param xCart $Panier : Infos du Panier en Cour de Validation

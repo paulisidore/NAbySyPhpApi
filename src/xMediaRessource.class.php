@@ -11,18 +11,22 @@ use Throwable;
 class xMediaRessource {
     public xNAbySyGS $Main ;
     public string $DossierMedia ='media' ;
+    public bool $IgnoreFolderByTechnoWEB = false;
 
     /**
      * GEstionnaire de média.
      * @param xNAbySyGS $nabysy 
      * @param string $LocalDir | dossier de stockage des média. Il sera créee automatiquement s'il n'existe pas
      * dans le dossier root de l'application hôte. LocalDir est donc relatif au dossier root de l'API
+     * @param bool $IgnoreCltTechnoWEBFolder: Si fixé à VRAI le dossier media sera commun à tous les clients TechnoWEB
      * @return void 
      * @throws Throwable 
      */
-    public function __construct(xNAbySyGS $nabysy, string $LocalDir="media"){
+    public function __construct(xNAbySyGS $nabysy, string $LocalDir="media" , ?bool $IgnoreCltTechnoWEBFolder=false){
         $this->Main = $nabysy;
         $this->DossierMedia = $LocalDir;
+        $this->IgnoreFolderByTechnoWEB = $IgnoreCltTechnoWEBFolder;
+
         $vDirectorie = $this->GetFullFolderPath();
         if(!is_dir($vDirectorie)){
             try {
@@ -39,7 +43,11 @@ class xMediaRessource {
      * @return string 
      */
     public function GetFullFolderPath ():string{
-        return $this->Main->CurrentFolder(true).$this->DossierMedia;
+        $dossier = $this->Main->CurrentFolder(true).$this->DossierMedia;
+        if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient) && !$this->IgnoreFolderByTechnoWEB){
+            $dossier = $this->Main->CurrentFolder(true).$this->DossierMedia."-".xNAbySyGS::$TechnoWEBClient->IDCLIENT;
+        }
+        return $dossier;
     }
 
     /**
@@ -113,7 +121,7 @@ class xMediaRessource {
 	 */
 	public function SaveMediaFromRequest($ChampFichier="fichier",$NomFichier="monfichierMedia.png"){
 		$DossierPhoto=$this->GetFullFolderPath();
-		$Photo=new xPhoto($this->Main,$DossierPhoto);
+		$Photo=new xPhoto($this->Main,$DossierPhoto,$this->IgnoreFolderByTechnoWEB);
         $Photo->AddExtentionFromFileName($NomFichier);
 		$Repo=$Photo->SaveToFile($ChampFichier,$NomFichier);
 		return $Repo ;
@@ -128,7 +136,7 @@ class xMediaRessource {
 	 */
 	public function GetMediaURL(string $FileName, $SendToClient=false,string $baseUrl=null){
         $DossierPhoto=$this->GetFullFolderPath();
-		$Photo=new xPhoto($this->Main, $DossierPhoto);
+		$Photo=new xPhoto($this->Main, $DossierPhoto,$this->IgnoreFolderByTechnoWEB);
 		$DossierPhotos=$Photo->GetDossierPhoto() ;
         $vFileName=$FileName ;
 		$FileName=$DossierPhotos.$FileName ;

@@ -26,6 +26,13 @@ interface ITechnoWEB {
     public static function GetClientTechnoWeb(string $IdTechnoWeb):xORMHelper|null ;
 
     /**
+     * Retourne un client TechnoWEB seln son ID
+     * @param int $IdClient 
+     * @return xORMHelper|null 
+     */
+    public static function GetClientTechnoWebByID(int $IdClient):?xORMHelper ;
+
+    /**
      * Crée un Nouveau Client TechnoWEB
      * @param string $RaisonSociale
      * @param string $Pays
@@ -68,6 +75,33 @@ interface ITechnoWEB {
      * @return int 
      */
     public static function GetDureeAbonnement(xORMHelper $CltTechnoWEB):int ;
+
+    /**
+     * Indique si OUI/NON la facturation du service est soumise à la TVA
+     * @return bool 
+     */
+    public static function PriseEnChargeTVA():bool ;
+
+    /**
+     * Retourne le montant de la TVA si Applicable
+     * @param float $Montant 
+     * @return float 
+     */
+    public static function GetMontantTVA(float $Montant):float;
+
+    /**
+     * Retourne le montant TTC de l'abonnement
+     * @param float $Montant 
+     * @return float 
+     */
+    public static function GetMontantTTC(float $Montant):float;
+
+    /**
+     * Retourne le montant HT de l'abonnement
+     * @param float $Montant 
+     * @return float 
+     */
+    public static function GetMontantHT(float $Montant):float ;
 
 }
 ?>
