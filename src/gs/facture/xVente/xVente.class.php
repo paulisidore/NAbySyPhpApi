@@ -45,7 +45,7 @@ Class xVente extends xORMHelper
 		//$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,'detailfacture',$this->MaBoutique);
 		if ($this->Id>0){
 			$this->Client=new xClient($this->Main,$this->IdClient);
-			$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,null,null,null,$this->Id);
+			$this->DetailVente=new xDetailVente($this->Main,null,$AutoCreateTable,"detailfacture",$Database,null,$this->Id);
 		}
 		
 	}
@@ -61,7 +61,7 @@ Class xVente extends xORMHelper
 			$Id = $this->Id;
 		}
 		//Permet de lire une vente par son Id ou IdDetail
-		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detailfacture',null,$this->MaBoutique,$Id);
+		$LDetailVente=new xDetailVente($this->Main,$IdDetail,$this->Main::GLOBAL_AUTO_CREATE_DBTABLE,'detailfacture',$this->Database,$this->MaBoutique,$Id);
 		return $LDetailVente->ListeProduits;
 	}
 

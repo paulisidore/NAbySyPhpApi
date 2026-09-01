@@ -133,6 +133,7 @@ use NAbySy\xUser;
         } if (isset($_REQUEST['PASSWORD'])){
             $Password=$_REQUEST['PASSWORD'] ;
         }
+        
     }
 
     //var_dump( __FILE__." On verifie que User est bien ici dans auth.php: ".$nabysy->User->Login." </br>") ;
@@ -191,18 +192,39 @@ use NAbySy\xUser;
     }
 
     if ($Token){
+        $IgnoreBillingCheck=false ;
         if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
-            if(!xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient)){
+            //On va ignorer si l'utilisateur est en cour de paiement d'un abonnement TechnoWEB
+            if(isset($_REQUEST['Action']) && $_REQUEST['Action'] == 'ETS_PAIE_TECHNOWEB'){
+                $IgnoreBillingCheck=true;
+            }
+            if(!$IgnoreBillingCheck && !xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient)){
                 $Reponse=new xNotification();
                 $Reponse->OK=0;
                 $Reponse->Extra = $Token ;
                 $Reponse->TxErreur = "Abonnement expiré. Renouveller votre abonnement svp" ;
                 $Billing = xNAbySyGS::$TechnoWEBMgr::GetClientBillingInfos(xNAbySyGS::$TechnoWEBClient);
                 $BillOK = xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient);
+
+                $MtAbon=xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient);
+                $Montant = $MtAbon;
+                $TotalTVA = xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($MtAbon);
+                if($TotalTVA != 0){
+                    //On prends en charge la TVA
+                    $TauxTVA = xNAbySyGS::$TechnoWEBMgr::GetTauxTVA(xNAbySyGS::$TechnoWEBClient);
+                    $Montant += $TotalTVA;
+                }else{
+                    $TotalTVA=0;
+                    $TauxTVA=0;
+                }
+
                 $Reponse->Contenue['bill'] = [];
                 $Reponse->Contenue['bill']['active'] = $BillOK ? 1 : 0 ;
                 $Reponse->Contenue['bill']['infos'] = $Billing->ToObject() ;
-                $Reponse->Contenue['bill']['tarifs']['Montant'] =xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient) ;
+                $Reponse->Contenue['bill']['tarifs']['MontantHT'] = $MtAbon ;
+                $Reponse->Contenue['bill']['tarifs']['Montant'] = $Montant ;
+                $Reponse->Contenue['bill']['tarifs']['TauxTVA'] = $TauxTVA ;
+                $Reponse->Contenue['bill']['tarifs']['TotalTVA'] = $TotalTVA ;
                 $Reponse->Contenue['bill']['tarifs']['Type'] = "ABONNEMENT";
                 $Reponse->Contenue['bill']['tarifs']['Duree'] = xNAbySyGS::$TechnoWEBMgr::GetDureeAbonnement(xNAbySyGS::$TechnoWEBClient);
                 //On va ajouter la liste des méthodes de paiement et leurs Handles

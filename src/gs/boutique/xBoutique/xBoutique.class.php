@@ -445,69 +445,72 @@ Class xBoutique extends xORMHelper  {
 		$PosX=60;
 		$PosY=42+6;
 		$Col=array(0,0,0);
+		
 		for ($i=0;$i<$NB_LIGNE;$i++){
-			$Font="Arial" ;
-			$Italic ="" ;
-			$Tail=12 ;
-			$Col=array(0,0,0);
-			$Text=$this->IMP_LIGNE[$i] ;
-			//echo "N°".$i."=".$Text."</br>" ;
-			if ($i==0){
-				//Entete K.S.S.V
-				$Italic="I" ;
-				$Tail=24 ;
-				$Col=array(0,0,128);
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text(87,'14',$this->Main->utf8ize($Text));
-			}
-			
-			if ($i==1){
-				//Entete K.S.S.V
-				$Italic="I" ;
-				$Tail=13 ;
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text(71,'19',$this->Main->utf8ize($Text));
-			}
+			if(is_array($this->IMP_LIGNE) && $this->IMP_LIGNE[$i] !=""){
+				$Font="Arial" ;
+				$Italic ="" ;
+				$Tail=12 ;
+				$Col=array(0,0,0);
+				$Text=$this->IMP_LIGNE[$i] ;
+				//echo "N°".$i."=".$Text."</br>" ;
+				if ($i==0){
+					//Entete K.S.S.V
+					$Italic="I" ;
+					$Tail=24 ;
+					$Col=array(0,0,128);
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text(87,'14',$this->Main->utf8ize($Text));
+				}
+				
+				if ($i==1){
+					//Entete K.S.S.V
+					$Italic="I" ;
+					$Tail=13 ;
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text(71,'19',$this->Main->utf8ize($Text));
+				}
 
-			if ($i==2){
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text(79,'24',$this->Main->utf8ize($Text));
-			}
+				if ($i==2){
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text(79,'24',$this->Main->utf8ize($Text));
+				}
 
-			if ($i==3){
-				//Entete K.S.S.V
-				$Italic="I" ;
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text('68','30',$this->Main->utf8ize($Text));
+				if ($i==3){
+					//Entete K.S.S.V
+					$Italic="I" ;
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text('68','30',$this->Main->utf8ize($Text));
+				}
+				if ($i==4){
+					//Entete K.S.S.V
+					$Italic="I" ;
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text('45','36',$this->Main->utf8ize($Text));
+				}	
+				if ($i==5){
+					//Entete K.S.S.V
+					$Italic="I" ;
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text('60','42',$this->Main->utf8ize($Text));
+				}	
+				$PosX=60;
+				$PosY=42+6;
+				if ($i>=6){
+					//$Italic="I" ;
+					$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
+					$pdf->SetFont($Font,$Italic,$Tail);
+					$pdf->Text($PosX,$PosY,$this->Main->utf8ize($Text));
+				}
 			}
-			if ($i==4){
-				//Entete K.S.S.V
-				$Italic="I" ;
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text('45','36',$this->Main->utf8ize($Text));
-			}	
-			if ($i==5){
-				//Entete K.S.S.V
-				$Italic="I" ;
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text('60','42',$this->Main->utf8ize($Text));
-			}	
-			$PosX=60;
-			$PosY=42+6;
-			if ($i>=6){
-				//$Italic="I" ;
-				$pdf->SetTextColor($Col[0], $Col[1],$Col[2]);
-				$pdf->SetFont($Font,$Italic,$Tail);
-				$pdf->Text($PosX,$PosY,$this->Main->utf8ize($Text));
-			}
-			
 		}
+
 		$PosY+=4 ;
 		$pdf->SetTextColor(0, 0,0);
 		$pdf->SetDrawColor(0,0,128);

@@ -78,9 +78,17 @@ interface ITechnoWEB {
 
     /**
      * Indique si OUI/NON la facturation du service est soumise à la TVA
+     * @param xORMHelper|null $CltTechnoWEB
      * @return bool 
      */
-    public static function PriseEnChargeTVA():bool ;
+    public static function PriseEnChargeTVA(?xORMHelper $CltTechnoWEB = null):bool ;
+
+    /**
+     * Retourne le Taux de la TVA appliquée selon le Client TechnoWEB
+     * @param xORMHelper $CltTechnoWEB 
+     * @return float 
+     */
+    public static function GetTauxTVA(xORMHelper $CltTechnoWEB):float ;
 
     /**
      * Retourne le montant de la TVA si Applicable
@@ -101,7 +109,21 @@ interface ITechnoWEB {
      * @param float $Montant 
      * @return float 
      */
-    public static function GetMontantHT(float $Montant):float ;
+    public static function GetMontantHT(float $Montant):float;
+
+    /**
+     * Retourne la Table de Tarification concernant un client TechnoWEB
+     * @param xORMHelper $CltTechnoWEB 
+     * @return null|xORMHelper 
+     */
+    public static function GetTarification(xORMHelper $CltTechnoWEB):?xORMHelper;
+
+    /**
+     * Retourne la liste des Factures d'un Client
+     * @param xORMHelper $CltTechnoWEB 
+     * @return xORMHelper[] 
+     */
+    public static function GetListeFacture(xORMHelper $CltTechnoWEB):array;
 
 }
 ?>

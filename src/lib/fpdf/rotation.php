@@ -69,19 +69,31 @@ var $extgstates;
 
     function _putresourcedict()
     {
+        // On contourne la sécurité de FPDF sous PHP 8 en forçant l'état d'écriture (2)
+        $currentState = $this->state;
+        $this->state = 2;
+
         parent::_putresourcedict();
         $this->_out('/ExtGState <<');
-		if ($this->extgstates){
-			foreach($this->extgstates as $k=>$extgstate)
-				$this->_out('/GS'.$k.' '.$extgstate['n'].' 0 R');
-			$this->_out('>>');
-		}
+        if ($this->extgstates){
+            foreach($this->extgstates as $k=>$extgstate)
+                $this->_out('/GS'.$k.' '.$extgstate['n'].' 0 R');
+        }
+        $this->_out('>>');
+
+        // On remet l'état d'origine pour que FPDF termine proprement
+        $this->state = $currentState;
     }
 
     function _putresources()
     {
+        $currentState = $this->state;
+        $this->state = 2;
+
         $this->_putextgstates();
         parent::_putresources();
+
+        $this->state = $currentState;
     }
 
 

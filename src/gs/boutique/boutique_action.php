@@ -1,9 +1,11 @@
 <?php
 use NAbySy\GS\Boutique\xBoutique;
+use NAbySy\GS\Facture\Impression\xFactureA4;
 use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\Lib\ModuleExterne\TechnoWEB\xTechnoWEB;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
+use NAbySy\Lib\ModulePaie\xNAbySyWaveNetwork;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xDB;
 use NAbySy\xErreur;
@@ -105,10 +107,26 @@ switch ($action){
             if(xNAbySyGS::$TECHNOWEB_ACTIVE && isset(xNAbySyGS::$TechnoWEBClient)){
                 $Billing = xNAbySyGS::$TechnoWEBMgr::GetClientBillingInfos(xNAbySyGS::$TechnoWEBClient);
                 $BillOK = xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient);
+
+                $MtAbon=xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient);
+                $Montant = $MtAbon;
+                $TotalTVA = xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($MtAbon);
+                if($TotalTVA != 0){
+                    //On prends en charge la TVA
+                    $TauxTVA = xNAbySyGS::$TechnoWEBMgr::GetTauxTVA(xNAbySyGS::$TechnoWEBClient);
+                    $Montant += $TotalTVA;
+                }else{
+                    $TotalTVA=0;
+                    $TauxTVA=0;
+                }
+
                 $Reponse->Contenue['bill'] = [];
                 $Reponse->Contenue['bill']['active'] = $BillOK ? 1 : 0 ;
                 $Reponse->Contenue['bill']['infos'] = $Billing->ToObject() ;
-                $Reponse->Contenue['bill']['tarifs']['Montant'] =xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient) ;
+                $Reponse->Contenue['bill']['tarifs']['MontantHT'] = $MtAbon ;
+                $Reponse->Contenue['bill']['tarifs']['Montant'] = $Montant ;
+                $Reponse->Contenue['bill']['tarifs']['TauxTVA'] = $TauxTVA ;
+                $Reponse->Contenue['bill']['tarifs']['TotalTVA'] = $TotalTVA ;
                 $Reponse->Contenue['bill']['tarifs']['Type'] = "ABONNEMENT";
                 $Reponse->Contenue['bill']['tarifs']['Duree'] = xNAbySyGS::$TechnoWEBMgr::GetDureeAbonnement(xNAbySyGS::$TechnoWEBClient);
                 //On va ajouter la liste des méthodes de paiement et leurs Handles
@@ -508,7 +526,9 @@ switch ($action){
             if(!isset($IdClient)){
                 $IdClient = $oBj->IdClient ?? null;
             }
-            
+
+            $Clt = xNAbySyGS::$TechnoWEBMgr::GetClientTechnoWebByID($IdClient);
+
             if($Clt->Id==0){
                 $Err->TxErreur="Client introuvable ou non définit.";
                 $Err->SendAsJSON();
@@ -533,21 +553,27 @@ switch ($action){
             $MethodeP = $Mode;
             
             //On prépare le ChekOut
-            $Fact = new xVente(xNAbySyGS::getInstance(),null,true,null,xNAbySyGS::$TechnoWEBClient->DataBase);
+            $Fact = new xVente(xNAbySyGS::getInstance(),null,true,"facture",xNAbySyGS::$TechnoWEBClient->DataBase);
             $Fact->IdClient = xNAbySyGS::$TechnoWEBClient->Id;
             $Fact->IdTechnoWEB = xNAbySyGS::$TechnoWEBClient->TechnoWEB_ID ;
             $Fact->DateFacture = date('Y-m-d H:i:s');
             $Fact->HeureFacture = date('H:i:s');
-            $Fact->Montant = xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient);
-            if(xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($Fact->Montant) != 0){
+            $MtAbon=xNAbySyGS::$TechnoWEBMgr::GetMontantAbonnement(xNAbySyGS::$TechnoWEBClient);
+            $Fact->Montant = xNAbySyGS::$TechnoWEBMgr::GetMontantTTC($MtAbon);
+
+            if(xNAbySyGS::$TechnoWEBMgr::PriseEnChargeTVA(xNAbySyGS::$TechnoWEBClient)){
                 //On prends en charge la TVA
-                $Fact->Montant = xNAbySyGS::$TechnoWEBMgr::GetMontantTTC($Fact->Montant);
-                $Fact->TotalTVA = xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($Fact->Montant);
+                $Fact->TotalTVA = xNAbySyGS::$TechnoWEBMgr::GetMontantTVA($MtAbon);
+                $Fact->TauxTVA = xNAbySyGS::$TechnoWEBMgr::GetTauxTVA(xNAbySyGS::$TechnoWEBClient);
             }else{
                 $Fact->TotalTVA=0;
+                $Fact->TauxTVA=0;
             }
+            $Fact->TotalFacture = $Fact->Montant;
+            //echo __FILE__.":".__LINE__." Montant Facture = ".$Fact->Montant." / TotalTVA = ".$Fact->TotalTVA." / TauxTVA = ".$Fact->TauxTVA." / TotalFacture = ".$Fact->TotalFacture."\n";exit;
+
             $Fact->DureeAbonnement = xNAbySyGS::$TechnoWEBMgr::GetDureeAbonnement(xNAbySyGS::$TechnoWEBClient);
-            $Fact->PAYER = 'NON';
+            $Fact->PAYE = 'NON';
             
             $Fact->ModePaiement = $Mode->Nom();
             $Fact->ModeReglement = $Mode->UIName();
@@ -556,10 +582,11 @@ switch ($action){
             $InfosCaisse = [];
             //Si abonnement pas encore expiré, on part ç partir de la fin de l'abonnement actuel si non à partir du momet ou ça sera payé
             $RefPanier =$Fact->Id."-UNI-".date('dmYHis');
+            $InfosCaisse['IDFACTURE']=$Fact->Id;
             $InfosCaisse['REFFACTURE']=$Fact->Id;
             $InfosCaisse['ISGROUPE']=0;
             $InfosCaisse['IDCLIENT']=$Fact->IdClient;
-            $InfosCaisse['MONTANT']=$Fact->Montant ;
+            $InfosCaisse['MONTANT']=round($Fact->Montant, 0); //Pour permettre le paiement en CFA sans les centimes
             $InfosCaisse['CAISSE']=$Fact->Main->MODULE->MCP_CLIENT ;
             $InfosCaisse['CAISSIER']="SYSTEME";
 
@@ -572,7 +599,7 @@ switch ($action){
             $InfosCaisse['LISTEFACTURE'] = $Fact->Id ;
 
             $RefPanier = '';
-            $TotalASolder = $Fact->Montant ;
+            $TotalASolder = (int)$InfosCaisse['MONTANT'] ;
             $Reponse = $Mode->GetCheckOut($TotalASolder, $InfosCaisse);
             if(isset($_REQUEST['TRACKERID'])){
                 $Reponse->Source = $_REQUEST['TRACKERID'];
@@ -582,6 +609,30 @@ switch ($action){
                 $Reponse->Autres = null;
             }
             $Reponse->SendAsJSON() ;
+            break;
+
+        case "TECHNOWEB_GET_LISTE_FACTURE": //Retourne la liste des factures TechnoWEB
+            $IdClient = $PARAM['IdClient'] ?? $PARAM['IDCLIENT'] ?? $PARAM['idclient'] ??  null;
+            if(!isset($IdClient)){
+                $Err->TxErreur="IdClient introuvable.";
+                $Err->SendAsJSON();
+            }
+            if(!xNAbySyGS::$TECHNOWEB_ACTIVE || !isset(xNAbySyGS::$TechnoWEBMgr)){
+                $Err->TxErreur="Absence du module TechnoWEB";
+                $Err->SendAsJSON();
+            }
+
+            $Clt = xNAbySyGS::$TechnoWEBMgr::GetClientTechnoWebByID($IdClient);
+            if($Clt->Id==0){
+                $Err->TxErreur="Client introuvable ou non définit.";
+                $Err->SendAsJSON();
+            }
+
+            $ListeFacture = xNAbySyGS::$TechnoWEBMgr::GetListeFacture($Clt);
+            $Reponse = new xNotification();
+            $Reponse->OK=1;
+            $Reponse->Contenue=$ListeFacture;
+            $Reponse->SendAsJSON();
             break;
 
         case "PAIEMENT_REUSSIT": //EN cas de reussite d'un paiement
@@ -603,9 +654,10 @@ switch ($action){
                 $Err->TxErreur="Méthode de paiement introuvable.";
                 $Err->SendAsJSON();
             }
+            
             $Demande = $Mode->GetCheckOutByID( $IdDemande);
             if( !isset($Demande) || $Demande->Id==0){
-                $Err->TxErreur="Module de Paiement introuvable !";
+                $Err->TxErreur="Demande de Paiement No.".(int)$IdDemande." introuvable !";
                 $Err->SendAsJSON();
             }
             $ListeIdFacture=[];
@@ -619,8 +671,19 @@ switch ($action){
                 $Err->TxErreur="Aucune facture ratachée au paiement.";
                 $Err->SendAsJSON();
             }
+            $IdFacture = (int)$Demande->REFFACTURE ;
+            $FactureA4=new xFactureA4 (xNAbySyGS::getInstance(),$IdFacture);
+            if ($FactureA4->IdFacture>0){
+                $FactureA4->ImprimeFacture(null,"clientmaj");
+                exit;
+            }else{
+                $Err=new xErreur;
+                $Err->TxErreur="Facture introuvable !!!";
+                $Err->OK=0;
+                echo json_encode($Err);
+            }
 
-            $Reponse->Extra ="Préparation du document PDF avec eventuellement plusieur page/facture soldée";
+            $Reponse->Extra ="Préparation du document PDF";
             $Reponse->OK=1;
             $Reponse->SendAsJSON();
             /**

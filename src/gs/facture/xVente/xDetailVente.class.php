@@ -70,17 +70,25 @@ Class xDetailVente extends xORMHelper{
 		foreach ($this->ListeProduits as $Article){	
 			//var_dump($Article->TypeVente.' Qte='.$Article->Qte.' NbUnite='.$Article->Pdt->nbunite) ;
 			//echo "</br>" ;
-            //var_dump($Article);
-			if ($Article['VenteDetaillee'] == 'OUI'){
-                $Pdt=new xProduit($this->Main,$Article['IdProduit']);
+            
+            $IdProduit = $Article['IdProduit'] ?? $Article['IDPRODUIT'] ?? $Article['IdPdt'] ?? null ;
+            $VenteDetaillee = $Article['VenteDetaillee'] ?? $Article['VENTEDETAILLEE'] ?? 'NON';
+            $Qte = $Article['Qte'] ?? $Article['QTE'] ?? 1 ;
+            $Qte = (float)$Qte;
+            $IsService = $Article['IsService'] ?? $Article['ISSERVICE'] ?? 0;
+            if($IsService){
+                continue ;
+            }
+			if ($VenteDetaillee == 'OUI'){
+                $Pdt=new xProduit($this->Main,$IdProduit);
 				$NbUnite=(int)$Pdt->STOCKINITDETAIL ;
 				if ($NbUnite<=0){
 					$NbUnite=1;
 				}
-				$QteG=(int)$Article['Qte'] / $NbUnite ;				
+				$QteG=$Qte / $NbUnite ;				
 				$Nb +=$QteG ;
 			}else{
-                $Nb +=$Article['Qte'] ;
+                $Nb +=$Qte ;
             }		
 		}
 		return $Nb ;
@@ -89,17 +97,27 @@ Class xDetailVente extends xORMHelper{
     /** Retourne le nombre de pièce dans la facture */
 	public function NbDetail(){
 		$Nb=0 ;
-		foreach ($this->ListeProduits as $Article){			
-			if ($Article['VenteDetaillee'] == 'OUI'){
-                $Pdt=new xProduit($this->Main,$Article['IdProduit']);
+		foreach ($this->ListeProduits as $Article){
+            $IdProduit = $Article['IdProduit'] ?? $Article['IDPRODUIT'] ?? $Article['IdPdt'] ?? null ;
+            $VenteDetaillee = $Article['VenteDetaillee'] ?? $Article['VENTEDETAILLEE'] ?? 'NON';
+            $Qte = $Article['Qte'] ?? $Article['QTE'] ?? 1 ;
+            $Qte = (float)$Qte;
+
+            $IsService = $Article['IsService'] ?? $Article['ISSERVICE'] ?? 0;
+            if($IsService){
+                continue ;
+            }
+
+			if ($VenteDetaillee== 'OUI'){
+                $Pdt=new xProduit($this->Main,$IdProduit);
 				$NbUnite=(int)$Pdt->STOCKINITDETAIL ;
 				if ($NbUnite<=0){
 					$NbUnite=1;
 				}
-                if ($Article['Qte']> $NbUnite){
-                    $QteD=(int)$Article['Qte'] % $NbUnite ;	
+                if ($Qte> $NbUnite){
+                    $QteD=(int)$Qte % $NbUnite ;	
                 }else{
-                    $QteD=(int)$Article['Qte'] ;
+                    $QteD=(int)$Qte ;
                 }							
 				$Nb +=$QteD ;
 			}		
