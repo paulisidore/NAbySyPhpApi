@@ -11,6 +11,7 @@
  */
 
 use NAbySy\Router\Url\xNAbySyUrlRouterHelper;
+use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
 
 /**
@@ -87,7 +88,7 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
             $Rep->OK = 0;
             
             //load body content
-            $donnees = json_decode(file_get_contents('php://input'), true);
+            $donnee = N::$LastJsonObjectInBody ;
             
              //YOUR LOGIC CODE HERE-------------------------/
             $Rep->OK = 1;
@@ -104,21 +105,21 @@ class ModelTemplate extends xNAbySyUrlRouterHelper {
              * Exemple: code below will re-route request to your {routename} action file with Action = {routename}_GET
              * All request parameters will be automaticaly transfert and handle by action file.
              * 
+             *  load body content as Json conveted Objet
+             *  $oBody = xNAbySyGS::$LastJsonObjectInBody ;
+             * 
              *  $_REQUEST['Action']="{ROUTENAME}_SAVE" ;
              *  $_REQUEST['ID']=$id ;
              *  include_once './gs/{routename}/{routename}_action.php';
-             */
-            $Rep = new xNotification();
-            $Rep->OK = 0;
-            
-            //load body content
-            $donnees = json_decode(file_get_contents('php://input'), true);
-            
+             */            
              //YOUR LOGIC CODE HERE-------------------------/
-            $Rep->OK = 1;
-            $Rep->Contenue = [];
+                $Rep = new xNotification();
+                $Rep->OK = 0;
+                $Rep->OK = 1;
+                $Rep->Contenue = [];
+                $Rep->SendAsJSON();
             //---------------------------------------------/
-            $Rep->SendAsJSON();
+            
         });
 
         /**Delete one {routename} on server */

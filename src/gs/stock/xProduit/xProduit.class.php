@@ -383,6 +383,7 @@ Class xProduit extends xORMHelper
 	 */
 	public static function GetCheminAucunePhoto(xNAbySyGS $nabysy, $NoSendToClient=false,string $baseUrlPhoto=null){
 		$Photo=new xPhoto( $nabysy);
+		$Photo->DossierPhoto = "photos";
 		$FileName='aucune.png' ;
 		$vFileName='aucune.png' ;
 		$DossierPhotos=$Photo->GetDossierPhoto() ;

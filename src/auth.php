@@ -198,6 +198,12 @@ use NAbySy\xUser;
             if(isset($_REQUEST['Action']) && $_REQUEST['Action'] == 'ETS_PAIE_TECHNOWEB'){
                 $IgnoreBillingCheck=true;
             }
+            if(isset($_REQUEST['Action']) && $_REQUEST['Action'] == 'PAIEMENT_REUSSIT'){
+                $IgnoreBillingCheck=true;
+            }
+            if(isset($_REQUEST['Action']) && $_REQUEST['Action'] == 'PAIEMENT_ERREUR'){
+                $IgnoreBillingCheck=true;
+            }
             if(!$IgnoreBillingCheck && !xNAbySyGS::$TechnoWEBMgr::BillingIsOK(xNAbySyGS::$TechnoWEBClient)){
                 $Reponse=new xNotification();
                 $Reponse->OK=0;

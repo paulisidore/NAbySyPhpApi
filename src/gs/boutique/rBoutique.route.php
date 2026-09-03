@@ -2,6 +2,7 @@
 
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\Router\Url\xNAbySyUrlRouterHelper;
+use NAbySy\xNAbySyGS;
 use NAbySy\xNotification;
 
 /**
@@ -63,18 +64,18 @@ class rBoutique extends xNAbySyUrlRouterHelper{
             // Récupérer les données envoyées par le client
             // file_get_contents('php://input') lit le corps de la requête
             // json_decode() transforme le JSON en tableau PHP
-            $donnees = json_decode(file_get_contents('php://input'), true);
+            $oBody = xNAbySyGS::$LastJsonObjectInBody ;
             // Validation : vérifier que les données requises sont présentes
-            if (empty($donnees['Nom']) ) {
+            if (empty($oBody['Nom']) ) {
                 http_response_code(422); // 422 = Unprocessable Entity (données invalides)
                 $Rep->TxErreur="Le champ Nom est obligatoir.";
                 return json_encode($Rep);
             }
 
             $nBout=new xBoutique(N::getInstance());
-            $nBout->Nom=$donnees['Nom'];
+            $nBout->Nom=$oBody['Nom'];
             $ListeChampIn=[];
-            foreach ($donnees as $key => $value) {
+            foreach ($oBody as $key => $value) {
                 if($nBout->ChampsExisteInTable($key)){
                     $nBout->$key = $value;
                 }else{
