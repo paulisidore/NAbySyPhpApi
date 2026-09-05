@@ -85,6 +85,20 @@ use NAbySy\xNAbySyGS;
          * @return int 
          */
         public static function TotalLines():int ;
+
+        /**
+         * Retourne le nom de Class court d'un Objet
+         * @param mixed $objOrFqcn 
+         * @return string 
+         */
+        static function shortClassName($objOrFqcn): string;
+
+        /**
+         * Retourne le nom de classe complet (namespace y compris) d'une classe
+         * @param mixed $objOrFqcn 
+         * @return string 
+         */
+        static function longClassName($objOrFqcn): string;
         
     }
 

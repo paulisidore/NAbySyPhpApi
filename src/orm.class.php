@@ -1925,6 +1925,24 @@ class xORMHelper implements IORMHelper {
         return $this->JointureChargeListe($Criteria,$OrderBy,$ListColumnSelect,$GroupBy,$Limit) ;
     }
 
+    static function shortClassName($objOrFqcn): string {
+        if (is_object($objOrFqcn)) {
+            return (new \ReflectionClass($objOrFqcn))->getShortName();
+        }
+        $fqcn = (string) $objOrFqcn;
+        $pos = strrpos($fqcn, '\\');
+        return $pos === false ? $fqcn : substr($fqcn, $pos + 1);
+    }
+
+    static function longClassName($objOrFqcn): string {
+        if (is_object($objOrFqcn)) {
+            return (new \ReflectionClass($objOrFqcn))->getName();
+        }
+        $fqcn = (string) $objOrFqcn;
+        $pos = strrpos($fqcn, '\\');
+        return $pos === false ? $fqcn : substr($fqcn, $pos + 1);
+    }
+
     public function __debugInfo() {
         $listeV=[];
         foreach ($this->ListeChampDB as $Champ){
