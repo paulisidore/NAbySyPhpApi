@@ -146,14 +146,14 @@ Class xAuth
         
         if (isset($JWT_TOKEN)){
             try{
-                xNAbySyGS::$Log->AddToLog('Token non décodé: '. $JWT_TOKEN);
+                //xNAbySyGS::$Log->AddToLog('Token non décodé: '. $JWT_TOKEN);
                 //echo $JWT_TOKEN ;exit;
                 //echo __FILE__." Key =". $this->Key ;exit;
                 $decoded = JWT::decode($JWT_TOKEN, $this->Key, array($Algo));
                 //var_dump($decoded);//exit;
-                xNAbySyGS::$Log->AddToLog("Reponse décodage Token reçu: ".json_encode($decoded));
+                //xNAbySyGS::$Log->AddToLog("Reponse décodage Token reçu: ".json_encode($decoded));
                 if (isset($decoded->user_data) && is_string($decoded->user_data)){
-                    xNAbySyGS::$Log->AddToLog('User_Data était un string, on va le décoder ici ... ');
+                    //xNAbySyGS::$Log->AddToLog('User_Data était un string, on va le décoder ici ... ');
                     $decoded->user_data=json_decode($decoded->user_data);
                 }else{
                     //var_dump($decoded);
