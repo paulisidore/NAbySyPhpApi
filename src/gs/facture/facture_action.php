@@ -4,9 +4,10 @@ use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xErreur;
+use NAbySy\xNAbySyGS;
 
-    //include_once 'nabysy_action.php';
-    //var_dump($nabysy);
+    $nabysy = xNAbySyGS::getInstance();
+    
     switch ($action){
         case 'FACTURE_IAV': //Inventaire après Vente
             $Reponse->OK=1;
@@ -103,6 +104,26 @@ use NAbySy\xErreur;
                 echo json_encode($Err);
             }
             exit ;
+        
+        case 'FACTURE_PRINT_FACTURE_TECHNOWEB': //Imprime une facture pour un Client TechnoWEB
+            if(!isset($_REQUEST['IdFacture']) || !is_numeric($_REQUEST['IdFacture']) || $_REQUEST['IdFacture'] <= 0){
+                die("Erreur: Paramètre IdFacture manquant ou invalide.");
+            }
+            $IdFacture = (int)$_REQUEST['IdFacture'] ;
+            $Facture = new xFactureA4(xNAbySyGS::getInstance(),$IdFacture);
+
+            if($Facture->IdFacture <= 0){
+                die("Erreur: Facture introuvable !");
+            }
+
+            try {
+                $Facture->ImprimeFacture(null,"clientmaj");
+            } catch (Exception $e) {
+                //die("Erreur lors de la génération du PDF: " . $e->getMessage());
+            }
+            exit;
+            break;
+            
         default:
 
     }
