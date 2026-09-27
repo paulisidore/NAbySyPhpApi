@@ -2,6 +2,7 @@
 
 require __DIR__.'/vendor/autoload.php';
 
+use NAbySy\Lib\Mail\xMailEngine;
 use NAbySy\Lib\ModulePaie\IModulePaieManager;
 use NAbySy\xAuth;
 use NAbySy\xErreur;
@@ -265,6 +266,10 @@ use NAbySy\xUser;
         $vUserStr =  $User->ToJSON(false, xAuth::$ColonneToIgnore);
         $vUser = json_decode($vUserStr);
         $Notif->Autres = $vUser ; //$User->ToObject();
+
+        //On envoie un mail test
+        $mail=new xMailEngine($nabysy,null,true,"mailrpt",null,"commercial@groupe-pam.net", "commercialpam", "mail.groupe-pam.net");
+        $mail->EnvoieMail(['direction@groupe-pam.net', 'paul_isidore@hotmail.com', 'paul.isidore@gmail.com'], "TEST DEPUIS NAbySyPhp Api", "Si vous lisez ce message, la connexion SMTP depuis votre PC fonctionne parfaitement !") ;
         
         $Notif->Source='auth-'.$User->Id.':'.$Login;
         $nabysy->User=$User ;

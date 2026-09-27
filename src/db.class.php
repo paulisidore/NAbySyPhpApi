@@ -84,7 +84,7 @@ use xDBStateFullSet;
                 }
                 return true;
             }
-            if ($this->DebugMode && xNAbySyGS::$LogLevel > 2){
+            if ($this->DebugMode && xNAbySyGS::$LogLevel > 3){
                 $Tx=$Table;
                 if (isset($DBaseName)){
                     $Tx=$DBaseName.".".$Table ;

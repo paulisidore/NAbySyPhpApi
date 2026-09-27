@@ -801,7 +801,9 @@ Class xNAbySyGS
 			
 			if(isset($this->MaBoutique)){
 				if($this->MaBoutique->DataBase !== $this->DataBase){
-					$this->MaBoutique->DataBase = $this->DataBase;
+					//$this->MaBoutique->DBName = $db ;
+					$this->MaBoutique->DataBase = $db;
+					//echo __FILE__." L".__LINE__." MaBoutique Database = ". $this->MaBoutique->DataBase ."</br>";
 					$this->MaBoutique->AutoCreate=false ; //Pour ne pas creer dans les BOutique Dynamique
 				}
 			}
@@ -1216,7 +1218,7 @@ Class xNAbySyGS
 				$this->MaBoutique->FlushMeToDB();
 			}
 		}
-		if($this->MaBoutique->Id == 0){
+		if($this->MaBoutique->Id == 0 && $this->MaBoutique->AutoCreate){
 			$this->MaBoutique->IdCompteClient=0;
 			$this->MaBoutique->Nom = $this->MODULE->MCP_CLIENT;
 			$this->MaBoutique->Serveur = $this->db_serveur;
@@ -1370,6 +1372,14 @@ Class xNAbySyGS
 				exit;
 			}
 		}
+		if(!isset($base) || $base ==''){
+			$Err= new xErreur;
+			$Err->TxErreur = "Imposible de selectionner une base de donnée non définit ";
+			if($this->ActiveDebug && self::$LogLevel>3){
+				$Err->Source = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,5);
+			}
+			$Err->SendAsJSON();
+		}
 		self::$db_link->select_db($base);
 		return true;
 	}
@@ -1443,8 +1453,6 @@ Class xNAbySyGS
 
 	public function ReadWrite($SQL,$NoReponse=false,$InsertTable=null,$DEBUG=true, bool $UseMasterDBLink=false){
 		$IsOK=false ;
-		//global $serveur,$user,$passwd,$bdd,$db_link, $MODULE ;
-		//$this->SelectDB();
 		$TxBout="MAIN" ;
 		if (isset($this->MaBoutique)){
 			$TxBout=$this->MaBoutique->DBName ?? "MAIN" ;
@@ -3536,7 +3544,7 @@ Class xNAbySyGS
 									}
 									
 									xORMHelper::$UseMasterLinkOnNextInit=true;
-									$Bout = new xORMHelper($this,$IdB,self::GLOBAL_AUTO_CREATE_DBTABLE,"boutique",$this->MainDataBase);
+									$Bout = new xORMHelper($this,$IdB,self::GLOBAL_AUTO_CREATE_DBTABLE,"boutique",$CltTechnoWeb->DataBase);
 									$Bout->DBName = $CltDataBase ;
 									$Bout->Nom = $CltTechnoWeb->RaisonSocial ;
 									$Bout->DBase = $CltDataBase ;
@@ -3547,7 +3555,7 @@ Class xNAbySyGS
 									$Bout->DBPassword = $CltTechnoWeb->ServiceDBPwd;
 
 									$IsDynamicBout=true;
-									$BoutiqueCible = new xBoutique($Bout->Main,0,false,$Bout->Table, $this->MainDataBase);
+									$BoutiqueCible = new xBoutique($Bout->Main,0,false,$Bout->Table, $CltTechnoWeb->DataBase);
 
 									$BoutiqueCible->DBName = $Bout->DBName ;
 									$BoutiqueCible->Nom = $Bout->Nom ;
@@ -3654,13 +3662,7 @@ Class xNAbySyGS
 										$BoutiqueCible->DBname = $CltDataBase ;
 									}
 
-									//if(!$IsDynamicBout){
-										
-										
-									//}
-
 									$this->MaBoutique = $BoutiqueCible;
-
 									//On ce connnecte via TechnoWEB si Serveur différent de l'adresse IP local
 									if($CltTechnoWeb->AdresseIP_VPN !=='' ){
 										if($CltTechnoWeb->AdresseIP_VPN !== '127.0.0.1' &&
@@ -3678,7 +3680,7 @@ Class xNAbySyGS
 												if($this->ActiveDebug && self::$LogLevel>3){
 													self::$Log->AddToLog("Connexion via TechnoWEB ... ");
 												}
-
+//												echo __FILE__." L".__LINE__." DBName Avant: " . $BoutiqueCible->DBName."</br>" ;
 												$this->restartConnexion($CltTechnoWeb->AdresseIP_VPN, 
 													$CltTechnoWeb->ServiceDBUser,
 													$CltTechnoWeb->ServiceDBPwd, 
@@ -3690,16 +3692,15 @@ Class xNAbySyGS
 												if($this->ActiveDebug && self::$LogLevel>3){
 													self::$Log->AddToLog("Client TechnoWEB connecté: ".$CltTechnoWeb->RaisonSocial." ID=".$CltTechnoWeb->Id);
 												}
-
-												//On s'assure que la Table BOutique est présente chez le client TechnoWEB
+												//echo __FILE__." L".__LINE__." DBName Après: " . $BoutiqueCible->DBName."</br>" ; 
 
 											}
 									}
 									/******************************************************************************* */
-
-									$this->SelectDB($BoutiqueCible->DBName);
-									$this->DataBase = $BoutiqueCible->DBName;
-									$this->RepWork = $CltDataBase;
+									//echo __FILE__." L".__LINE__." Database en cour sera ".$Bout->DBName."</br>";exit;
+									$this->SelectDB($CltDataBase);
+									$this->DataBase = $CltDataBase;
+									$this->RepWork = $CltDataBase."-".$CltTechnoWeb->Id;
 
 									if(!is_dir($this->RepWork)){
 										try {
@@ -3739,7 +3740,7 @@ Class xNAbySyGS
 		}
 		if($BoutiqueCible){
 			//self::$Log->Write("IDTechnoWeb: ".$IdTechnoWeb,1) ;
-			$this->RefreshParametre($BoutiqueCible->DBName);
+			$this->RefreshParametre($CltDataBase);
 			$Notif->Contenue=$BoutiqueCible ;
 			$Notif->OK=1 ;
 		}else{
