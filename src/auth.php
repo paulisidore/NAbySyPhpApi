@@ -268,8 +268,8 @@ use NAbySy\xUser;
         $Notif->Autres = $vUser ; //$User->ToObject();
 
         //On envoie un mail test
-        $mail=new xMailEngine($nabysy,null,true,"mailrpt",null,"commercial@groupe-pam.net","NAbySyPhp-Api", "commercialpam", "mail.groupe-pam.net");
-        $mail->EnvoieMail(['paul_isidore@hotmail.com'], "TEST DEPUIS NAbySyPhp Api", "Si vous lisez ce message, la connexion SMTP depuis votre PC fonctionne parfaitement !") ;
+        //$mail=new xMailEngine($nabysy,null,true,"mailrpt",null,"commercial@groupe-pam.net","NAbySyPhp-Api", "commercialpam", "mail.groupe-pam.net");
+        //$mail->EnvoieMail(['paul_isidore@hotmail.com'], "TEST DEPUIS NAbySyPhp Api", "Si vous lisez ce message, la connexion SMTP depuis votre PC fonctionne parfaitement !") ;
         
         $Notif->Source='auth-'.$User->Id.':'.$Login;
         $nabysy->User=$User ;
