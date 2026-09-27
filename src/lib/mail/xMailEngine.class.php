@@ -16,14 +16,31 @@ use PHPMailer\PHPMailer\PHPMailer;
         public ?PHPMailer $MailEngine ;
 
         /** Adresse e-mail de l'expéditeur */
-        public $SENDER_MAIL ='paulvb@groupe-pam.net' ;
+        public string $SENDER_MAIL ='paulvb@groupe-pam.net' ;
+
+        public string $SENDER_NAME = "" ;
 
         public function __construct(?xNAbySyGS $NabySy = null,?int $Id=null,?bool $CreateChampAuto=false, ?string $NomTable='mailrpt', ?string $DBName=null, 
             ?string $SenderAdress='nabysy@groupe-pam.net', 
+            ?string $SenderName="",
             ?string $Password="", 
             ?string $SmtpServer="",
             ?int $SmtpPort = 465,
             ?string $SmtpSecureType = PHPMailer::ENCRYPTION_SMTPS ){
+
+            if(!isset($SenderAdress) || $SenderName == ''){
+                $SenderName = $NabySy->MODULE->Nom ;
+            }
+
+            $this->SENDER_NAME = $SenderName;
+
+            if(!isset($SmtpSecureType)){
+                $SmtpSecureType = PHPMailer::ENCRYPTION_SMTPS;
+            }
+
+            if($NomTable == null){
+                $NomTable="mailrpt";
+            }
 
             parent::__construct($NabySy,$Id,$CreateChampAuto,$NomTable, $DBName);            
             $this->SENDER_MAIL=$SenderAdress ;
@@ -32,8 +49,8 @@ use PHPMailer\PHPMailer\PHPMailer;
 
             // Mode débogage pour voir tout ce qui se passe entre votre PC et OnetSolutions
             // 0 = off, 1 = messages client, 2 = client et serveur (idéal pour le dev)
-            if(xNAbySyGS::$LogLevel>4){
-                //$this->MailEngine->SMTPDebug = 2;
+            if(xNAbySyGS::$LogLevel>3){
+                $this->MailEngine->SMTPDebug = 2;
             }else{
                 $this->MailEngine->SMTPDebug = 0;
             }
@@ -43,7 +60,7 @@ use PHPMailer\PHPMailer\PHPMailer;
             $this->MailEngine->SMTPAuth   = $SenderAdress !='' ? true : false ;
             $this->MailEngine->Username   = $SenderAdress; // Votre adresse pro
             $this->MailEngine->Password   = $Password;
-            $this->MailEngine->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;       // Chiffrement SSL
+            $this->MailEngine->SMTPSecure = $SmtpSecureType;       // Chiffrement SSL
             $this->MailEngine->Port       = $SmtpPort;
         }
 
@@ -51,7 +68,7 @@ use PHPMailer\PHPMailer\PHPMailer;
         {
             $ret=false ;
             $ListeReponse=[];
-            $this->MailEngine->setFrom($this->MailEngine->Username, $this->Main->MODULE->Nom);
+            $this->MailEngine->setFrom($this->MailEngine->Username, $this->SENDER_NAME);
             $this->MailEngine->isHTML(true);
             $this->MailEngine->Subject = $Sujet;
             $this->MailEngine->Body = $Message;
