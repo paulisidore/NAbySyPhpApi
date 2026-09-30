@@ -1,10 +1,12 @@
 <?php
 use NAbySy\GS\Facture\Impression\xFactureA4;
+use NAbySy\GS\Facture\xNumerotationDoc;
 use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Stock\xProduit;
 use NAbySy\ORM\xORMHelper;
 use NAbySy\xErreur;
 use NAbySy\xNAbySyGS;
+use NAbySy\xNotification;
 
     $nabysy = xNAbySyGS::getInstance();
     
@@ -124,6 +126,68 @@ use NAbySy\xNAbySyGS;
             exit;
             break;
             
+        // =====================================================================
+        // [NUMEROTATION ANNUELLE] Lecture de la configuration (Facture + Proforma)
+        // Réponse: Contenue = [ {TYPEDOC, ACTIVE, PREFIXE, SEPARATEUR, NBCHIFFRES,
+        //                         ANNEECOURTE, NUMERODEPART, PROCHAIN_NUMERO}, ... ]
+        // =====================================================================
+        case 'NUMEROTATION_GET_CONFIG':
+            $RepNum = new xNotification();
+            $Numerotation = new xNumerotationDoc($nabysy);
+            if (isset($_REQUEST['TYPEDOC']) && trim($_REQUEST['TYPEDOC']) !== '') {
+                $RepNum->Contenue = [ $Numerotation->GetConfig($_REQUEST['TYPEDOC']) ];
+            } else {
+                $RepNum->Contenue = $Numerotation->GetAllConfig();
+            }
+            $RepNum->OK = 1;
+            $RepNum->Source = $action;
+            echo json_encode($RepNum);
+            exit;
+
+        // =====================================================================
+        // [NUMEROTATION ANNUELLE] Enregistrement de la configuration
+        // Paramètre: Config = JSON d'un objet ou d'un tableau d'objets
+        //            {TYPEDOC, ACTIVE, PREFIXE, SEPARATEUR, NBCHIFFRES, ANNEECOURTE, NUMERODEPART}
+        // =====================================================================
+        case 'NUMEROTATION_SAVE_CONFIG':
+            $ErrNum = new xErreur();
+            $ErrNum->OK = 0;
+            $ErrNum->Source = $action;
+            if ($nabysy->User->NiveauAcces < 4) {
+                $ErrNum->TxErreur = "Vous n'avez pas le niveau d'accès requis pour modifier la numérotation.";
+                echo json_encode($ErrNum);
+                exit;
+            }
+            if (!isset($_REQUEST['Config'])) {
+                $ErrNum->TxErreur = "Paramètre Config manquant.";
+                echo json_encode($ErrNum);
+                exit;
+            }
+            $ListeConf = json_decode($_REQUEST['Config'], true);
+            if (!is_array($ListeConf)) {
+                $ErrNum->TxErreur = "Paramètre Config invalide (JSON attendu).";
+                echo json_encode($ErrNum);
+                exit;
+            }
+            if (isset($ListeConf['TYPEDOC'])) {
+                $ListeConf = [ $ListeConf ];
+            }
+            $Numerotation = new xNumerotationDoc($nabysy);
+            foreach ($ListeConf as $Conf) {
+                if (!$Numerotation->SaveConfig($Conf)) {
+                    $ErrNum->TxErreur = "Enregistrement impossible : ".$Numerotation->LastError();
+                    echo json_encode($ErrNum);
+                    exit;
+                }
+            }
+            $RepNum = new xNotification();
+            $RepNum->OK = 1;
+            $RepNum->Source = $action;
+            $RepNum->Extra = "Numérotation enregistrée.";
+            $RepNum->Contenue = $Numerotation->GetAllConfig();
+            echo json_encode($RepNum);
+            exit;
+
         default:
 
     }

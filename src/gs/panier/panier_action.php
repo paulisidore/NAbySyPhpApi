@@ -2,6 +2,7 @@
 use NAbySy\GS\Boutique\xBoutique;
 use NAbySy\GS\Client\xClient;
 use NAbySy\GS\CodeBar\xCodeBarEAN13;
+use NAbySy\GS\Facture\xNumerotationDoc;
 use NAbySy\GS\Facture\xProforma;
 use NAbySy\GS\Facture\xVente;
 use NAbySy\GS\Panier\xArticlePanier;
@@ -175,6 +176,8 @@ use NAbySy\xNotification;
 			}elseif($IdFacture && $IdFacture>0){
 				$Panier->IdFacture=$IdFacture;
 			}
+			// [NUMEROTATION ANNUELLE] Seuls les nouveaux documents reçoivent un numéro annuel
+			$EstNouveauDoc = ((int)$Panier->IdFacture <= 0);
 			
 			$Err->TxErreur="";
 			//var_dump($_REQUEST);exit;
@@ -503,6 +506,15 @@ use NAbySy\xNotification;
 				}
 
 				if ($IdFacture>0){
+					// [NUMEROTATION ANNUELLE] Attribution du numéro de facture
+					if ($EstNouveauDoc){
+						try {
+							$Numerotation = new xNumerotationDoc(N::getInstance());
+							$Numerotation->Attribuer(xNumerotationDoc::TYPE_FACTURE, (int)$IdFacture);
+						} catch (\Throwable $th) {
+							N::$Log->AddToLog("Numérotation facture: ".$th->getMessage());
+						}
+					}
                     if (isset($ListeModCallBack)){
 						if (count($ListeModCallBack)>0){
 							foreach($ListeBonAchat as $LstBonAchat){
@@ -610,6 +622,8 @@ use NAbySy\xNotification;
 			}elseif($IdFacture && $IdFacture>0){
 				$Panier->IdFacture=$IdFacture;
 			}
+			// [NUMEROTATION ANNUELLE] Seuls les nouveaux documents reçoivent un numéro annuel
+			$EstNouveauDoc = ((int)$Panier->IdFacture <= 0);
 			
 			$Err->TxErreur="";
 			//var_dump($_REQUEST);exit;
@@ -807,6 +821,15 @@ use NAbySy\xNotification;
 				}
 
 				if ($IdFacture>0){
+					// [NUMEROTATION ANNUELLE] Attribution du numéro de proforma
+					if ($EstNouveauDoc){
+						try {
+							$Numerotation = new xNumerotationDoc(N::getInstance());
+							$Numerotation->Attribuer(xNumerotationDoc::TYPE_PROFORMA, (int)$IdFacture);
+						} catch (\Throwable $th) {
+							N::$Log->AddToLog("Numérotation proforma: ".$th->getMessage());
+						}
+					}
 					$Reponse=new xNotification();
 					$Reponse->OK=1;
 					$Reponse->Extra=$IdFacture ;
