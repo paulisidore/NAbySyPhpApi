@@ -5,7 +5,7 @@
     "require": {
         "php": ">=8.1.0",
         "composer-plugin-api": "^2.0",
-        "phpmailer/phpmailer": "dev-master"
+        "phpmailer/phpmailer": "^6.9"
     },
     "require-dev": {
         "composer/composer": "^2.0"
