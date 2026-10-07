@@ -414,13 +414,15 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
         return true ;
     }
 
-    public function CheckPassword($pwd_to_check){
-        $Ret=$this->ChargeListe(" (password like '".$pwd_to_check."' or password like MD5('".$pwd_to_check."') )");
-        //var_dump($Ret);
-        if ($Ret){
-            if ($Ret->num_rows>0){
-                return true ;
-            }
+    public function CheckPassword(string $pwd_to_check){
+        $Id = (int)$this->Id;
+        if ($Id <= 0 || $pwd_to_check === '') {
+            return false;
+        }
+        $Pwd = $this->Main::$db_link->real_escape_string($pwd_to_check);
+        $Ret = $this->ChargeListe("ID=".$Id." AND (password = '".$Pwd."' OR password = MD5('".$Pwd."'))");
+        if ($Ret && $Ret->num_rows > 0) {
+            return true;
         }
         return false;
     }
@@ -474,7 +476,7 @@ Class xUser extends \NAbySy\ORM\xORMHelper {
             $this->Signature='Signée par '.$this->Login ;
         }
         $Facture->IdSignature=(int)$this->Id;
-        $Facture->FactureSignee==$this->Main::$db_link->escape_string($this->Signature);
+        $Facture->FactureSignee=$this->Main::$db_link->escape_string($this->Signature);
         
         return $Facture->Enregistrer();
 
