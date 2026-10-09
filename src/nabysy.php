@@ -1523,6 +1523,7 @@ Class xNAbySyGS
 			$Fichier=$FichierError ;
 			// 1 : on ouvre le fichier
 			$monfichier = fopen($Fichier, 'a');
+			if ($monfichier !== false) {
 				$TxT=$Dat.";".$Tim.";".$SQL.";".$Note ;
 				$TxLog=str_replace("\n","",$TxT) ;
 				$TxLog=str_replace("\r\n","",$TxLog) ;
@@ -1531,7 +1532,8 @@ Class xNAbySyGS
 				fputs($monfichier, $TxT);
 				// 2 : on fera ici nos opérations sur le fichier...
 				// 3 : quand on a fini de l'utiliser, on ferme le fichier
-			fclose($monfichier);
+				fclose($monfichier);
+			}
 
 			//En cas d'erreur on l'inscrit dans le journal systeme
 			$ChampDate="DateEnreg" ;
@@ -1618,19 +1620,21 @@ Class xNAbySyGS
 					if ($CanLog){
 						//echo "Ouverture du fichier ".$Fichier." par ".exec('whoami');				
 						$monfichier = fopen($Fichier, 'a');
-						$Dat=date("Y-m-d");
-						$Tim=date("H:i:s");
-						$TxLog=str_replace("\n","",$SQL) ;
-						$TxLog=str_replace("\r\n","",$TxLog) ;
-						$TxLog=str_replace("\r","",$TxLog) ;
-						$TxT=$Dat.";".$Tim.";".$TxLog."\r\n" ;	
-						fputs($monfichier, $TxT);
-						// 2 : on fera ici nos opérations sur le fichier...
-						// 3 : quand on a fini de l'utiliser, on ferme le fichier
-						fclose($monfichier);
+						if ($monfichier !== false) {
+							$Dat=date("Y-m-d");
+							$Tim=date("H:i:s");
+							$TxLog=str_replace("\n","",$SQL) ;
+							$TxLog=str_replace("\r\n","",$TxLog) ;
+							$TxLog=str_replace("\r","",$TxLog) ;
+							$TxT=$Dat.";".$Tim.";".$TxLog."\r\n" ;	
+							fputs($monfichier, $TxT);
+							// 2 : on fera ici nos opérations sur le fichier...
+							// 3 : quand on a fini de l'utiliser, on ferme le fichier
+							fclose($monfichier);
+						}
 					}
 				}
-				catch(Exception $e){
+				catch(\Throwable $e){
 					echo "Erreur systeme de fichier sur ".$Fichier.". ".$e->getMessage() ;
 				}				
 			}
