@@ -114,6 +114,10 @@ Class xAuth
             $idTechnoWEB = trim($_REQUEST['IDTECHNOWEB']);
         }
 
+        $LstChampAExclure = ['PASSWORD'];
+        $tUsr = $User->ToArray($LstChampAExclure);
+        $oUsr = (object)$tUsr;
+
         $this->Payload = array(
             "pam_application" => $this->Main->MODULE->Nom,
             "pam_client" => $this->Main->MODULE->MCP_CLIENT,
@@ -127,7 +131,7 @@ Class xAuth
             "user_id" => $User->Id,
             "user_login" => $User->Login,
             "role" => $User->Profile ?? 'Utilisateur',
-            "user_data" => json_encode($User->ToObject()),
+            "user_data" => json_encode($oUsr),
             "iss" => "https://groupe-pam.net",
             "aud" => "https://groupe-pam.net",
             "iat" => $dateexp,
