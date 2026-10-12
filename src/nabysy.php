@@ -592,11 +592,22 @@ Class xNAbySyGS
 
 			if (!isset(self::$DBModulePaieMgr)){
 				self::$INITIAL_BOOTING = true;
+				//var_dump("Chargement des Modules de Gestion GS...");
 				self::LoadModuleGS();
-				self::$DBModulePaieMgr=new xMethodePaie($this);
+
+				//var_dump("Chargement du Module de Gestion des Modules de Paiement");
 				self::LoadModuleLib(self::$LogLevel);
+
+				//var_dump("Chargement des infos client...");
 				$this->ChargeInfos() ;
+
+				//var_dump("Chargement des Modules Externes...");
 				self::LoadExternalModuleLib();
+
+				//var_dump("Chargement du Module de Paiement...");
+				self::$DBModulePaieMgr=new xMethodePaie($this);
+
+				//var_dump("Chargement du Loader de Modules de Paiement...");
 				$PMLoader=new PaiementModuleLoader($this); // PaiementModuleLoader($this); //Chargement automatique des Modules de paiements disponible
 			}
 
@@ -2313,6 +2324,8 @@ Class xNAbySyGS
             if ($DebugLevel>1){
                 self::$Log->AddToLog( 'Repertoire '.$rep.' ? ') ;
             }            
+			self::$Log->AddToLog( 'Chargement des Modules dans '.$rep.' ... ') ;
+
             if(self::IsDirectory($rep)){  
                 if ($DebugLevel>1){
                     self::$Log->AddToLog( 'OUI') ;
@@ -2758,7 +2771,7 @@ Class xNAbySyGS
 			return true ;
 		}
 		if (!isset($this->User) || $this->User->Id==0){
-			self::$Log->Write("Laissez moi vérifier a nouveau l'utilisateur en cour ...");
+			//self::$Log->Write("Laissez moi vérifier a nouveau l'utilisateur en cour ...");
 			self::ReadHttpAuthRequest();
 		}
 		if (!isset($this->User)){

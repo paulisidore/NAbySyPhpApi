@@ -11,6 +11,7 @@ use NAbySy\xNAbySyGS;
     class xMethodePaie extends xORMHelper{
         public function __construct(?xNAbySyGS $NabySy = null,?int $IdMethode=null,?bool $AutoCreateTable=true, ?string $TableName='methodepaie',?string $DBName=null){
             parent::__construct($NabySy,$IdMethode,$AutoCreateTable,$TableName,$DBName) ;
+            //echo "Vérification présence du mode Espèce "."\n";
             $this->GenerateNewMethodeEspece();
         }
 
@@ -24,6 +25,7 @@ use NAbySy\xNAbySyGS;
             $this->Nom = "Espece";
             $this->Description = "Paiement en Espèce";
             $this->Active = true;
+            //echo "Mode Espèce crée "."\n";
             return $this->Enregistrer();
         }
 

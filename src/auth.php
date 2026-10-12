@@ -298,6 +298,13 @@ use NAbySy\xUser;
             //var_dump(__FILE__. " "." L".__LINE__." Token = ". $Token);
             $Auth->EnteteAPI() ;
             $Err->TxErreur="L".__LINE__." Vous etes pas authorisé." ;
+            if(xNAbySyGS::$TECHNOWEB_ACTIVE){
+                $Err->Autres = "TECHNOWEB_ACTIVE" ;
+                if(!isset(xNAbySyGS::$TechnoWEBClient)){
+                    $Err->Autres =  "Aucun compte TechnoWEB trouvé" ;
+                }
+            }
+            
             $Err->OK=0;
             //$nabysy->User=null ;
             if($User->Main::$SendAuthReponse){
