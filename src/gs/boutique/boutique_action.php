@@ -160,7 +160,7 @@ switch ($action){
             exit;
             break;
         
-        case 'ETS_CONFIG_SAVE': //Retourne une configuration
+        case 'ETS_CONFIG_SAVE': //Enregistre une configuration
             $IdConfig=1;
             $NewConfig=false;
             $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
@@ -170,33 +170,15 @@ switch ($action){
                 }
             }
 
-            /* if(isset($PARAM['IDTECHNOWEB'])){
-                if(trim($PARAM['IDTECHNOWEB']) !==''){
-                    if(isset(xNAbySyGS::$TechnoWEBMgr)){
-                        $ClientTechnoWeb=xNAbySyGS::$TechnoWEBMgr->GetClientTechnoWeb($PARAM['IDTECHNOWEB']);
-                        if($ClientTechnoWeb){
-                            $IdBTrouve=null;
-                            if($ClientTechnoWeb->ServiceDB == xNAbySyGS::getInstance()->MaBoutique->DBName ){
-                                $IdBout=xNAbySyGS::getInstance()->MaBoutique->Id;
-                                $IdBTrouve = $IdBout ;
-                            }else{
-                                $IdBout = $ClientTechnoWeb->Id ;
-                                $Critere="<p>DBName like '".$ClientTechnoWeb->ServiceDB."' " ;
-                            
-                                //echo "DB Recherché = ".$Critere . "</p>";
-                                foreach (xNAbySyGS::getInstance()::$ListeBoutique as $BoutX) {
-                                    //echo($BoutX->Nom." : DB=>".$BoutX->DBName." </br>");
-                                    if($BoutX->DBName == $ClientTechnoWeb->ServiceDB ){
-                                        $IdBout = $BoutX->Id;
-                                        $IdBTrouve = $IdBout ;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } */
+            if(!xNAbySyGS::getInstance()->ValideUser()){
+                exit;
+            }
+            if(xNAbySyGS::getInstance()->User->NiveauAcces < 4){
+                $Err=new xErreur();
+                $Err->TxErreur="Accès refusé. Niveau d'accès insuffisant pour effectuer cette opération.";
+                $Err->SendAsJSON();
+            }
+
             if(xNAbySyGS::$TECHNOWEB_ACTIVE){
                 $Bout = xNAbySyGS::getInstance()->MaBoutique;
                 $Param=xNAbySyGS::getInstance()->Parametre ;
@@ -486,7 +468,7 @@ switch ($action){
                 $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête A4." ;
             }
             $Rep->SendAsJSON();
-
+            break;
         case "ETS_SAVE_ENTETE_TICKET": //
             $Rep=new xNotification() ;
             $Rep->OK=0 ;
@@ -511,7 +493,8 @@ switch ($action){
                 $Rep->TxErreur="Aucune configuration trouvée pour l'enregistrement de l'entête Logo Ticket." ;
             }
             $Rep->SendAsJSON();
-
+            break;
+            
         case "ETS_PAIE_TECHNOWEB": //Renouvelle l'abonnement TechnoWEB
             $Reponse->OK=0;
             if(!xNAbySyGS::$TECHNOWEB_ACTIVE || !isset(xNAbySyGS::$TechnoWEBMgr)){
