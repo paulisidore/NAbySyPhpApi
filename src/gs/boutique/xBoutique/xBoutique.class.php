@@ -587,7 +587,7 @@ Class xBoutique extends xORMHelper  {
 			//$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
 		}
 		if (!isset($baseUrlPhoto)){
-			$FichierConf="parametreBoutique.json";
+			$FichierConf=xNAbySyGS::CurrentFolder(true)."parametreBoutique.json";
 			$MyParam=$this->Main->LoadConfigFile($FichierConf);
 			if ($MyParam != false){
 				if (isset($MyParam['PHOTO_BASEURL'])){
@@ -675,7 +675,7 @@ Class xBoutique extends xORMHelper  {
 			$this->AddToJournal("WARNING","Fichier ".$FileName." absent.");
 		}
 		if (!isset($baseUrlPhoto)){
-			$FichierConf="parametreBoutique.json";
+			$FichierConf=xNAbySyGS::CurrentFolder(true)."parametreBoutique.json";
 			$MyParam=$this->Main->LoadConfigFile($FichierConf);
 			if ($MyParam != false){
 				if (isset($MyParam['PHOTO_BASEURL'])){
@@ -788,7 +788,7 @@ Class xBoutique extends xORMHelper  {
 			//$Debugger->AddToLog("Fichier ".$FileName." absent.");
 		}
 		if (!isset($baseUrlPhoto)){
-			$FichierConf="parametreBoutique.json";
+			$FichierConf=xNAbySyGS::CurrentFolder(true)."parametreBoutique.json";
 			$MyParam=$this->Main->LoadConfigFile($FichierConf);
 			if ($MyParam != false){
 				if (isset($MyParam['PHOTO_BASEURL'])){

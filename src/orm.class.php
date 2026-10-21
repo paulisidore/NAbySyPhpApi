@@ -1314,9 +1314,11 @@ class xORMHelper implements IORMHelper {
         }
         $UserN='SYS_ORM';
         $IdU=0;
-        if ($this->Main->ValideUser(false)){
-            $UserN=$this->Main->User->Login;
-            $IdU=$this->Main->User->Id;
+        if(isset($this->Main->User) && $this->Main->User->Id){
+            if ($this->Main->ValideUser(false)){
+                $UserN=$this->Main->User->Login;
+                $IdU=$this->Main->User->Id;
+            }
         }
         if (!isset($UserN)){
             $UserN='SYS_ORM';

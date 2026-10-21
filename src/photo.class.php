@@ -1,6 +1,9 @@
 <?php
 namespace NAbySy ;
 
+use Exception;
+use NAbySy\ORM\xORMHelper;
+
 /* define('KB', 1024);
 define('MB', 1048576);
 define('GB', 1073741824);
@@ -29,6 +32,7 @@ Class xPhoto{
     public $FICHIERS ;
     public $ExtentionAccepte ;
     public $maxSize ;    //Voir dans le Constructor
+    public string $DossierMiniature ;
 
     public function __construct(xNAbySyGS $NAbySY,$DossierPhoto= 'photos', ?bool $IgnoreCltTechnoWEBFolder=false){
         self::$Main=$NAbySY ;
@@ -50,6 +54,11 @@ Class xPhoto{
             
         }
 
+        $this->DossierMiniature = $this->DossierPhoto."/miniatures";
+        if (!file_exists($this->DossierMiniature)) {
+            mkdir($this->DossierMiniature, 0777, true);
+        }
+        
         if (isset($_FILES)){
             $this->FICHIERS=$_FILES ;
         }
@@ -201,6 +210,11 @@ Class xPhoto{
         return $vDest ;
     }
 
+    public function GetDossierMinitaurePhoto(){
+        $vDest=$this->DossierMiniature.'/' ;
+        return $vDest ;
+    }
+
     /**
      * Ajoute une extension de fichier à prendre en charge
      * @param string $Extention 
@@ -243,5 +257,108 @@ Class xPhoto{
 
         }
         return false;
+    }
+
+    /**
+     * Redimensionne une image
+     */
+    private function resizeImage(string $fichierImageSrc, $resourceType, $image_width, $image_height, $resizeWidth=576, $resizeHeight=718){
+        // $resizeWidth = 100;
+        // $resizeHeight = 100;
+        $fichierSortie=$fichierImageSrc ;
+
+        $fileExt = pathinfo($fichierImageSrc, PATHINFO_EXTENSION);
+        $sourceProperties = getimagesize($fichierImageSrc);
+        $ImageType = $sourceProperties[2];
+        $sourceImageWidth = $sourceProperties[0];
+        $sourceImageHeight = $sourceProperties[1];
+
+        $old_x = imageSX($resourceType);
+        $old_y = imageSY($resourceType);
+
+        if($old_x > $old_y) 
+        {
+            $thumb_w    =   $resizeWidth;
+            $thumb_h    =   $old_y*($resizeHeight/$old_x);
+        }
+
+        if($old_x < $old_y) 
+        {
+            $thumb_w    =   $old_x*($resizeWidth/$old_y);
+            $thumb_h    =   $resizeHeight;
+        }
+
+        if($old_x == $old_y) 
+        {
+            $thumb_w    =   $resizeWidth;
+            $thumb_h    =   $resizeHeight;
+        }
+
+        $imageLayer = imagecreatetruecolor((int)$thumb_w, (int)$thumb_h);
+        imagecopyresampled($imageLayer, $resourceType, 0, 0, 0, 0, (int)$thumb_w, (int)$thumb_h, (int)$old_x, (int)$old_y);
+        return $imageLayer;
+    }
+    
+    /**
+     * Créer une miniature de la photo
+     */
+    public function createImageThump(string $fichierImageSrc, string $destFileNameSansExtention){
+        $sourceProperties=false;
+        $Debugger=new xORMHelper( $this->Boutique->Main,null,false,'journal');
+
+        try{
+            $fileExt = pathinfo($fichierImageSrc, PATHINFO_EXTENSION);
+            $sourceProperties = getimagesize($fichierImageSrc);
+        }catch (Exception $ex){
+            $Debugger->AddToLog("Err dans photo.createImageThump: Impossible de créer la miniature pour ".$fichierImageSrc);
+            $Debugger->AddToLog("Exception: ".$ex->getMessage());
+            return ;
+        }
+        
+        $ImageType = $sourceProperties[2];
+        $sourceImageWidth = $sourceProperties[0];
+        $sourceImageHeight = $sourceProperties[1];
+        
+
+        $new_width = 576;
+        $new_height = 718 ;
+
+        $fichierMiniature=$destFileNameSansExtention . '.' . $fileExt ;
+
+        switch ($ImageType)
+        {
+            case IMAGETYPE_JPEG:
+                $resourceType = imagecreatefromjpeg($fichierImageSrc);                
+
+                $imageLayer = $this->resizeImage($fichierImageSrc, $resourceType, $sourceImageWidth, $sourceImageHeight, $new_width, $new_height);
+                imagejpeg($imageLayer, $destFileNameSansExtention . '.' . $fileExt);
+                return  $fichierMiniature;
+            break;
+
+            case IMAGETYPE_GIF:
+                $resourceType = imagecreatefromgif($fichierImageSrc);
+                $imageLayer = $this->resizeImage($fichierImageSrc, $resourceType, $sourceImageWidth, $sourceImageHeight, $new_width, $new_height);
+                imagegif($imageLayer,  $destFileNameSansExtention . '.' . $fileExt);
+                return  $fichierMiniature;
+            break;
+
+            case IMAGETYPE_PNG:
+                $resourceType = imagecreatefrompng($fichierImageSrc);
+                $imageLayer = $this->resizeImage($fichierImageSrc, $resourceType, $sourceImageWidth, $sourceImageHeight, $new_width, $new_height);
+                imagepng($imageLayer, $destFileNameSansExtention . '.' . $fileExt);
+                return  $fichierMiniature;
+            break;
+
+            case IMAGETYPE_JPEG2000:
+                $resourceType = imagecreatefrompng($fichierImageSrc);
+                $imageLayer = $this->resizeImage($fichierImageSrc, $resourceType, $sourceImageWidth, $sourceImageHeight, $new_width, $new_height);
+                imagepng($imageLayer,  $destFileNameSansExtention . '.' . $fileExt);
+                return  $fichierMiniature;
+            break;
+
+            default:
+
+            break;
+        }
     }
 }

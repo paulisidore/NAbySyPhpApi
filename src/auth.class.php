@@ -137,8 +137,7 @@ Class xAuth
             "iat" => $dateexp,
             "nbf" => $dateexp,
             "exp" => $dateexp+$this->DureeVieSecode ,
-            "Author" => $this->Main->MODULE->MCP_CLIENT,
-            "Special" => $this->Key
+            "Author" => $this->Main->MODULE->MCP_CLIENT
         );
         
         $jwt=JWT::encode($this->Payload,$this->Key,$Algo) ;

@@ -2078,19 +2078,31 @@ Class xNAbySyGS
 	 * @param array $ListeRepertoirGS : Liste des répertoires à charger. Si vide, on charge tous les modules de gestion par défaut de NAbySyGS.
 	 */
 	public static function LoadModuleGS($ListeRepertoirGS = []){
+		$ListeRNatif=[];
+		$ListeRNatif[]="boutique" ;
+		$ListeRNatif[]="stock" ;
+		$ListeRNatif[]="client" ;
+		$ListeRNatif[]="facture" ;
+		$ListeRNatif[]="comptabilite" ;
+		$ListeRNatif[]="panier" ;
+		$ListeRNatif[]="userapi" ;
+
 		$RepWork=self::CurrentFolder()."gs" ;
 		$ListeR=$ListeRepertoirGS ;
 		if(count($ListeR) == 0){
 			$ListeR=[];
-			$ListeR[]="boutique" ;
-			$ListeR[]="stock" ;
-			$ListeR[]="client" ;
-			// $ListeR[]="fournisseur" ;
-			$ListeR[]="facture" ;
-			//$ListeR[]="bl" ;
-			$ListeR[]="comptabilite" ;
-			$ListeR[]="panier" ;
-			$ListeR[]="userapi" ;
+			// Le '/*' indique qu'on cherche tout le contenu, GLOB_ONLYDIR filtre les dossiers
+			$dossiers = glob($RepWork . '*', GLOB_ONLYDIR);
+			if($dossiers){
+				foreach ($dossiers as $dossier) {
+					$ListeR[] = basename($dossier);
+				}
+			}
+			foreach ($ListeRNatif as $moduleNatif) {
+				if (!in_array($moduleNatif, $ListeR)) {
+					$ListeR[] = $moduleNatif; // Ajoute le module natif manquant à la liste
+				}
+			}
 		}
 		
 		//On déclare un AutoLoad pour chaque catégorie
